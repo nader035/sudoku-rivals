@@ -133,7 +133,7 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
             </button>
 
             <!-- Guest section -->
-            <div class="rounded-2xl border border-border/60 bg-background/60 p-5">
+            <!-- <div class="rounded-2xl border border-border/60 bg-background/60 p-5">
               <div class="flex items-center gap-2">
                 <span class="text-lg">👤</span>
                 <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">Quick play</div>
@@ -160,7 +160,7 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
               >
                 {{ guestSigningIn() ? 'Entering...' : 'Play as Guest' }}
               </button>
-            </div>
+            </div> -->
 
             @if (signInErrors().length > 0) {
               <ul class="space-y-1 rounded-lg border border-border/60 bg-muted/20 p-3 text-xs text-muted-foreground">
