@@ -11,5 +11,6 @@ const envConfigFile = `export const environment = {
 `;
 
 console.log('Generating environment.ts...');
+fs.mkdirSync(path.dirname(targetPath), { recursive: true });
 fs.writeFileSync(targetPath, envConfigFile);
 console.log(`File generated at ${targetPath}`);
