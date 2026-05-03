@@ -220,9 +220,9 @@ export class SupabaseService {
       await this.ensurePlayerProfile(data.session.user, credentials.username);
     }
   }
-  async signInWithTwitter(): Promise<void> {
+  async signInWithX(): Promise<void> {
     const { error } = await this.client.auth.signInWithOAuth({
-      provider: 'twitter',
+      provider: 'x',
       options: {
         redirectTo: window.location.origin,
       },

@@ -42,15 +42,15 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
           </div>
 
           <div class="mt-6 space-y-5">
-            <!-- Twitter OAuth -->
+            <!-- X OAuth -->
             <button
               class="flex w-full items-center justify-center gap-3 rounded-lg border border-border/60 bg-background/80 px-4 py-3 text-sm font-semibold transition-all hover:border-primary/60 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
               type="button"
-              [disabled]="signingUpWithTwitter()"
-              (click)="signUpWithTwitter()"
+              [disabled]="signingUpWithX()"
+              (click)="signUpWithX()"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              {{ signingUpWithTwitter() ? 'Redirecting...' : 'Continue with X' }}
+              {{ signingUpWithX() ? 'Redirecting...' : 'Continue with X' }}
             </button>
 
             <!-- Divider -->
@@ -176,7 +176,7 @@ export class SignUpPage {
   readonly appStore = inject(AppStore);
   readonly supabase = inject(SupabaseService);
   readonly signingUp = signal(false);
-  readonly signingUpWithTwitter = signal(false);
+  readonly signingUpWithX = signal(false);
   readonly statusMessage = signal<string | null>(null);
 
   readonly signUpForm = signalForm<SignUpCredentials>({
@@ -217,14 +217,14 @@ export class SignUpPage {
     field.$touched.set(true);
   }
 
-  async signUpWithTwitter(): Promise<void> {
-    this.signingUpWithTwitter.set(true);
+  async signUpWithX(): Promise<void> {
+    this.signingUpWithX.set(true);
     this.statusMessage.set(null);
     try {
-      await this.supabase.signInWithTwitter();
+      await this.supabase.signInWithX();
     } catch (error) {
       this.statusMessage.set(error instanceof Error ? error.message : 'Unable to sign in with X');
-      this.signingUpWithTwitter.set(false);
+      this.signingUpWithX.set(false);
     }
   }
 
