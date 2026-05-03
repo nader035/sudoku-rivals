@@ -247,8 +247,14 @@ export class SupabaseService {
   }
 
   async ensurePlayerProfile(user: Session['user'], username?: string): Promise<PlayerProfile> {
+    const meta = user.user_metadata ?? {};
     const nextUsername = this.normalizeUsername(
-      username ?? user.user_metadata?.['username'] ?? user.email,
+      username
+        ?? meta['username']
+        ?? meta['user_name']
+        ?? meta['preferred_username']
+        ?? meta['name']
+        ?? user.email,
     );
     const payload = {
       auth_id: user.id,
