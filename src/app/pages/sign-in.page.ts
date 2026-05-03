@@ -1,0 +1,277 @@
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { signalForm } from '@luistabotelho/angular-signal-forms';
+import {
+  signalFormErrors,
+  signalFormSetTouched,
+  signalFormValid,
+  signalFormValue,
+  resetSignalForm,
+} from '@luistabotelho/angular-signal-forms';
+import {
+  Email,
+  MaxLength,
+  MinLength,
+  Required,
+} from '@luistabotelho/angular-signal-forms/validators';
+import { AppStore } from '../store/app.store';
+import { SupabaseService } from '../core/services/supabase.service';
+import { AuthCredentials, GuestCredentials } from '../core/models';
+import { SignalFormField } from '../shared/forms/signal-form-helpers';
+
+@Component({
+  selector: 'app-sign-in-page',
+  standalone: true,
+  template: `
+    <div
+      class="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground"
+    >
+      <div class="grid w-full max-w-5xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <section
+          class="hidden rounded-3xl border border-border/60 bg-card/70 p-8 shadow-2xl backdrop-blur lg:block"
+        >
+          <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">Sudoku Rival</div>
+          <h1
+            class="mt-4 text-5xl font-black uppercase italic leading-[0.95] tracking-tight text-primary"
+          >
+            Enter the arena
+          </h1>
+          <p class="mt-5 max-w-md text-base text-muted-foreground">
+            Sign in to create rooms, track your progress, and challenge rivals in real time.
+          </p>
+          <div class="mt-10 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-md border border-border/60 bg-background/60 p-4">
+              <div class="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">
+                Arena
+              </div>
+              <div class="mt-2 text-xl font-black text-primary">Live rooms</div>
+            </div>
+            <div class="rounded-md border border-border/60 bg-background/60 p-4">
+              <div class="text-[10px] font-mono uppercase tracking-[0.3em] text-muted-foreground">
+                Ranked
+              </div>
+              <div class="mt-2 text-xl font-black text-primary">Global leaderboard</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          class="rounded-3xl border border-border/60 bg-card/80 p-6 shadow-2xl backdrop-blur sm:p-8"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">
+                Welcome back
+              </div>
+              <h2 class="mt-2 text-3xl font-black uppercase italic text-primary">Sign in</h2>
+            </div>
+            <button
+              class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:bg-muted/40"
+              type="button"
+              (click)="goHome()"
+            >
+              Home
+            </button>
+          </div>
+
+          <div class="mt-6 space-y-6">
+            <label class="block space-y-2">
+              <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+                >Email</span
+              >
+              <input
+                class="w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
+                [value]="signInForm.email.$currentValue()"
+                (input)="setFieldValue(signInForm.email, $event)"
+                (blur)="markTouched(signInForm.email)"
+                type="email"
+                placeholder="you@example.com"
+              />
+              @if (signInForm.email.$touched() && signInForm.email.$stateMessage()) {
+                <span class="text-xs text-destructive">{{ signInForm.email.$stateMessage() }}</span>
+              }
+            </label>
+
+            <label class="block space-y-2">
+              <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+                >Password</span
+              >
+              <input
+                class="w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
+                [value]="signInForm.password.$currentValue()"
+                (input)="setFieldValue(signInForm.password, $event)"
+                (blur)="markTouched(signInForm.password)"
+                type="password"
+                placeholder="Password"
+              />
+              @if (signInForm.password.$touched() && signInForm.password.$stateMessage()) {
+                <span class="text-xs text-destructive">{{
+                  signInForm.password.$stateMessage()
+                }}</span>
+              }
+            </label>
+
+            @if (statusMessage()) {
+              <div
+                class="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+              >
+                {{ statusMessage() }}
+              </div>
+            }
+
+            <button
+              class="w-full rounded-md bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              type="button"
+              [disabled]="signingIn()"
+              (click)="submitSignIn()"
+            >
+              {{ signingIn() ? 'Signing in...' : 'Sign in' }}
+            </button>
+
+            <div class="rounded-2xl border border-border/60 bg-background/60 p-4">
+              <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">
+                Quick play
+              </div>
+              <label class="mt-3 block space-y-2">
+                <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+                  >Guest username</span
+                >
+                <input
+                  class="w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
+                  [value]="guestForm.username.$currentValue()"
+                  (input)="setFieldValue(guestForm.username, $event)"
+                  (blur)="markTouched(guestForm.username)"
+                  type="text"
+                  placeholder="Choose a username"
+                />
+                @if (guestForm.username.$touched() && guestForm.username.$stateMessage()) {
+                  <span class="text-xs text-destructive">{{
+                    guestForm.username.$stateMessage()
+                  }}</span>
+                }
+              </label>
+              <button
+                class="mt-4 w-full rounded-md border border-border/60 px-4 py-3 text-sm font-bold uppercase tracking-wider hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
+                type="button"
+                [disabled]="guestSigningIn()"
+                (click)="submitGuestSignIn()"
+              >
+                {{ guestSigningIn() ? 'Entering...' : 'Play as guest' }}
+              </button>
+            </div>
+
+            @if (signInErrors().length > 0) {
+              <ul
+                class="space-y-1 rounded-md border border-border/60 bg-muted/20 p-3 text-xs text-muted-foreground"
+              >
+                @for (error of signInErrors(); track error) {
+                  <li>{{ error }}</li>
+                }
+              </ul>
+            }
+
+            <button
+              class="w-full rounded-md border border-border/60 px-4 py-3 text-sm font-medium hover:bg-muted/40"
+              type="button"
+              (click)="goSignUp()"
+            >
+              Need an account? Sign up
+            </button>
+          </div>
+        </section>
+      </div>
+    </div>
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class SignInPage {
+  private readonly router = inject(Router);
+  readonly appStore = inject(AppStore);
+  readonly supabase = inject(SupabaseService);
+  readonly signingIn = signal(false);
+  readonly guestSigningIn = signal(false);
+  readonly statusMessage = signal<string | null>(null);
+
+  readonly signInForm = signalForm<AuthCredentials>({
+    email: {
+      initialValue: '',
+      validators: [Required('Email is required'), Email()],
+    },
+    password: {
+      initialValue: '',
+      validators: [Required('Password is required'), MinLength(8)],
+    },
+  });
+
+  readonly guestForm = signalForm<GuestCredentials>({
+    username: {
+      initialValue: '',
+      validators: [Required('Username is required'), MinLength(3), MaxLength(24)],
+    },
+  });
+
+  readonly signInValue = signalFormValue(this.signInForm);
+  readonly guestValue = signalFormValue(this.guestForm);
+  readonly signInValid = signalFormValid(this.signInForm);
+  readonly signInErrors = signalFormErrors(this.signInForm);
+
+  readonly redirectEffect = effect(() => {
+    if (this.appStore.authLoaded() && this.appStore.isSignedIn()) {
+      void this.router.navigateByUrl('/lobby');
+    }
+  });
+
+  goHome(): void {
+    void this.router.navigateByUrl('/');
+  }
+
+  goSignUp(): void {
+    void this.router.navigateByUrl('/sign-up');
+  }
+
+  setFieldValue<T>(field: SignalFormField<T>, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    field.$currentValue.set(target.value as T);
+    field.$touched.set(true);
+  }
+
+  markTouched<T>(field: SignalFormField<T>): void {
+    field.$touched.set(true);
+  }
+
+  async submitSignIn(): Promise<void> {
+    signalFormSetTouched(this.signInForm);
+    this.statusMessage.set(null);
+
+    if (!this.signInValid()) return;
+
+    this.signingIn.set(true);
+
+    try {
+      await this.supabase.signInWithPassword(this.signInValue() as AuthCredentials);
+      await this.router.navigateByUrl('/lobby');
+    } catch (error) {
+      this.statusMessage.set(error instanceof Error ? error.message : 'Unable to sign in');
+    } finally {
+      this.signingIn.set(false);
+    }
+  }
+
+  async submitGuestSignIn(): Promise<void> {
+    signalFormSetTouched(this.guestForm);
+    this.statusMessage.set(null);
+
+    if (!this.guestForm.username.$valid()) return;
+
+    this.guestSigningIn.set(true);
+
+    try {
+      await this.supabase.signInAsGuest(this.guestValue() as GuestCredentials);
+      await this.router.navigateByUrl('/lobby');
+    } catch (error) {
+      this.statusMessage.set(error instanceof Error ? error.message : 'Unable to enter as guest');
+    } finally {
+      this.guestSigningIn.set(false);
+    }
+  }
+}
