@@ -207,6 +207,7 @@ export class SupabaseService {
       email: credentials.email,
       password: credentials.password,
       options: {
+        emailRedirectTo: window.location.origin,
         data: {
           username: credentials.username,
         },
