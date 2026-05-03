@@ -1,21 +1,40 @@
 import { Routes } from '@angular/router';
-import { HomePage } from './pages/home.page';
-import { LobbyPage } from './pages/lobby.page';
-import { LeaderboardPage } from './pages/leaderboard.page';
-import { NotFoundPage } from './pages/not-found.page';
-import { RoomPage } from './pages/room.page';
-import { SignInPage } from './pages/sign-in.page';
-import { SignUpPage } from './pages/sign-up.page';
-import { SoloPage } from './pages/solo.page';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', component: HomePage, pathMatch: 'full' },
-  { path: 'play/solo', component: SoloPage },
-  { path: 'lobby', component: LobbyPage, canActivate: [authGuard] },
-  { path: 'room/:roomId', component: RoomPage, canActivate: [authGuard] },
-  { path: 'sign-in', component: SignInPage },
-  { path: 'sign-up', component: SignUpPage },
-  { path: 'leaderboard', component: LeaderboardPage },
-  { path: '**', component: NotFoundPage },
+  {
+    path: '',
+    loadComponent: () => import('./pages/home.page').then(m => m.HomePage),
+    pathMatch: 'full',
+  },
+  {
+    path: 'play/solo',
+    loadComponent: () => import('./pages/solo.page').then(m => m.SoloPage),
+  },
+  {
+    path: 'lobby',
+    loadComponent: () => import('./pages/lobby.page').then(m => m.LobbyPage),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'room/:roomId',
+    loadComponent: () => import('./pages/room.page').then(m => m.RoomPage),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'sign-in',
+    loadComponent: () => import('./pages/sign-in.page').then(m => m.SignInPage),
+  },
+  {
+    path: 'sign-up',
+    loadComponent: () => import('./pages/sign-up.page').then(m => m.SignUpPage),
+  },
+  {
+    path: 'leaderboard',
+    loadComponent: () => import('./pages/leaderboard.page').then(m => m.LeaderboardPage),
+  },
+  {
+    path: '**',
+    loadComponent: () => import('./pages/not-found.page').then(m => m.NotFoundPage),
+  },
 ];

@@ -225,6 +225,7 @@ export class SupabaseService {
       provider: 'x',
       options: {
         redirectTo: window.location.origin,
+        scopes: 'tweet.read users.read',
       },
     });
     if (error) throw error;
