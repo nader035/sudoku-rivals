@@ -22,6 +22,7 @@ import {
 } from '@luistabotelho/angular-signal-forms';
 import { MaxLength, Min, Required } from '@luistabotelho/angular-signal-forms/validators';
 import { SignalFormField } from '../shared/forms/signal-form-helpers';
+import { UserNavComponent } from '../shared/components/user-nav.component';
 
 const EMPTY_STATS: StatsSummary = {
   activeRooms: 0,
@@ -47,46 +48,7 @@ const EMPTY_STATS: StatsSummary = {
           >
             SUDOKU RIVAL
           </button>
-          <div class="flex items-center gap-2">
-            <button
-              class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
-              type="button"
-              (click)="goLeaderboard()"
-            >
-              Leaderboard
-            </button>
-            <button
-              class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
-              type="button"
-              (click)="goSolo()"
-            >
-              Solo
-            </button>
-            <button
-              class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
-              type="button"
-              (click)="toggleTheme()"
-            >
-              {{ themeLabel() }}
-            </button>
-            @if (appStore.isSignedIn()) {
-              <button
-                class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-destructive/40 hover:text-destructive"
-                type="button"
-                (click)="signOut()"
-              >
-                Sign out
-              </button>
-            } @else {
-              <button
-                class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
-                type="button"
-                (click)="goSignIn()"
-              >
-                Sign in
-              </button>
-            }
-          </div>
+          <app-user-nav />
         </div>
       </nav>
 
@@ -445,7 +407,7 @@ const EMPTY_STATS: StatsSummary = {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [],
+  imports: [UserNavComponent],
 })
 export class LobbyPage {
   private readonly router = inject(Router);

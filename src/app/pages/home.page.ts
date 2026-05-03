@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppStore } from '../store/app.store';
+import { UserNavComponent } from '../shared/components/user-nav.component';
 
 @Component({
   selector: 'app-home-page',
   standalone: true,
+  imports: [UserNavComponent],
   template: `
     <div class="relative min-h-screen overflow-hidden bg-background text-foreground">
       <div
@@ -19,17 +21,7 @@ import { AppStore } from '../store/app.store';
           <button class="text-lg font-black uppercase italic tracking-tight text-primary" type="button" (click)="goHome()">
             Sudoku Rival
           </button>
-          <div class="flex items-center gap-2">
-            <button class="hidden rounded-md border border-border/60 px-3 py-2 text-sm font-medium transition-colors hover:border-primary/60 hover:bg-muted/40 sm:inline-flex" type="button" (click)="goLeaderboard()">Leaderboard</button>
-            <button class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium transition-colors hover:border-primary/60 hover:bg-muted/40" type="button" (click)="toggleTheme()">{{ themeLabel() }}</button>
-            @if (appStore.authLoaded() && !appStore.isSignedIn()) {
-              <button class="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90" type="button" (click)="goSignIn()">Sign In</button>
-            }
-            @if (appStore.authLoaded() && appStore.isSignedIn()) {
-              <button class="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90" type="button" (click)="goLobby()">Enter Lobby</button>
-              <button class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium transition-colors hover:border-destructive/60 hover:text-destructive" type="button" (click)="signOut()">Sign Out</button>
-            }
-          </div>
+          <app-user-nav />
         </div>
       </nav>
 

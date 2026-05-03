@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, HostListener, computed, inject } fr
 import { Router } from '@angular/router';
 import { GameStore } from '../store/game.store';
 import { SudokuGridComponent } from '../shared/components/sudoku-grid.component';
+import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
 
 @Component({
   selector: 'app-solo-page',
@@ -172,6 +173,38 @@ import { SudokuGridComponent } from '../shared/components/sudoku-grid.component'
               <p class="mt-4 text-sm text-muted-foreground">
                 Great run. Start another puzzle or move into multiplayer.
               </p>
+              <div class="mt-5 grid grid-cols-2 gap-2">
+                <button
+                  class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
+                  type="button"
+                  (click)="shareNative()"
+                >
+                  Share
+                </button>
+                <a
+                  class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
+                  [href]="shareLink('x')"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  X
+                </a>
+                <a
+                  class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
+                  [href]="shareLink('facebook')"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Facebook
+                </a>
+                <button
+                  class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
+                  type="button"
+                  (click)="copyShare()"
+                >
+                  Copy
+                </button>
+              </div>
               <div class="mt-6 space-y-3">
                 <button
                   class="w-full rounded-md bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
@@ -275,5 +308,29 @@ export class SoloPage {
 
   startSolo(difficulty: (typeof this.difficulties)[number]): void {
     this.gameStore.startSolo(difficulty);
+  }
+
+  shareLink(destination: 'x' | 'facebook' | 'linkedin'): string {
+    return buildShareUrl(destination, this.shareOptions());
+  }
+
+  async shareNative(): Promise<void> {
+    const handled = await shareWin(this.shareOptions());
+    if (!handled) {
+      globalThis.open(this.shareLink('x'), '_blank', 'noopener');
+    }
+  }
+
+  async copyShare(): Promise<void> {
+    await copyShareText(this.shareOptions());
+  }
+
+  private shareOptions() {
+    const difficulty = this.gameStore.difficulty();
+    return {
+      title: 'Sudoku Rival win',
+      text: `I solved a ${difficulty} Sudoku Rival puzzle. Think you can beat my run?`,
+      url: globalThis.location.origin,
+    };
   }
 }

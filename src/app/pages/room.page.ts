@@ -13,6 +13,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AppStore } from '../store/app.store';
 import { GameStore } from '../store/game.store';
 import { SudokuGridComponent } from '../shared/components/sudoku-grid.component';
+import { UserNavComponent } from '../shared/components/user-nav.component';
+import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
 
 const PENALTY_PERCENT = 3;
 const FREEZE_MS = 3000;
@@ -22,7 +24,7 @@ const MEGA_FREEZE_THRESHOLD = 5;
 @Component({
   selector: 'app-room-page',
   standalone: true,
-  imports: [SudokuGridComponent],
+  imports: [SudokuGridComponent, UserNavComponent],
   template: `
     <div class="min-h-screen bg-background text-foreground">
       @if (gameStore.loading() && !gameStore.roomName()) {
@@ -87,13 +89,16 @@ const MEGA_FREEZE_THRESHOLD = 5;
               >
             </div>
 
-            <button
-              class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-destructive"
-              type="button"
-              (click)="forfeit()"
-            >
-              Forfeit
-            </button>
+            <div class="flex items-center gap-2">
+              <app-user-nav [showGameLinks]="false" />
+              <button
+                class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-destructive"
+                type="button"
+                (click)="forfeit()"
+              >
+                Forfeit
+              </button>
+            </div>
           </div>
           <div class="mx-auto max-w-7xl px-4 pb-3 md:px-6">
             <div
@@ -453,6 +458,40 @@ const MEGA_FREEZE_THRESHOLD = 5;
                 <div>Your mistakes: {{ gameStore.mistakes() }}</div>
                 <div>Total penalty: -{{ gameStore.penaltyPoints() }}%</div>
               </div>
+              @if (isWinner()) {
+                <div class="mt-5 grid grid-cols-2 gap-2">
+                  <button
+                    class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
+                    type="button"
+                    (click)="shareNative()"
+                  >
+                    Share
+                  </button>
+                  <a
+                    class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
+                    [href]="shareLink('x')"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    X
+                  </a>
+                  <a
+                    class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
+                    [href]="shareLink('facebook')"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Facebook
+                  </a>
+                  <button
+                    class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
+                    type="button"
+                    (click)="copyShare()"
+                  >
+                    Copy
+                  </button>
+                </div>
+              }
               <button
                 class="mt-6 w-full rounded-md bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
                 type="button"
@@ -517,6 +556,7 @@ export class RoomPage implements OnInit, OnDestroy {
   readonly opponents = computed(() =>
     this.gameStore.roomPlayers().filter((player) => player.playerId !== this.currentPlayerId()),
   );
+  readonly isWinner = computed(() => this.gameStore.roomWinnerId() === this.currentPlayerId());
   readonly emptySlots = computed(() => {
     const maxPlayers = this.gameStore.roomMaxPlayers() || 2;
     return Array.from(
@@ -625,5 +665,28 @@ export class RoomPage implements OnInit, OnDestroy {
   async forfeit(): Promise<void> {
     await this.gameStore.leaveRoom();
     await this.router.navigateByUrl('/lobby');
+  }
+
+  shareLink(destination: 'x' | 'facebook' | 'linkedin'): string {
+    return buildShareUrl(destination, this.shareOptions());
+  }
+
+  async shareNative(): Promise<void> {
+    const handled = await shareWin(this.shareOptions());
+    if (!handled) {
+      globalThis.open(this.shareLink('x'), '_blank', 'noopener');
+    }
+  }
+
+  async copyShare(): Promise<void> {
+    await copyShareText(this.shareOptions());
+  }
+
+  private shareOptions() {
+    return {
+      title: 'Sudoku Rival win',
+      text: `I won ${this.gameStore.roomName() ?? 'a match'} on Sudoku Rival (${this.gameStore.difficulty()}).`,
+      url: globalThis.location.href,
+    };
   }
 }

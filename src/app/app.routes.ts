@@ -17,6 +17,15 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'profile',
+    loadComponent: () => import('./pages/profile.page').then(m => m.ProfilePage),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'auth/callback',
+    loadComponent: () => import('./pages/auth-callback.page').then(m => m.AuthCallbackPage),
+  },
+  {
     path: 'room/:roomId',
     loadComponent: () => import('./pages/room.page').then(m => m.RoomPage),
     canActivate: [authGuard],

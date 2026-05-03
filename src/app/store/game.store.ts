@@ -38,6 +38,7 @@ interface GameStoreState {
   roomHasPassword: boolean;
   roomMaxPlayers: number;
   roomHostId: string | null;
+  roomWinnerId: string | null;
   roomWinnerUsername: string | null;
   roomPlayers: RoomPlayerSnapshot[];
   puzzle: number[];
@@ -81,6 +82,7 @@ export const GameStore = signalStore(
     roomHasPassword: false,
     roomMaxPlayers: 0,
     roomHostId: null,
+    roomWinnerId: null,
     roomWinnerUsername: null,
     roomPlayers: [],
     puzzle: createBoard(),
@@ -141,6 +143,7 @@ export const GameStore = signalStore(
             roomHasPassword: false,
             roomMaxPlayers: 0,
             roomHostId: null,
+            roomWinnerId: null,
             roomWinnerUsername: null,
             roomPlayers: [],
             puzzle: createBoard(),
@@ -179,6 +182,7 @@ export const GameStore = signalStore(
         roomHasPassword: snapshot.hasPassword,
         roomMaxPlayers: snapshot.maxPlayers,
         roomHostId: snapshot.hostId,
+        roomWinnerId: snapshot.winnerId,
         roomWinnerUsername: snapshot.winnerUsername,
         roomPlayers: snapshot.players,
         puzzle: snapshot.puzzle ?? createBoard(),
@@ -228,6 +232,7 @@ export const GameStore = signalStore(
         roomName: null,
         roomHasPassword: false,
         roomHostId: null,
+        roomWinnerId: null,
         roomWinnerUsername: null,
         roomPlayers: [],
         puzzle: createBoard(),
@@ -436,6 +441,7 @@ export const GameStore = signalStore(
           roomMaxPlayers: 0,
 
           roomHostId: null,
+          roomWinnerId: null,
           roomWinnerUsername: null,
           roomPlayers: [],
           puzzle: cloneBoard(puzzle.puzzle),

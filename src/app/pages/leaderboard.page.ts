@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { SupabaseService } from '../core/services/supabase.service';
 import { LeaderboardEntry, RecentMatch, StatsSummary } from '../core/models';
+import { UserNavComponent } from '../shared/components/user-nav.component';
 
 const EMPTY_STATS: StatsSummary = {
   activeRooms: 0,
@@ -26,13 +27,7 @@ const EMPTY_STATS: StatsSummary = {
           >
             Sudoku Rival
           </button>
-          <button
-            class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:bg-muted/40"
-            type="button"
-            (click)="goHome()"
-          >
-            Home
-          </button>
+          <app-user-nav />
         </div>
       </nav>
 
@@ -166,7 +161,7 @@ const EMPTY_STATS: StatsSummary = {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [],
+  imports: [UserNavComponent],
 })
 export class LeaderboardPage {
   private readonly router = inject(Router);

@@ -224,11 +224,21 @@ export class SupabaseService {
     const { error } = await this.client.auth.signInWithOAuth({
       provider: 'x',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: `${window.location.origin}/auth/callback?next=/lobby`,
         scopes: 'tweet.read users.read',
       },
     });
     if (error) throw error;
+  }
+
+  async completeOAuthSignIn(code: string): Promise<PlayerProfile> {
+    const { data, error } = await this.client.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+    if (!data.session?.user) {
+      throw new Error('X sign-in completed without a user session');
+    }
+
+    return this.ensurePlayerProfile(data.session.user);
   }
 
   async signInAsGuest(credentials: GuestCredentials): Promise<void> {
