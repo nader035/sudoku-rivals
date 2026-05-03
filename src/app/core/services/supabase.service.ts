@@ -220,6 +220,15 @@ export class SupabaseService {
       await this.ensurePlayerProfile(data.session.user, credentials.username);
     }
   }
+  async signInWithTwitter(): Promise<void> {
+    const { error } = await this.client.auth.signInWithOAuth({
+      provider: 'twitter',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) throw error;
+  }
 
   async signInAsGuest(credentials: GuestCredentials): Promise<void> {
     const { data, error } = await this.client.auth.signInAnonymously();
