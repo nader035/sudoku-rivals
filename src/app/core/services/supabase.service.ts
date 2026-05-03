@@ -5,6 +5,9 @@ import { Observable, shareReplay } from 'rxjs';
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from '../config/supabase.config';
 import {
   ActivePlayerSummary,
+  AdminDashboardSummary,
+  AdminPlayerSummary,
+  AdminRoomSummary,
   AuthCredentials,
   Difficulty,
   GuestCredentials,
@@ -88,6 +91,19 @@ interface PlayerRow {
   created_at: string | null;
   updated_at: string | null;
   last_seen_at: string | null;
+}
+
+interface AdminRoomRow {
+  id: string;
+  name: string;
+  difficulty: string;
+  status: string;
+  current_players: number | null;
+  max_players: number | null;
+  host_id: string;
+  winner_id: string | null;
+  created_at: string;
+  finished_at: string | null;
 }
 
 interface LeaderboardRow {
@@ -220,11 +236,12 @@ export class SupabaseService {
       await this.ensurePlayerProfile(data.session.user, credentials.username);
     }
   }
-  async signInWithX(): Promise<void> {
+  async signInWithX(next = '/lobby'): Promise<void> {
+    const safeNext = next.startsWith('/') && !next.startsWith('//') ? next : '/lobby';
     const { error } = await this.client.auth.signInWithOAuth({
       provider: 'x',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/lobby`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`,
         scopes: 'tweet.read users.read',
       },
     });
@@ -444,6 +461,7 @@ export class SupabaseService {
   async createRoom(values: RoomFormValue): Promise<RoomSnapshot> {
     const passwordHash =
       values.isPrivate && values.password.trim().length > 0 ? hashSync(values.password, 10) : null;
+    const generated = this.sudokuLogic.generateSudoku(values.difficulty);
 
     const { data: roomResult, error } = await this.client.rpc('create_room', {
       p_name: values.name.trim(),
@@ -451,9 +469,9 @@ export class SupabaseService {
       p_max_players: values.maxPlayers,
       p_is_private: values.isPrivate,
       p_password_hash: passwordHash,
-      p_puzzle: EMPTY_BOARD,
-      p_solution: EMPTY_BOARD,
-      p_initial_board: EMPTY_BOARD,
+      p_puzzle: generated.puzzle,
+      p_solution: generated.solution,
+      p_initial_board: generated.puzzle,
       p_allow_hints: true,
       p_allow_mistakes: true,
       p_max_mistakes: 5,
@@ -496,45 +514,11 @@ export class SupabaseService {
   }
 
   async leaveRoom(roomId: string, playerId: string): Promise<void> {
-    const { error } = await this.client
-      .from('room_players')
-      .delete()
-      .eq('room_id', roomId)
-      .eq('player_id', playerId);
-
+    const { error } = await this.client.rpc('forfeit_room', {
+      p_room_id: roomId,
+      p_player_id: playerId,
+    });
     if (error) throw error;
-
-    const { data: remaining, error: remainingError } = await this.client
-      .from('room_players')
-      .select('player_id')
-      .eq('room_id', roomId)
-      .order('joined_at', { ascending: true });
-
-    if (remainingError) throw remainingError;
-
-    if (!remaining || remaining.length === 0) {
-      const { error: roomDeleteError } = await this.client.from('rooms').delete().eq('id', roomId);
-      if (roomDeleteError) throw roomDeleteError;
-      return;
-    }
-
-    const { data: room, error: roomError } = await this.client
-      .from('rooms')
-      .select('host_id')
-      .eq('id', roomId)
-      .maybeSingle();
-
-    if (roomError) throw roomError;
-
-    if (room && String(room.host_id) === playerId) {
-      const nextHost = String((remaining[0] as RoomPlayerRow).player_id);
-      const { error: hostUpdateError } = await this.client
-        .from('rooms')
-        .update({ host_id: nextHost })
-        .eq('id', roomId);
-
-      if (hostUpdateError) throw hostUpdateError;
-    }
   }
 
   async startRoom(roomId: string, playerId: string): Promise<RoomSnapshot> {
@@ -544,7 +528,10 @@ export class SupabaseService {
     if (room.status !== 'waiting') throw new Error('Room already started');
     if (room.players.length < 2) throw new Error('Need at least 2 players to start');
 
-    const puzzle = this.sudokuLogic.generateSudoku(room.difficulty);
+    const hasStoredPuzzle = room.puzzle?.some((cell) => cell === 0) && room.solution?.every(Boolean);
+    const puzzle = hasStoredPuzzle
+      ? { puzzle: room.puzzle!, solution: room.solution! }
+      : this.sudokuLogic.generateSudoku(room.difficulty);
 
     const { data: result, error } = await this.client.rpc('start_room_with_puzzle', {
       p_room_id: roomId,
@@ -673,6 +660,95 @@ export class SupabaseService {
     }));
   }
 
+  async getAdminDashboardSummary(): Promise<AdminDashboardSummary> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [
+      totalPlayers,
+      activePlayers,
+      bannedPlayers,
+      waitingRooms,
+      activeRooms,
+      finishedRooms,
+      cancelledRooms,
+      matchesToday,
+    ] = await Promise.all([
+      this.countPlayers({}),
+      this.countPlayers({ active: true, banned: false }),
+      this.countPlayers({ banned: true }),
+      this.countRoomsByStatus('waiting'),
+      this.countRoomsByStatus('active'),
+      this.countRoomsByStatus('finished'),
+      this.countRoomsByStatus('cancelled'),
+      this.countRoomsByStatus('finished', today.toISOString()),
+    ]);
+
+    return {
+      totalPlayers,
+      activePlayers,
+      bannedPlayers,
+      waitingRooms,
+      activeRooms,
+      finishedRooms,
+      cancelledRooms,
+      matchesToday,
+    };
+  }
+
+  async getAdminRooms(limit = 12): Promise<AdminRoomSummary[]> {
+    const { data, error } = await this.client
+      .from('rooms')
+      .select('id,name,difficulty,status,current_players,max_players,host_id,winner_id,created_at,finished_at')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    if (!data || data.length === 0) return [];
+
+    const rows = data as AdminRoomRow[];
+    const playerIds = [
+      ...new Set(rows.flatMap((row) => [row.host_id, row.winner_id].filter(Boolean) as string[])),
+    ];
+    const usernameMap = await this.getPlayerUsernameMap(playerIds);
+
+    return rows.map((row) => ({
+      id: String(row.id),
+      name: String(row.name),
+      difficulty: this.normalizeDifficulty(String(row.difficulty)),
+      status: this.normalizeRoomStatus(String(row.status)),
+      playerCount: Number(row.current_players ?? 0),
+      maxPlayers: Number(row.max_players ?? 0),
+      hostUsername: usernameMap.get(String(row.host_id)) ?? 'Unknown',
+      winnerUsername: row.winner_id ? (usernameMap.get(String(row.winner_id)) ?? 'Unknown') : null,
+      createdAt: String(row.created_at),
+      finishedAt: row.finished_at ? String(row.finished_at) : null,
+    }));
+  }
+
+  async getAdminPlayers(limit = 12): Promise<AdminPlayerSummary[]> {
+    const { data, error } = await this.client
+      .from('players')
+      .select('id,username,email,role,total_wins,total_games,is_active,is_banned,last_seen_at')
+      .order('last_seen_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    if (!data) return [];
+
+    return (data as PlayerRow[]).map((row) => ({
+      id: String(row.id),
+      username: String(row.username),
+      email: row.email ? String(row.email) : null,
+      role: String(row.role ?? 'player') as PlayerProfile['role'],
+      totalWins: Number(row.total_wins ?? 0),
+      totalGames: Number(row.total_games ?? 0),
+      isActive: Boolean(row.is_active ?? true),
+      isBanned: Boolean(row.is_banned ?? false),
+      lastSeenAt: String(row.last_seen_at ?? ''),
+    }));
+  }
+
   private createRefreshStream<T>(
     label: string,
     refresh: () => Promise<T>,
@@ -746,6 +822,30 @@ export class SupabaseService {
       .eq('is_banned', false)
       .gte('last_seen_at', cutoff);
 
+    if (error) return 0;
+    return count ?? 0;
+  }
+
+  private async countPlayers(options: { active?: boolean; banned?: boolean }): Promise<number> {
+    let query = this.client.from('players').select('id', { count: 'exact', head: true });
+
+    if (typeof options.active === 'boolean') query = query.eq('is_active', options.active);
+    if (typeof options.banned === 'boolean') query = query.eq('is_banned', options.banned);
+
+    const { count, error } = await query;
+    if (error) return 0;
+    return count ?? 0;
+  }
+
+  private async countRoomsByStatus(status: string, finishedAfter?: string): Promise<number> {
+    let query = this.client
+      .from('rooms')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', status);
+
+    if (finishedAfter) query = query.gte('finished_at', finishedAfter);
+
+    const { count, error } = await query;
     if (error) return 0;
     return count ?? 0;
   }
@@ -911,6 +1011,7 @@ export class SupabaseService {
   private normalizeRoomStatus(value: string): RoomStatus {
     if (value === 'finished') return 'finished';
     if (value === 'active') return 'playing';
+    if (value === 'cancelled') return 'cancelled';
     return 'waiting';
   }
 

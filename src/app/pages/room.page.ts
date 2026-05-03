@@ -502,6 +502,33 @@ const MEGA_FREEZE_THRESHOLD = 5;
             </div>
           </div>
         }
+
+        @if (gameStore.roomStatus() === 'cancelled') {
+          <div
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          >
+            <div
+              class="w-full max-w-md rounded-2xl border border-border/60 bg-background p-6 text-center shadow-2xl"
+            >
+              <div class="text-xs font-mono uppercase tracking-[0.3em] text-destructive">
+                Match cancelled
+              </div>
+              <h2 class="mt-3 text-3xl font-black uppercase italic text-primary">
+                Room closed
+              </h2>
+              <p class="mt-4 text-sm text-muted-foreground">
+                A player forfeited, so this room is no longer listed in the lobby.
+              </p>
+              <button
+                class="mt-6 w-full rounded-md bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
+                type="button"
+                (click)="goLobby()"
+              >
+                Return to lobby
+              </button>
+            </div>
+          </div>
+        }
       }
     </div>
   `,

@@ -1,7 +1,7 @@
 export type ThemeMode = 'dark' | 'light' | 'system';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type GameMode = 'idle' | 'solo' | 'multiplayer';
-export type RoomStatus = 'waiting' | 'playing' | 'finished';
+export type RoomStatus = 'waiting' | 'playing' | 'finished' | 'cancelled';
 
 export interface AuthCredentials {
   email: string;
@@ -119,6 +119,42 @@ export interface ActivePlayerSummary {
   role: string;
   totalWins: number;
   totalGames: number;
+  lastSeenAt: string;
+}
+
+export interface AdminDashboardSummary {
+  totalPlayers: number;
+  activePlayers: number;
+  bannedPlayers: number;
+  waitingRooms: number;
+  activeRooms: number;
+  finishedRooms: number;
+  cancelledRooms: number;
+  matchesToday: number;
+}
+
+export interface AdminRoomSummary {
+  id: string;
+  name: string;
+  difficulty: Difficulty;
+  status: RoomStatus;
+  playerCount: number;
+  maxPlayers: number;
+  hostUsername: string;
+  winnerUsername: string | null;
+  createdAt: string;
+  finishedAt: string | null;
+}
+
+export interface AdminPlayerSummary {
+  id: string;
+  username: string;
+  email: string | null;
+  role: PlayerProfile['role'];
+  totalWins: number;
+  totalGames: number;
+  isActive: boolean;
+  isBanned: boolean;
   lastSeenAt: string;
 }
 

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { signalForm } from '@luistabotelho/angular-signal-forms';
 import {
   signalFormErrors,
@@ -186,6 +186,7 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
 })
 export class SignInPage {
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   readonly appStore = inject(AppStore);
   readonly supabase = inject(SupabaseService);
   readonly signingIn = signal(false);
@@ -218,7 +219,7 @@ export class SignInPage {
 
   readonly redirectEffect = effect(() => {
     if (this.appStore.authLoaded() && this.appStore.isSignedIn()) {
-      void this.router.navigateByUrl('/lobby');
+      void this.router.navigateByUrl(this.nextUrl());
     }
   });
 
@@ -239,7 +240,7 @@ export class SignInPage {
     this.signingInWithX.set(true);
     this.statusMessage.set(null);
     try {
-      await this.supabase.signInWithX();
+      await this.supabase.signInWithX(this.nextUrl());
     } catch (error) {
       this.statusMessage.set(error instanceof Error ? error.message : 'Unable to sign in with X');
       this.signingInWithX.set(false);
@@ -253,7 +254,7 @@ export class SignInPage {
     this.signingIn.set(true);
     try {
       await this.supabase.signInWithPassword(this.signInValue() as AuthCredentials);
-      await this.router.navigateByUrl('/lobby');
+      await this.router.navigateByUrl(this.nextUrl());
     } catch (error) {
       this.statusMessage.set(error instanceof Error ? error.message : 'Unable to sign in');
     } finally {
@@ -268,11 +269,17 @@ export class SignInPage {
     this.guestSigningIn.set(true);
     try {
       await this.supabase.signInAsGuest(this.guestValue() as GuestCredentials);
-      await this.router.navigateByUrl('/lobby');
+      await this.router.navigateByUrl(this.nextUrl());
     } catch (error) {
       this.statusMessage.set(error instanceof Error ? error.message : 'Unable to enter as guest');
     } finally {
       this.guestSigningIn.set(false);
     }
+  }
+
+  private nextUrl(): string {
+    const next = this.route.snapshot.queryParamMap.get('next');
+    if (!next || !next.startsWith('/') || next.startsWith('//')) return '/lobby';
+    return next;
   }
 }
