@@ -39,13 +39,13 @@ export class AuthCallbackPage implements OnInit {
     const code = url.searchParams.get('code');
     const next = this.safeNext(url.searchParams.get('next'));
 
-    if (!code) {
-      this.error.set('Missing OAuth code. Please try signing in with X again.');
-      return;
-    }
-
     try {
-      await this.supabase.completeOAuthSignIn(code);
+      if (code) {
+        await this.supabase.completeOAuthSignIn(code);
+      } else {
+        await this.supabase.completeCurrentSessionProfile();
+      }
+
       await this.router.navigateByUrl(next);
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'Unable to complete X sign in');

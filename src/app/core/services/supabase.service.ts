@@ -258,6 +258,16 @@ export class SupabaseService {
     return this.ensurePlayerProfile(data.session.user);
   }
 
+  async completeCurrentSessionProfile(): Promise<PlayerProfile> {
+    const { data, error } = await this.client.auth.getSession();
+    if (error) throw error;
+    if (!data.session?.user) {
+      throw new Error('X sign-in completed without a user session');
+    }
+
+    return this.ensurePlayerProfile(data.session.user);
+  }
+
   async signInAsGuest(credentials: GuestCredentials): Promise<void> {
     const { data, error } = await this.client.auth.signInAnonymously();
     if (error) throw error;
@@ -284,17 +294,46 @@ export class SupabaseService {
         ?? meta['name']
         ?? user.email,
     );
+
+    const existing = await this.getPlayerByAuthId(user.id);
+    if (existing) {
+      const { data, error } = await this.client
+        .from('players')
+        .update({
+          email: user.email ?? existing.email,
+          last_seen_at: new Date().toISOString(),
+        })
+        .eq('auth_id', user.id)
+        .select('*')
+        .maybeSingle();
+
+      if (error) {
+        if (this.isPlayersPolicyRecursionError(error)) return existing;
+        throw error;
+      }
+
+      return data ? this.mapPlayer(data as PlayerRow) : existing;
+    }
+
     const payload = {
       auth_id: user.id,
       username: nextUsername,
       email: user.email ?? null,
       last_seen_at: new Date().toISOString(),
     };
-    const { data, error } = await this.client
-      .from('players')
-      .upsert(payload, { onConflict: 'auth_id' })
-      .select('*')
-      .maybeSingle();
+
+    let { data, error } = await this.client.from('players').insert(payload).select('*').maybeSingle();
+
+    if (error && this.isUniqueViolation(error)) {
+      const retryPayload = {
+        ...payload,
+        username: this.buildUniqueUsername(nextUsername, user.id),
+        email: this.isEmailUniqueViolation(error) ? null : payload.email,
+      };
+      const retry = await this.client.from('players').insert(retryPayload).select('*').maybeSingle();
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error) {
       if (this.isPlayersPolicyRecursionError(error)) {
@@ -749,6 +788,20 @@ export class SupabaseService {
     }));
   }
 
+  async adminDeleteRoom(roomId: string): Promise<void> {
+    const { error } = await this.client.rpc('admin_delete_room', { p_room_id: roomId });
+    if (error) throw error;
+  }
+
+  async adminSetPlayerBan(playerId: string, banned: boolean, reason?: string): Promise<void> {
+    const { error } = await this.client.rpc('admin_set_player_ban', {
+      p_player_id: playerId,
+      p_banned: banned,
+      p_reason: reason ?? null,
+    });
+    if (error) throw error;
+  }
+
   private createRefreshStream<T>(
     label: string,
     refresh: () => Promise<T>,
@@ -1013,6 +1066,21 @@ export class SupabaseService {
     if (value === 'active') return 'playing';
     if (value === 'cancelled') return 'cancelled';
     return 'waiting';
+  }
+
+  private isUniqueViolation(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && (error as { code?: string }).code === '23505';
+  }
+
+  private isEmailUniqueViolation(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null) return false;
+    const maybeError = error as { message?: string };
+    return typeof maybeError.message === 'string' && maybeError.message.includes('players_email_key');
+  }
+
+  private buildUniqueUsername(base: string, userId: string): string {
+    const suffix = userId.replace(/-/g, '').slice(0, 6);
+    return `${base.slice(0, Math.max(2, 17 - suffix.length))}-${suffix}`;
   }
 
   private normalizeUsername(candidate: string | null | undefined): string {

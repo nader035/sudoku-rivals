@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, from, of } from 'rxjs';
@@ -55,6 +55,12 @@ const EMPTY_SUMMARY: AdminDashboardSummary = {
           </button>
         </header>
 
+        @if (statusMessage()) {
+          <div class="rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {{ statusMessage() }}
+          </div>
+        }
+
         <section class="grid grid-cols-2 gap-3 md:grid-cols-4">
           @for (metric of metrics(); track metric.label) {
             <div class="border-b border-border/60 py-3">
@@ -77,17 +83,15 @@ const EMPTY_SUMMARY: AdminDashboardSummary = {
               } @else {
                 <div class="divide-y divide-border/60">
                   @for (room of rooms(); track room.id) {
-                    <button
-                      class="grid w-full gap-3 px-4 py-3 text-left hover:bg-muted/30 md:grid-cols-[1fr_120px_120px]"
-                      type="button"
-                      (click)="goRoom(room.id)"
+                    <div
+                      class="grid gap-3 px-4 py-3 hover:bg-muted/30 md:grid-cols-[1fr_100px_100px_140px] md:items-center"
                     >
-                      <span class="min-w-0">
+                      <button class="min-w-0 text-left" type="button" (click)="goRoom(room.id)">
                         <span class="block truncate font-bold">{{ room.name }}</span>
                         <span class="mt-1 block truncate text-xs font-mono text-muted-foreground">
                           host {{ room.hostUsername }} · {{ room.playerCount }}/{{ room.maxPlayers }} players
                         </span>
-                      </span>
+                      </button>
                       <span class="text-xs font-mono uppercase text-primary">{{ room.difficulty }}</span>
                       <span
                         class="text-xs font-mono uppercase"
@@ -98,7 +102,15 @@ const EMPTY_SUMMARY: AdminDashboardSummary = {
                       >
                         {{ room.status }}
                       </span>
-                    </button>
+                      <button
+                        class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider text-destructive hover:border-destructive/60 hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
+                        type="button"
+                        [disabled]="busy()"
+                        (click)="deleteRoom(room.id, room.name)"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   }
                 </div>
               }
@@ -115,7 +127,7 @@ const EMPTY_SUMMARY: AdminDashboardSummary = {
               } @else {
                 <div class="divide-y divide-border/60">
                   @for (player of players(); track player.id) {
-                    <div class="grid gap-2 px-4 py-3 md:grid-cols-[1fr_auto]">
+                    <div class="grid gap-3 px-4 py-3 md:grid-cols-[1fr_auto_96px] md:items-center">
                       <div class="min-w-0">
                         <div class="truncate font-bold">{{ player.username }}</div>
                         <div class="truncate text-xs font-mono text-muted-foreground">
@@ -123,9 +135,25 @@ const EMPTY_SUMMARY: AdminDashboardSummary = {
                         </div>
                       </div>
                       <div class="text-left text-xs font-mono md:text-right">
-                        <div class="uppercase text-primary">{{ player.role }}</div>
+                        <div
+                          class="uppercase"
+                          [class.text-primary]="!player.isBanned"
+                          [class.text-destructive]="player.isBanned"
+                        >
+                          {{ player.isBanned ? 'banned' : player.role }}
+                        </div>
                         <div class="text-muted-foreground">{{ player.totalWins }}W / {{ player.totalGames }}G</div>
                       </div>
+                      <button
+                        class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-50"
+                        [class.text-destructive]="!player.isBanned"
+                        [class.text-primary]="player.isBanned"
+                        type="button"
+                        [disabled]="busy()"
+                        (click)="setPlayerBan(player)"
+                      >
+                        {{ player.isBanned ? 'Unban' : 'Ban' }}
+                      </button>
                     </div>
                   }
                 </div>
@@ -143,6 +171,8 @@ export class AdminDashboardPage {
   private readonly injector = inject(Injector);
   private readonly supabase = inject(SupabaseService);
   private readonly refreshKey = { value: 0 };
+  readonly busy = signal(false);
+  readonly statusMessage = signal<string | null>(null);
 
   readonly summary = toSignal(
     from(this.supabase.getAdminDashboardSummary()).pipe(catchError(() => of(EMPTY_SUMMARY))),
@@ -184,5 +214,41 @@ export class AdminDashboardPage {
 
   goRoom(roomId: string): void {
     void this.router.navigate(['/room', roomId]);
+  }
+
+  async deleteRoom(roomId: string, roomName: string): Promise<void> {
+    if (!globalThis.confirm(`Remove room "${roomName}"? This cannot be undone.`)) return;
+
+    this.busy.set(true);
+    this.statusMessage.set(null);
+    try {
+      await this.supabase.adminDeleteRoom(roomId);
+      globalThis.location.reload();
+    } catch (error) {
+      this.statusMessage.set(error instanceof Error ? error.message : 'Unable to remove room');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async setPlayerBan(player: AdminPlayerSummary): Promise<void> {
+    const nextBanned = !player.isBanned;
+    const action = nextBanned ? 'ban' : 'unban';
+    if (!globalThis.confirm(`Are you sure you want to ${action} ${player.username}?`)) return;
+
+    this.busy.set(true);
+    this.statusMessage.set(null);
+    try {
+      await this.supabase.adminSetPlayerBan(
+        player.id,
+        nextBanned,
+        nextBanned ? 'Admin action' : undefined,
+      );
+      globalThis.location.reload();
+    } catch (error) {
+      this.statusMessage.set(error instanceof Error ? error.message : `Unable to ${action} player`);
+    } finally {
+      this.busy.set(false);
+    }
   }
 }
