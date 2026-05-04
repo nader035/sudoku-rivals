@@ -14,6 +14,11 @@ CREATE OR REPLACE FUNCTION finalize_room_with_winner(
 RETURNS VOID AS $$
 DECLARE
   v_room RECORD;
+  v_participant RECORD;
+  v_player_count INTEGER;
+  v_total_mistakes INTEGER;
+  v_total_hints_used INTEGER;
+  v_average_completion_time INTEGER;
 BEGIN
   SELECT * INTO v_room FROM rooms WHERE id = p_room_id;
 
@@ -29,6 +34,19 @@ BEGIN
     winning_time = p_winning_time
   WHERE id = p_room_id;
 
+  SELECT
+    COUNT(rp.player_id)::INTEGER,
+    COALESCE(SUM(rp.mistakes), 0)::INTEGER,
+    COALESCE(SUM(rp.hints_used), 0)::INTEGER,
+    AVG(rp.completion_time)::INTEGER
+  INTO
+    v_player_count,
+    v_total_mistakes,
+    v_total_hints_used,
+    v_average_completion_time
+  FROM room_players rp
+  WHERE rp.room_id = p_room_id;
+
   INSERT INTO game_history (
     room_id,
     difficulty,
@@ -43,33 +61,33 @@ BEGIN
     started_at,
     finished_at
   )
-  SELECT
-    r.id,
-    r.difficulty,
-    COUNT(rp.player_id)::INTEGER,
+  VALUES (
+    p_room_id,
+    v_room.difficulty,
+    COALESCE(v_player_count, 0),
     p_winner_id,
     p_winning_time,
-    COALESCE(SUM(rp.mistakes), 0)::INTEGER,
-    COALESCE(SUM(rp.hints_used), 0)::INTEGER,
-    AVG(rp.completion_time)::INTEGER,
-    r.puzzle,
-    r.solution,
-    r.started_at,
+    COALESCE(v_total_mistakes, 0),
+    COALESCE(v_total_hints_used, 0),
+    v_average_completion_time,
+    v_room.puzzle,
+    v_room.solution,
+    v_room.started_at,
     NOW()
-  FROM rooms r
-  LEFT JOIN room_players rp ON rp.room_id = r.id
-  WHERE r.id = p_room_id
-  GROUP BY r.id
-  ON CONFLICT DO NOTHING;
+  );
 
-  PERFORM update_player_stats(
-    rp.player_id,
-    rp.player_id = p_winner_id,
-    v_room.difficulty,
-    rp.completion_time
-  )
-  FROM room_players rp
-  WHERE rp.room_id = p_room_id;
+  FOR v_participant IN
+    SELECT player_id, completion_time
+    FROM room_players
+    WHERE room_id = p_room_id
+  LOOP
+    PERFORM update_player_stats(
+      v_participant.player_id,
+      v_participant.player_id = p_winner_id,
+      v_room.difficulty,
+      v_participant.completion_time
+    );
+  END LOOP;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 

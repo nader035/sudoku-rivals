@@ -11,13 +11,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { AppStore } from '../store/app.store';
 import { SupabaseService } from '../core/services/supabase.service';
-import { LeaderboardEntry, RoomFormValue, RoomSummary, StatsSummary } from '../core/models';
+import { Difficulty, LeaderboardEntry, RoomFormValue, RoomSummary, StatsSummary } from '../core/models';
 import { signalForm } from '@luistabotelho/angular-signal-forms';
 import {
   signalFormErrors,
   signalFormSetTouched,
   signalFormValid,
-  signalFormValue,
   resetSignalForm,
 } from '@luistabotelho/angular-signal-forms';
 import { MaxLength, Min, Required } from '@luistabotelho/angular-signal-forms/validators';
@@ -476,7 +475,6 @@ export class LobbyPage {
     },
   });
 
-  readonly createRoomValue = signalFormValue(this.createRoomForm);
   readonly createRoomValid = signalFormValid(this.createRoomForm);
   readonly createRoomErrors = signalFormErrors(this.createRoomForm);
 
@@ -565,12 +563,26 @@ export class LobbyPage {
     this.creatingRoom.set(true);
 
     try {
-      const room = await this.supabase.createRoom(this.createRoomValue());
+      const room = await this.supabase.createRoom(this.buildCreateRoomValue());
       this.createRoomOpen.set(false);
       resetSignalForm(this.createRoomForm);
       await this.router.navigate(['/room', room.id]);
     } finally {
       this.creatingRoom.set(false);
     }
+  }
+
+  private buildCreateRoomValue(): RoomFormValue {
+    const difficultyValue = String(this.createRoomForm.difficulty.$currentValue()).trim().toLowerCase();
+    const difficulty: Difficulty =
+      difficultyValue === 'easy' || difficultyValue === 'hard' ? difficultyValue : 'medium';
+
+    return {
+      name: String(this.createRoomForm.name.$currentValue() ?? '').trim(),
+      difficulty,
+      maxPlayers: Number(this.createRoomForm.maxPlayers.$currentValue() ?? 2),
+      isPrivate: Boolean(this.createRoomForm.isPrivate.$currentValue()),
+      password: String(this.createRoomForm.password.$currentValue() ?? ''),
+    };
   }
 }

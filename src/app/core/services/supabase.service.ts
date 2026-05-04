@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { createClient, Session } from '@supabase/supabase-js';
-import { hashSync } from 'bcryptjs';
 import { Observable, shareReplay } from 'rxjs';
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from '../config/supabase.config';
 import {
@@ -498,8 +497,8 @@ export class SupabaseService {
   }
 
   async createRoom(values: RoomFormValue): Promise<RoomSnapshot> {
-    const passwordHash =
-      values.isPrivate && values.password.trim().length > 0 ? hashSync(values.password, 10) : null;
+    const plainPassword =
+      values.isPrivate && values.password.trim().length > 0 ? values.password.trim() : null;
     const generated = this.sudokuLogic.generateSudoku(values.difficulty);
 
     const { data: roomResult, error } = await this.client.rpc('create_room', {
@@ -507,7 +506,7 @@ export class SupabaseService {
       p_difficulty: values.difficulty,
       p_max_players: values.maxPlayers,
       p_is_private: values.isPrivate,
-      p_password_hash: passwordHash,
+      p_password_hash: plainPassword,
       p_puzzle: generated.puzzle,
       p_solution: generated.solution,
       p_initial_board: generated.puzzle,
@@ -1056,9 +1055,11 @@ export class SupabaseService {
   }
 
   private normalizeDifficulty(value: string): Difficulty {
-    if (value === 'easy') return 'easy';
-    if (value === 'medium') return 'medium';
-    return 'hard';
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'easy') return 'easy';
+    if (normalized === 'medium') return 'medium';
+    if (normalized === 'hard') return 'hard';
+    return 'medium';
   }
 
   private normalizeRoomStatus(value: string): RoomStatus {
