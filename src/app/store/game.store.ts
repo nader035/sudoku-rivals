@@ -176,6 +176,11 @@ export const GameStore = signalStore(
       const currentPlayer = currentPlayerId
         ? (snapshot.players.find((player) => player.playerId === currentPlayerId) ?? null)
         : null;
+      const snapshotFrozenUntil = parseIsoToMillis(currentPlayer?.frozenUntil ?? null);
+      const localFrozenUntil = store.frozenUntil();
+      const mergedFrozenUntil =
+        snapshotFrozenUntil ??
+        (localFrozenUntil !== null && Date.now() < localFrozenUntil ? localFrozenUntil : null);
       const loadedRoomId = store.loadedRoomId();
       const shouldSeedAttempt =
         snapshot.status !== 'waiting' &&
@@ -197,7 +202,7 @@ export const GameStore = signalStore(
         rawProgress: currentPlayer?.progress ?? 0,
         mistakes: currentPlayer?.mistakes ?? 0,
         penaltyPoints: (currentPlayer?.mistakes ?? 0) * PENALTY_PERCENT,
-        frozenUntil: parseIsoToMillis(currentPlayer?.frozenUntil ?? null),
+        frozenUntil: mergedFrozenUntil,
         loadedRoomId: snapshot.id,
         loading: false,
         error: null,
