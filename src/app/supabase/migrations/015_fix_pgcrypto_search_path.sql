@@ -1,12 +1,10 @@
 -- ============================================================================
--- Fix room creation: difficulty normalization + private password hashing
+-- Hotfix: pgcrypto search path compatibility for room auth flows
 -- ============================================================================
--- Why:
--- 1) Some clients can submit stale form defaults (difficulty drift).
--- 2) Client-side bcrypt hashes may be incompatible with pgcrypto crypt() checks.
---
--- This migration makes `create_room` normalize difficulty server-side and
--- hash private room passwords inside Postgres with pgcrypto.
+-- Fixes runtime errors like:
+--   function gen_salt(unknown) does not exist
+-- by ensuring SECURITY DEFINER functions can resolve pgcrypto functions in
+-- Supabase projects where extensions are installed under `extensions` schema.
 -- ============================================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -47,8 +45,6 @@ BEGIN
     IF p_password_hash IS NULL OR length(trim(p_password_hash)) = 0 THEN
       RAISE EXCEPTION 'Password is required for private rooms';
     END IF;
-
-    -- Keep the parameter name for backwards compatibility; value is plain text.
     v_password_hash := crypt(trim(p_password_hash), gen_salt('bf'));
   END IF;
 
@@ -127,8 +123,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions;
 
-GRANT EXECUTE ON FUNCTION create_room(TEXT, TEXT, INTEGER, BOOLEAN, TEXT, JSONB, JSONB, JSONB, BOOLEAN, BOOLEAN, INTEGER, INTEGER, INTEGER) TO authenticated, anon;
-
 CREATE OR REPLACE FUNCTION join_room(
   p_room_id UUID,
   p_player_id UUID,
@@ -173,10 +167,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions;
 
+GRANT EXECUTE ON FUNCTION create_room(TEXT, TEXT, INTEGER, BOOLEAN, TEXT, JSONB, JSONB, JSONB, BOOLEAN, BOOLEAN, INTEGER, INTEGER, INTEGER) TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION join_room(UUID, UUID, TEXT) TO authenticated, anon;
 
 DO $$
 BEGIN
-  RAISE NOTICE 'Room creation updated: difficulty normalized, private password hashed in DB.';
-  RAISE NOTICE 'Room join updated: password verification uses normalized input.';
+  RAISE NOTICE 'pgcrypto search-path hotfix applied to create_room/join_room.';
 END $$;

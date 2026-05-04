@@ -497,6 +497,7 @@ export class SupabaseService {
   }
 
   async createRoom(values: RoomFormValue): Promise<RoomSnapshot> {
+    const requestedDifficulty = this.normalizeDifficulty(String(values.difficulty));
     const plainPassword =
       values.isPrivate && values.password.trim().length > 0 ? values.password.trim() : null;
     const generated = this.sudokuLogic.generateSudoku(values.difficulty);
@@ -525,6 +526,11 @@ export class SupabaseService {
     const snapshot = await this.getRoom(roomId);
     if (!snapshot) {
       throw new Error('Could not load created room');
+    }
+    if (snapshot.difficulty !== requestedDifficulty) {
+      throw new Error(
+        `Difficulty mismatch: selected "${requestedDifficulty}" but room stored "${snapshot.difficulty}". Apply latest Supabase migrations (013-016).`,
+      );
     }
 
     return snapshot;

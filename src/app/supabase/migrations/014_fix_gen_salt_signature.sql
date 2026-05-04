@@ -1,12 +1,8 @@
 -- ============================================================================
--- Fix room creation: difficulty normalization + private password hashing
+-- Hotfix: pgcrypto gen_salt signature compatibility
 -- ============================================================================
--- Why:
--- 1) Some clients can submit stale form defaults (difficulty drift).
--- 2) Client-side bcrypt hashes may be incompatible with pgcrypto crypt() checks.
---
--- This migration makes `create_room` normalize difficulty server-side and
--- hash private room passwords inside Postgres with pgcrypto.
+-- Some Supabase Postgres environments expose gen_salt(text) but not
+-- gen_salt(text, integer). This updates create_room to use gen_salt('bf').
 -- ============================================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -48,7 +44,6 @@ BEGIN
       RAISE EXCEPTION 'Password is required for private rooms';
     END IF;
 
-    -- Keep the parameter name for backwards compatibility; value is plain text.
     v_password_hash := crypt(trim(p_password_hash), gen_salt('bf'));
   END IF;
 
@@ -129,54 +124,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions;
 
 GRANT EXECUTE ON FUNCTION create_room(TEXT, TEXT, INTEGER, BOOLEAN, TEXT, JSONB, JSONB, JSONB, BOOLEAN, BOOLEAN, INTEGER, INTEGER, INTEGER) TO authenticated, anon;
 
-CREATE OR REPLACE FUNCTION join_room(
-  p_room_id UUID,
-  p_player_id UUID,
-  p_password TEXT DEFAULT NULL
-)
-RETURNS JSONB AS $$
-DECLARE
-  v_room RECORD;
-  v_input_password TEXT;
-BEGIN
-  SELECT * INTO v_room
-  FROM rooms
-  WHERE id = p_room_id;
-
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Room not found');
-  END IF;
-
-  IF v_room.status != 'waiting' THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Room is not accepting players');
-  END IF;
-
-  IF v_room.current_players >= v_room.max_players THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Room is full');
-  END IF;
-
-  IF v_room.is_private AND v_room.password_hash IS NOT NULL THEN
-    v_input_password := NULLIF(trim(COALESCE(p_password, '')), '');
-    IF v_input_password IS NULL OR crypt(v_input_password, v_room.password_hash) != v_room.password_hash THEN
-      RETURN jsonb_build_object('success', false, 'error', 'Invalid password');
-    END IF;
-  END IF;
-
-  IF EXISTS (SELECT 1 FROM room_players WHERE room_id = p_room_id AND player_id = p_player_id) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Already in room');
-  END IF;
-
-  INSERT INTO room_players (room_id, player_id, board, progress, mistakes, hints_used, is_finished)
-  VALUES (p_room_id, p_player_id, v_room.initial_board, 0, 0, 0, false);
-
-  RETURN jsonb_build_object('success', true, 'room_id', p_room_id);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions;
-
-GRANT EXECUTE ON FUNCTION join_room(UUID, UUID, TEXT) TO authenticated, anon;
-
 DO $$
 BEGIN
-  RAISE NOTICE 'Room creation updated: difficulty normalized, private password hashed in DB.';
-  RAISE NOTICE 'Room join updated: password verification uses normalized input.';
+  RAISE NOTICE 'create_room updated to use gen_salt(''bf'') signature.';
 END $$;

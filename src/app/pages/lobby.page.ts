@@ -318,8 +318,8 @@ const EMPTY_STATS: StatsSummary = {
                   >
                   <select
                     class="w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
-                    [value]="createRoomForm.difficulty.$currentValue()"
-                    (change)="setFieldValue(createRoomForm.difficulty, $event)"
+                    [value]="selectedDifficulty()"
+                    (change)="onDifficultyChange($event)"
                     (blur)="markFieldTouched(createRoomForm.difficulty)"
                   >
                     @for (difficulty of difficultyOptions; track difficulty) {
@@ -391,6 +391,12 @@ const EMPTY_STATS: StatsSummary = {
                 </ul>
               }
 
+              @if (createRoomError()) {
+                <div class="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+                  {{ createRoomError() }}
+                </div>
+              }
+
               <button
                 class="flex w-full items-center justify-center rounded-md bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                 type="button"
@@ -416,6 +422,8 @@ export class LobbyPage {
   readonly currentYear = new Date().getFullYear();
   readonly createRoomOpen = signal(false);
   readonly creatingRoom = signal(false);
+  readonly createRoomError = signal<string | null>(null);
+  readonly selectedDifficulty = signal<Difficulty>('medium');
 
   readonly difficultyOptions = ['easy', 'medium', 'hard'] as const;
   readonly playerCounts = [2, 3, 4, 5, 6] as const;
@@ -508,6 +516,9 @@ export class LobbyPage {
       return;
     }
 
+    this.createRoomError.set(null);
+    this.selectedDifficulty.set('medium');
+    this.createRoomForm.difficulty.$currentValue.set('medium');
     this.createRoomOpen.set(true);
   }
 
@@ -531,6 +542,8 @@ export class LobbyPage {
 
   closeCreateRoom(): void {
     this.createRoomOpen.set(false);
+    this.createRoomError.set(null);
+    this.selectedDifficulty.set('medium');
     resetSignalForm(this.createRoomForm);
   }
 
@@ -552,8 +565,18 @@ export class LobbyPage {
     field.$touched.set(true);
   }
 
+  onDifficultyChange(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    const value = String(target.value).trim().toLowerCase();
+    const difficulty: Difficulty = value === 'easy' || value === 'hard' ? value : 'medium';
+    this.selectedDifficulty.set(difficulty);
+    this.createRoomForm.difficulty.$currentValue.set(difficulty);
+    this.createRoomForm.difficulty.$touched.set(true);
+  }
+
   async submitCreateRoom(): Promise<void> {
     signalFormSetTouched(this.createRoomForm);
+    this.createRoomError.set(null);
 
     if (!this.createRoomValid()) return;
 
@@ -567,19 +590,17 @@ export class LobbyPage {
       this.createRoomOpen.set(false);
       resetSignalForm(this.createRoomForm);
       await this.router.navigate(['/room', room.id]);
+    } catch (error) {
+      this.createRoomError.set(error instanceof Error ? error.message : 'Could not create room');
     } finally {
       this.creatingRoom.set(false);
     }
   }
 
   private buildCreateRoomValue(): RoomFormValue {
-    const difficultyValue = String(this.createRoomForm.difficulty.$currentValue()).trim().toLowerCase();
-    const difficulty: Difficulty =
-      difficultyValue === 'easy' || difficultyValue === 'hard' ? difficultyValue : 'medium';
-
     return {
       name: String(this.createRoomForm.name.$currentValue() ?? '').trim(),
-      difficulty,
+      difficulty: this.selectedDifficulty(),
       maxPlayers: Number(this.createRoomForm.maxPlayers.$currentValue() ?? 2),
       isPrivate: Boolean(this.createRoomForm.isPrivate.$currentValue()),
       password: String(this.createRoomForm.password.$currentValue() ?? ''),

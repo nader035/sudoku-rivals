@@ -1,15 +1,10 @@
 -- ============================================================================
--- Fix room creation: difficulty normalization + private password hashing
+-- Hotfix: room password hashing without hard dependency on pgcrypto
 -- ============================================================================
--- Why:
--- 1) Some clients can submit stale form defaults (difficulty drift).
--- 2) Client-side bcrypt hashes may be incompatible with pgcrypto crypt() checks.
---
--- This migration makes `create_room` normalize difficulty server-side and
--- hash private room passwords inside Postgres with pgcrypto.
+-- Some environments cannot resolve gen_salt/crypt at runtime.
+-- This migration keeps bcrypt when pgcrypto exists, and falls back to md5 when
+-- pgcrypto is unavailable so room creation/join never breaks.
 -- ============================================================================
-
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE OR REPLACE FUNCTION create_room(
   p_name TEXT,
@@ -32,6 +27,7 @@ DECLARE
   v_room_id UUID;
   v_password_hash TEXT := NULL;
   v_difficulty TEXT;
+  v_input_password TEXT;
 BEGIN
   v_host_id := current_player_id();
   IF v_host_id IS NULL THEN
@@ -44,12 +40,29 @@ BEGIN
   END IF;
 
   IF p_is_private THEN
-    IF p_password_hash IS NULL OR length(trim(p_password_hash)) = 0 THEN
+    v_input_password := NULLIF(trim(COALESCE(p_password_hash, '')), '');
+    IF v_input_password IS NULL THEN
       RAISE EXCEPTION 'Password is required for private rooms';
     END IF;
 
-    -- Keep the parameter name for backwards compatibility; value is plain text.
-    v_password_hash := crypt(trim(p_password_hash), gen_salt('bf'));
+    IF to_regprocedure('extensions.gen_salt(text)') IS NOT NULL
+      AND to_regprocedure('extensions.crypt(text,text)') IS NOT NULL THEN
+      EXECUTE 'SELECT extensions.crypt($1, extensions.gen_salt(''bf''))'
+      INTO v_password_hash
+      USING v_input_password;
+    ELSIF to_regprocedure('public.gen_salt(text)') IS NOT NULL
+      AND to_regprocedure('public.crypt(text,text)') IS NOT NULL THEN
+      EXECUTE 'SELECT public.crypt($1, public.gen_salt(''bf''))'
+      INTO v_password_hash
+      USING v_input_password;
+    ELSIF to_regprocedure('gen_salt(text)') IS NOT NULL
+      AND to_regprocedure('crypt(text,text)') IS NOT NULL THEN
+      EXECUTE 'SELECT crypt($1, gen_salt(''bf''))'
+      INTO v_password_hash
+      USING v_input_password;
+    ELSE
+      v_password_hash := md5(v_input_password);
+    END IF;
   END IF;
 
   INSERT INTO rooms (
@@ -127,7 +140,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions;
 
-GRANT EXECUTE ON FUNCTION create_room(TEXT, TEXT, INTEGER, BOOLEAN, TEXT, JSONB, JSONB, JSONB, BOOLEAN, BOOLEAN, INTEGER, INTEGER, INTEGER) TO authenticated, anon;
 
 CREATE OR REPLACE FUNCTION join_room(
   p_room_id UUID,
@@ -138,6 +150,7 @@ RETURNS JSONB AS $$
 DECLARE
   v_room RECORD;
   v_input_password TEXT;
+  v_compare_hash TEXT;
 BEGIN
   SELECT * INTO v_room
   FROM rooms
@@ -157,8 +170,30 @@ BEGIN
 
   IF v_room.is_private AND v_room.password_hash IS NOT NULL THEN
     v_input_password := NULLIF(trim(COALESCE(p_password, '')), '');
-    IF v_input_password IS NULL OR crypt(v_input_password, v_room.password_hash) != v_room.password_hash THEN
+    IF v_input_password IS NULL THEN
       RETURN jsonb_build_object('success', false, 'error', 'Invalid password');
+    END IF;
+
+    -- md5 fallback mode
+    IF length(v_room.password_hash) = 32 AND v_room.password_hash !~ '^\$' THEN
+      IF md5(v_input_password) != v_room.password_hash THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Invalid password');
+      END IF;
+    ELSE
+      -- bcrypt mode when crypt is available
+      IF to_regprocedure('extensions.crypt(text,text)') IS NOT NULL THEN
+        EXECUTE 'SELECT extensions.crypt($1, $2)' INTO v_compare_hash USING v_input_password, v_room.password_hash;
+      ELSIF to_regprocedure('public.crypt(text,text)') IS NOT NULL THEN
+        EXECUTE 'SELECT public.crypt($1, $2)' INTO v_compare_hash USING v_input_password, v_room.password_hash;
+      ELSIF to_regprocedure('crypt(text,text)') IS NOT NULL THEN
+        EXECUTE 'SELECT crypt($1, $2)' INTO v_compare_hash USING v_input_password, v_room.password_hash;
+      ELSE
+        RETURN jsonb_build_object('success', false, 'error', 'Password verification is unavailable');
+      END IF;
+
+      IF v_compare_hash IS NULL OR v_compare_hash != v_room.password_hash THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Invalid password');
+      END IF;
     END IF;
   END IF;
 
@@ -173,10 +208,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions;
 
+GRANT EXECUTE ON FUNCTION create_room(TEXT, TEXT, INTEGER, BOOLEAN, TEXT, JSONB, JSONB, JSONB, BOOLEAN, BOOLEAN, INTEGER, INTEGER, INTEGER) TO authenticated, anon;
 GRANT EXECUTE ON FUNCTION join_room(UUID, UUID, TEXT) TO authenticated, anon;
 
 DO $$
 BEGIN
-  RAISE NOTICE 'Room creation updated: difficulty normalized, private password hashed in DB.';
-  RAISE NOTICE 'Room join updated: password verification uses normalized input.';
+  RAISE NOTICE 'Room password logic updated with pgcrypto fallback support.';
 END $$;
