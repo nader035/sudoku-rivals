@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, Injector, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { SupabaseService } from '../core/services/supabase.service';
-import { LeaderboardEntry, RecentMatch, StatsSummary } from '../core/models';
+import { EconomyLeaderboardEntry, LeaderboardSort, RecentMatch, StatsSummary } from '../core/models';
 import { UserNavComponent } from '../shared/components/user-nav.component';
 
 const EMPTY_STATS: StatsSummary = {
@@ -77,7 +76,23 @@ const EMPTY_STATS: StatsSummary = {
         }
 
         <section class="space-y-3">
-          <h2 class="text-xl font-bold uppercase tracking-tight">Top Players</h2>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="text-xl font-bold uppercase tracking-tight">Top Players</h2>
+            <div class="flex flex-wrap gap-2">
+              @for (item of sortOptions; track item.value) {
+                <button
+                  class="rounded-md border px-3 py-1.5 text-xs font-bold uppercase tracking-wider"
+                  [class.border-primary]="sortBy() === item.value"
+                  [class.text-primary]="sortBy() === item.value"
+                  [class.border-border]="sortBy() !== item.value"
+                  type="button"
+                  (click)="changeSort(item.value)"
+                >
+                  {{ item.label }}
+                </button>
+              }
+            </div>
+          </div>
           <div class="overflow-hidden rounded-md border border-border/60 bg-card/70">
             @if (leaderboard().length === 0) {
               <div class="p-6 font-mono text-sm text-muted-foreground">
@@ -98,17 +113,15 @@ const EMPTY_STATS: StatsSummary = {
                       <div class="space-y-0.5">
                         <div class="font-bold">{{ entry.username }}</div>
                         <div class="text-xs font-mono text-muted-foreground">
-                          {{ entry.gamesPlayed }}
-                          {{ entry.gamesPlayed === 1 ? 'match' : 'matches' }}
+                          {{ entry.wins + entry.losses }}
+                          {{ entry.wins + entry.losses === 1 ? 'match' : 'matches' }}
                         </div>
                       </div>
                     </div>
                     <div class="text-right">
-                      <div class="text-2xl font-black tabular-nums text-primary">
-                        {{ entry.wins }}
-                      </div>
-                      <div class="text-[10px] uppercase tracking-widest text-muted-foreground">
-                        Wins
+                      <div class="text-base font-black tabular-nums text-primary">{{ entry.currentCoins }} coins</div>
+                      <div class="text-xs font-mono text-muted-foreground">
+                        {{ entry.wins }}W · {{ entry.losses }}L · {{ entry.winRate }}%
                       </div>
                     </div>
                   </li>
@@ -165,23 +178,41 @@ const EMPTY_STATS: StatsSummary = {
 })
 export class LeaderboardPage {
   private readonly router = inject(Router);
-  private readonly injector = inject(Injector);
   readonly supabase = inject(SupabaseService);
+  readonly sortBy = signal<LeaderboardSort>('wins');
+  readonly leaderboard = signal<EconomyLeaderboardEntry[]>([]);
+  readonly sortOptions: Array<{ label: string; value: LeaderboardSort }> = [
+    { label: 'Wins', value: 'wins' },
+    { label: 'Win Rate', value: 'win_rate' },
+    { label: 'Coins', value: 'coins' },
+    { label: 'Coins Won', value: 'coins_won' },
+  ];
 
-  readonly leaderboard = toSignal(
-    this.supabase.observeLeaderboard().pipe(catchError(() => of([] as LeaderboardEntry[]))),
-    { initialValue: [] as LeaderboardEntry[], injector: this.injector },
-  );
+  readonly stats = signal<StatsSummary>(EMPTY_STATS);
+  readonly recent = signal<RecentMatch[]>([]);
 
-  readonly stats = toSignal(
-    this.supabase.observeStatsSummary().pipe(catchError(() => of(EMPTY_STATS))),
-    { initialValue: EMPTY_STATS, injector: this.injector },
-  );
+  constructor() {
+    void this.loadLeaderboard();
+    this.supabase
+      .observeStatsSummary()
+      .pipe(catchError(() => of(EMPTY_STATS)))
+      .subscribe((value) => this.stats.set(value));
+    this.supabase
+      .observeRecentMatches()
+      .pipe(catchError(() => of([] as RecentMatch[])))
+      .subscribe((value) => this.recent.set(value));
+  }
 
-  readonly recent = toSignal(
-    this.supabase.observeRecentMatches().pipe(catchError(() => of([] as RecentMatch[]))),
-    { initialValue: [] as RecentMatch[], injector: this.injector },
-  );
+  async loadLeaderboard(): Promise<void> {
+    const data = await this.supabase.getEconomyLeaderboard(this.sortBy(), 50, 0);
+    this.leaderboard.set(data);
+  }
+
+  async changeSort(next: LeaderboardSort): Promise<void> {
+    if (this.sortBy() === next) return;
+    this.sortBy.set(next);
+    await this.loadLeaderboard();
+  }
 
   goHome(): void {
     void this.router.navigateByUrl('/');

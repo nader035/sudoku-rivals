@@ -119,6 +119,7 @@ export class ProfilePage {
   private readonly router = inject(Router);
   readonly appStore = inject(AppStore);
   readonly player = this.appStore.player;
+  readonly wallet = this.appStore.wallet;
 
   readonly avatarInitial = computed(() => (this.player()?.username[0] ?? 'P').toUpperCase());
   readonly winRate = computed(() => {
@@ -134,6 +135,7 @@ export class ProfilePage {
       { label: 'Matches', value: player?.totalGames ?? 0 },
       { label: 'Win rate', value: `${this.winRate()}%` },
       { label: 'Mistakes', value: player?.totalMistakes ?? 0 },
+      { label: 'Coins', value: this.wallet()?.balance ?? 0 },
     ];
   });
 

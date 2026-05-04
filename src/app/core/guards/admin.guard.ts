@@ -18,7 +18,7 @@ export const adminGuard: CanActivateFn = () => {
           return router.createUrlTree(['/sign-in'], { queryParams: { next: '/admin' } });
         }
 
-        return appStore.player()?.role === 'admin' ? true : router.createUrlTree(['/']);
+        return appStore.isAdmin() ? true : router.createUrlTree(['/']);
       }),
     ),
   );

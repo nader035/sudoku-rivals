@@ -22,6 +22,22 @@ import { AppStore } from '../../store/app.store';
         [class.md:flex]="true"
       >
         @if (showGameLinks()) {
+          @if (appStore.isSignedIn()) {
+            <button
+              class="rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs font-mono font-bold uppercase tracking-wider text-primary hover:border-primary/70 hover:bg-primary/15"
+              type="button"
+              (click)="goWallet()"
+            >
+              {{ appStore.wallet()?.balance ?? 0 }} Coins
+            </button>
+            <button
+              class="rounded-md bg-primary px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
+              type="button"
+              (click)="goShop()"
+            >
+              Buy Coins
+            </button>
+          }
           <button
             class="rounded-md border border-border/60 px-3 py-2 text-left text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
             type="button"
@@ -137,6 +153,16 @@ export class UserNavComponent {
   goAdmin(): void {
     this.menuOpen.set(false);
     void this.router.navigateByUrl('/admin');
+  }
+
+  goShop(): void {
+    this.menuOpen.set(false);
+    void this.router.navigateByUrl('/shop');
+  }
+
+  goWallet(): void {
+    this.menuOpen.set(false);
+    void this.router.navigateByUrl('/wallet');
   }
 
   toggleTheme(): void {

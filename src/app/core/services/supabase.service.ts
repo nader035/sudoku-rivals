@@ -10,16 +10,24 @@ import {
   AuthCredentials,
   Difficulty,
   GuestCredentials,
+  EconomyLeaderboardEntry,
   LeaderboardEntry,
+  LeaderboardSort,
+  PlatformEconomySettings,
   PlayerProfile,
+  PurchasePaymentMethod,
+  PurchaseSnapshot,
   RecentMatch,
   RoomFormValue,
   RoomPlayerSnapshot,
   RoomSnapshot,
   RoomStatus,
   RoomSummary,
+  ShopPackage,
   StatsSummary,
   SignUpCredentials,
+  WalletSnapshot,
+  WalletTransactionSnapshot,
 } from '../models';
 import { SudokuLogicService } from './sudoku-logic.service';
 
@@ -125,6 +133,72 @@ interface ActivePlayerRow {
   is_banned: boolean | null;
 }
 
+interface WalletRow {
+  id: string;
+  user_id: string;
+  balance: number | null;
+  total_coins_won: number | null;
+  total_coins_spent: number | null;
+  total_coins_purchased: number | null;
+  is_frozen: boolean | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface WalletTransactionRow {
+  id: string;
+  user_id: string;
+  wallet_id: string;
+  type: string;
+  amount: number | null;
+  balance_before: number | null;
+  balance_after: number | null;
+  status: string;
+  related_match_id: string | null;
+  related_purchase_id: string | null;
+  admin_id: string | null;
+  reason: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
+interface ShopPackageRow {
+  id: string;
+  name: string;
+  coins_amount: number | null;
+  bonus_coins: number | null;
+  price: number | string | null;
+  currency: string | null;
+  badge: string | null;
+  sort_order: number | null;
+  is_active: boolean | null;
+}
+
+interface PurchaseRow {
+  id: string;
+  user_id: string;
+  package_id: string;
+  amount_paid: number | string | null;
+  currency: string | null;
+  coins_received: number | null;
+  payment_method: string;
+  payment_destination: string;
+  payment_reference: string | null;
+  sender_phone: string | null;
+  sender_name: string | null;
+  transfer_screenshot_url: string | null;
+  user_note: string | null;
+  admin_note: string | null;
+  payment_status: string;
+  credited_at: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  rejection_reason: string | null;
+  idempotency_key: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 interface RealtimeWatcher {
   table: string;
   filter?: string;
@@ -204,6 +278,31 @@ export class SupabaseService {
         })();
       },
       error: (error) => subscriber.error(error),
+    });
+
+    return () => subscription.unsubscribe();
+  }).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
+  readonly adminAccessState$ = new Observable<boolean>((subscriber) => {
+    const subscription = this.authState$.subscribe({
+      next: (authState) => {
+        if (!authState.session?.user?.id) {
+          subscriber.next(false);
+          return;
+        }
+
+        (async () => {
+          const { data, error } = await this.client.rpc('is_admin', {
+            p_user_id: authState.session!.user.id,
+          });
+          if (error) {
+            subscriber.next(false);
+            return;
+          }
+          subscriber.next(Boolean(data));
+        })();
+      },
+      error: () => subscriber.next(false),
     });
 
     return () => subscription.unsubscribe();
@@ -424,7 +523,7 @@ export class SupabaseService {
   async listRooms(): Promise<RoomSummary[]> {
     const { data: rooms, error } = await this.client
       .from('rooms')
-      .select('id,name,difficulty,status,max_players,current_players,is_private,host_id,created_at')
+      .select('id,name,difficulty,status,max_players,current_players,is_private,host_id,entry_fee,prize_pool,created_at')
       .in('status', ['waiting', 'active'])
       .order('created_at', { ascending: false })
       .limit(50);
@@ -442,6 +541,8 @@ export class SupabaseService {
       status: this.normalizeRoomStatus(String(row.status)),
       playerCount: Number(row.current_players ?? 0),
       maxPlayers: Number(row.max_players ?? 4),
+      entryFee: Number(row.entry_fee ?? 0),
+      prizePool: Number(row.prize_pool ?? 0),
       hasPassword: Boolean(row.is_private),
       hostUsername: usernameMap.get(String(row.host_id)) ?? 'Unknown',
       createdAt: String(row.created_at),
@@ -452,7 +553,7 @@ export class SupabaseService {
     const { data: room, error } = await this.client
       .from('rooms')
       .select(
-        'id,name,difficulty,status,max_players,is_private,host_id,puzzle,solution,winner_id,started_at,created_at',
+        'id,name,difficulty,status,max_players,is_private,host_id,entry_fee,prize_pool,puzzle,solution,winner_id,started_at,created_at',
       )
       .eq('id', roomId)
       .maybeSingle();
@@ -482,6 +583,8 @@ export class SupabaseService {
       difficulty: this.normalizeDifficulty(String(room.difficulty)),
       status: this.normalizeRoomStatus(String(room.status)),
       maxPlayers: Number(room.max_players ?? 4),
+      entryFee: Number(room.entry_fee ?? 0),
+      prizePool: Number(room.prize_pool ?? 0),
       hasPassword: Boolean(room.is_private),
       hostId: String(room.host_id),
       players: (roomPlayers ?? []).map((row) =>
@@ -516,6 +619,7 @@ export class SupabaseService {
       p_max_mistakes: 5,
       p_freeze_duration: 3,
       p_mega_freeze_duration: 10,
+      p_entry_fee: Number(values.entryFee ?? 0),
     });
 
     if (error) throw error;
@@ -807,6 +911,222 @@ export class SupabaseService {
     if (error) throw error;
   }
 
+  observeMyWallet(): Observable<WalletSnapshot | null> {
+    return this.createRefreshStream('my-wallet', () => this.getMyWallet(), [{ table: 'wallets' }]);
+  }
+
+  observeMyPurchases(limit = 50): Observable<PurchaseSnapshot[]> {
+    return this.createRefreshStream('my-purchases', () => this.getMyPurchases(limit), [
+      { table: 'purchases' },
+    ]);
+  }
+
+  observeMyWalletTransactions(limit = 100): Observable<WalletTransactionSnapshot[]> {
+    return this.createRefreshStream('my-wallet-transactions', () => this.getMyWalletTransactions(limit), [
+      { table: 'wallet_transactions' },
+    ]);
+  }
+
+  observeShopPackages(): Observable<ShopPackage[]> {
+    return this.createRefreshStream('shop-packages', () => this.getShopPackages(), [
+      { table: 'shop_packages' },
+    ]);
+  }
+
+  async getMyWallet(): Promise<WalletSnapshot | null> {
+    const userId = (await this.client.auth.getUser()).data.user?.id;
+    if (!userId) return null;
+
+    const { data, error } = await this.client
+      .from('wallets')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return null;
+    return this.mapWallet(data as WalletRow);
+  }
+
+  async getMyWalletTransactions(limit = 100): Promise<WalletTransactionSnapshot[]> {
+    const userId = (await this.client.auth.getUser()).data.user?.id;
+    if (!userId) return [];
+
+    const { data, error } = await this.client
+      .from('wallet_transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data as WalletTransactionRow[] | null)?.map((row) => this.mapWalletTransaction(row)) ?? [];
+  }
+
+  async getShopPackages(): Promise<ShopPackage[]> {
+    const { data, error } = await this.client
+      .from('shop_packages')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return (data as ShopPackageRow[] | null)?.map((row) => this.mapShopPackage(row)) ?? [];
+  }
+
+  async getMyPurchases(limit = 50): Promise<PurchaseSnapshot[]> {
+    const userId = (await this.client.auth.getUser()).data.user?.id;
+    if (!userId) return [];
+
+    const { data, error } = await this.client
+      .from('purchases')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data as PurchaseRow[] | null)?.map((row) => this.mapPurchase(row)) ?? [];
+  }
+
+  async createManualPurchase(
+    packageId: string,
+    paymentMethod: PurchasePaymentMethod,
+    idempotencyKey?: string,
+  ): Promise<PurchaseSnapshot> {
+    const { data, error } = await this.client.rpc('create_manual_purchase', {
+      p_package_id: packageId,
+      p_payment_method: paymentMethod,
+      p_idempotency_key: idempotencyKey ?? null,
+    });
+    if (error) throw error;
+    return this.mapPurchase(data as PurchaseRow);
+  }
+
+  async confirmManualPurchaseTransfer(input: {
+    purchaseId: string;
+    senderPhone: string;
+    senderName?: string;
+    paymentReference?: string;
+    transferScreenshotUrl?: string;
+    userNote?: string;
+  }): Promise<PurchaseSnapshot> {
+    const { data, error } = await this.client.rpc('confirm_manual_purchase_transfer', {
+      p_purchase_id: input.purchaseId,
+      p_sender_phone: input.senderPhone,
+      p_sender_name: input.senderName ?? null,
+      p_payment_reference: input.paymentReference ?? null,
+      p_transfer_screenshot_url: input.transferScreenshotUrl ?? null,
+      p_user_note: input.userNote ?? null,
+    });
+    if (error) throw error;
+    return this.mapPurchase(data as PurchaseRow);
+  }
+
+  async getEconomyLeaderboard(
+    sort: LeaderboardSort,
+    limit = 50,
+    offset = 0,
+  ): Promise<EconomyLeaderboardEntry[]> {
+    const orderColumn =
+      sort === 'coins'
+        ? 'current_coins'
+        : sort === 'coins_won'
+          ? 'total_coins_won'
+          : sort === 'win_rate'
+            ? 'win_rate'
+            : 'wins';
+
+    const { data, error } = await this.client
+      .from('leaderboard_public')
+      .select('player_id,username,avatar_url,current_coins,total_coins_won,wins,losses,win_rate')
+      .order(orderColumn, { ascending: false })
+      .order('wins', { ascending: false })
+      .range(offset, offset + Math.max(1, limit) - 1);
+
+    if (error) throw error;
+    return ((data as Record<string, unknown>[] | null) ?? []).map((row) => ({
+      playerId: String(row['player_id']),
+      username: String(row['username']),
+      avatarUrl: row['avatar_url'] ? String(row['avatar_url']) : null,
+      currentCoins: Number(row['current_coins'] ?? 0),
+      totalCoinsWon: Number(row['total_coins_won'] ?? 0),
+      wins: Number(row['wins'] ?? 0),
+      losses: Number(row['losses'] ?? 0),
+      winRate: Number(row['win_rate'] ?? 0),
+    }));
+  }
+
+  async getEconomySettings(): Promise<PlatformEconomySettings> {
+    const { data, error } = await this.client
+      .from('platform_settings')
+      .select('key,value')
+      .in('key', [
+        'allowed_match_entry_fees',
+        'vodafone_cash_number',
+        'instapay_link',
+        'platform_fee_percentage',
+      ]);
+
+    if (error) throw error;
+
+    const settings = new Map<string, unknown>();
+    for (const row of (data ?? []) as { key: string; value: unknown }[]) {
+      settings.set(row.key, row.value);
+    }
+
+    const allowedRaw = settings.get('allowed_match_entry_fees');
+    const allowedEntryFees = Array.isArray(allowedRaw)
+      ? allowedRaw.map((value) => Number(value)).filter((value) => Number.isFinite(value) && value > 0)
+      : [10, 50, 100, 500];
+
+    return {
+      allowedEntryFees: allowedEntryFees.length > 0 ? allowedEntryFees : [10, 50, 100, 500],
+      vodafoneCashNumber: String(settings.get('vodafone_cash_number') ?? '+01022175316'),
+      instapayLink: String(settings.get('instapay_link') ?? 'https://ipn.eg/S/naderas109n/instapay/5ph2Pv'),
+      platformFeePercent: Number(settings.get('platform_fee_percentage') ?? 0),
+    };
+  }
+
+  async adminListPurchases(limit = 100): Promise<PurchaseSnapshot[]> {
+    const { data, error } = await this.client
+      .from('purchases')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data as PurchaseRow[] | null)?.map((row) => this.mapPurchase(row)) ?? [];
+  }
+
+  async adminApprovePurchase(purchaseId: string, reason?: string): Promise<PurchaseSnapshot> {
+    const { data, error } = await this.client.rpc('admin_approve_purchase', {
+      p_purchase_id: purchaseId,
+      p_reason: reason ?? null,
+    });
+    if (error) throw error;
+    return this.mapPurchase(data as PurchaseRow);
+  }
+
+  async adminRejectPurchase(purchaseId: string, rejectionReason: string): Promise<PurchaseSnapshot> {
+    const { data, error } = await this.client.rpc('admin_reject_purchase', {
+      p_purchase_id: purchaseId,
+      p_rejection_reason: rejectionReason,
+    });
+    if (error) throw error;
+    return this.mapPurchase(data as PurchaseRow);
+  }
+
+  async adminAdjustWallet(targetUserId: string, amount: number, reason: string): Promise<WalletTransactionSnapshot> {
+    const { data, error } = await this.client.rpc('admin_adjust_wallet', {
+      p_target_user_id: targetUserId,
+      p_amount: Math.trunc(amount),
+      p_reason: reason,
+    });
+    if (error) throw error;
+    return this.mapWalletTransaction(data as WalletTransactionRow);
+  }
+
   private createRefreshStream<T>(
     label: string,
     refresh: () => Promise<T>,
@@ -1052,6 +1372,80 @@ export class SupabaseService {
       isHost: playerId === hostId,
       isFinished: Boolean(row.is_finished ?? false),
       finishedAt: row.finished_at ? String(row.finished_at) : null,
+    };
+  }
+
+  private mapWallet(row: WalletRow): WalletSnapshot {
+    return {
+      id: String(row.id),
+      userId: String(row.user_id),
+      balance: Number(row.balance ?? 0),
+      totalCoinsWon: Number(row.total_coins_won ?? 0),
+      totalCoinsSpent: Number(row.total_coins_spent ?? 0),
+      totalCoinsPurchased: Number(row.total_coins_purchased ?? 0),
+      isFrozen: Boolean(row.is_frozen ?? false),
+      createdAt: String(row.created_at),
+      updatedAt: String(row.updated_at),
+    };
+  }
+
+  private mapWalletTransaction(row: WalletTransactionRow): WalletTransactionSnapshot {
+    return {
+      id: String(row.id),
+      userId: String(row.user_id),
+      walletId: String(row.wallet_id),
+      type: String(row.type) as WalletTransactionSnapshot['type'],
+      amount: Number(row.amount ?? 0),
+      balanceBefore: Number(row.balance_before ?? 0),
+      balanceAfter: Number(row.balance_after ?? 0),
+      status: String(row.status) as WalletTransactionSnapshot['status'],
+      relatedMatchId: row.related_match_id ? String(row.related_match_id) : null,
+      relatedPurchaseId: row.related_purchase_id ? String(row.related_purchase_id) : null,
+      adminId: row.admin_id ? String(row.admin_id) : null,
+      reason: row.reason ? String(row.reason) : null,
+      metadata: row.metadata ?? null,
+      createdAt: String(row.created_at),
+    };
+  }
+
+  private mapShopPackage(row: ShopPackageRow): ShopPackage {
+    return {
+      id: String(row.id),
+      name: String(row.name),
+      coinsAmount: Number(row.coins_amount ?? 0),
+      bonusCoins: Number(row.bonus_coins ?? 0),
+      price: Number(row.price ?? 0),
+      currency: String(row.currency ?? 'EGP'),
+      badge: row.badge ? String(row.badge) : null,
+      sortOrder: Number(row.sort_order ?? 0),
+      isActive: Boolean(row.is_active ?? true),
+    };
+  }
+
+  private mapPurchase(row: PurchaseRow): PurchaseSnapshot {
+    return {
+      id: String(row.id),
+      userId: String(row.user_id),
+      packageId: String(row.package_id),
+      amountPaid: Number(row.amount_paid ?? 0),
+      currency: String(row.currency ?? 'EGP'),
+      coinsReceived: Number(row.coins_received ?? 0),
+      paymentMethod: String(row.payment_method) as PurchasePaymentMethod,
+      paymentDestination: String(row.payment_destination),
+      paymentReference: row.payment_reference ? String(row.payment_reference) : null,
+      senderPhone: row.sender_phone ? String(row.sender_phone) : null,
+      senderName: row.sender_name ? String(row.sender_name) : null,
+      transferScreenshotUrl: row.transfer_screenshot_url ? String(row.transfer_screenshot_url) : null,
+      userNote: row.user_note ? String(row.user_note) : null,
+      adminNote: row.admin_note ? String(row.admin_note) : null,
+      paymentStatus: String(row.payment_status) as PurchaseSnapshot['paymentStatus'],
+      creditedAt: row.credited_at ? String(row.credited_at) : null,
+      reviewedBy: row.reviewed_by ? String(row.reviewed_by) : null,
+      reviewedAt: row.reviewed_at ? String(row.reviewed_at) : null,
+      rejectionReason: row.rejection_reason ? String(row.rejection_reason) : null,
+      idempotencyKey: row.idempotency_key ? String(row.idempotency_key) : null,
+      createdAt: String(row.created_at),
+      updatedAt: String(row.updated_at),
     };
   }
 

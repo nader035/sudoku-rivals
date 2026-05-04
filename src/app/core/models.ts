@@ -20,6 +20,7 @@ export interface RoomFormValue {
   name: string;
   difficulty: Difficulty;
   maxPlayers: number;
+  entryFee: number;
   isPrivate: boolean;
   password: string;
 }
@@ -66,6 +67,8 @@ export interface RoomSnapshot {
   difficulty: Difficulty;
   status: RoomStatus;
   maxPlayers: number;
+  entryFee: number;
+  prizePool: number;
   hasPassword: boolean;
   hostId: string;
   players: RoomPlayerSnapshot[];
@@ -84,6 +87,8 @@ export interface RoomSummary {
   status: RoomStatus;
   playerCount: number;
   maxPlayers: number;
+  entryFee: number;
+  prizePool: number;
   hasPassword: boolean;
   hostUsername: string;
   createdAt: string;
@@ -170,4 +175,110 @@ export interface ValidationResult {
   correct: boolean;
   filledCount: number;
   errors: number[];
+}
+
+export type WalletTransactionType =
+  | 'purchase'
+  | 'entry_fee'
+  | 'prize_win'
+  | 'refund'
+  | 'admin_adjustment'
+  | 'platform_fee'
+  | 'bonus';
+
+export type WalletTransactionStatus = 'pending' | 'completed' | 'failed' | 'reversed';
+
+export interface WalletSnapshot {
+  id: string;
+  userId: string;
+  balance: number;
+  totalCoinsWon: number;
+  totalCoinsSpent: number;
+  totalCoinsPurchased: number;
+  isFrozen: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WalletTransactionSnapshot {
+  id: string;
+  userId: string;
+  walletId: string;
+  type: WalletTransactionType;
+  amount: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  status: WalletTransactionStatus;
+  relatedMatchId: string | null;
+  relatedPurchaseId: string | null;
+  adminId: string | null;
+  reason: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface ShopPackage {
+  id: string;
+  name: string;
+  coinsAmount: number;
+  bonusCoins: number;
+  price: number;
+  currency: string;
+  badge: string | null;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export type PurchasePaymentMethod = 'vodafone_cash' | 'instapay';
+export type PurchaseStatus =
+  | 'awaiting_transfer'
+  | 'pending_admin_review'
+  | 'approved'
+  | 'rejected'
+  | 'cancelled'
+  | 'refunded';
+
+export interface PurchaseSnapshot {
+  id: string;
+  userId: string;
+  packageId: string;
+  amountPaid: number;
+  currency: string;
+  coinsReceived: number;
+  paymentMethod: PurchasePaymentMethod;
+  paymentDestination: string;
+  paymentReference: string | null;
+  senderPhone: string | null;
+  senderName: string | null;
+  transferScreenshotUrl: string | null;
+  userNote: string | null;
+  adminNote: string | null;
+  paymentStatus: PurchaseStatus;
+  creditedAt: string | null;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
+  idempotencyKey: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type LeaderboardSort = 'coins' | 'coins_won' | 'wins' | 'win_rate';
+
+export interface EconomyLeaderboardEntry {
+  playerId: string;
+  username: string;
+  avatarUrl: string | null;
+  currentCoins: number;
+  totalCoinsWon: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+}
+
+export interface PlatformEconomySettings {
+  allowedEntryFees: number[];
+  vodafoneCashNumber: string;
+  instapayLink: string;
+  platformFeePercent: number;
 }

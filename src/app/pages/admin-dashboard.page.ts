@@ -46,13 +46,29 @@ const EMPTY_SUMMARY: AdminDashboardSummary = {
             <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">Admin</div>
             <h1 class="mt-2 text-3xl font-black tracking-tight md:text-4xl">Dashboard</h1>
           </div>
-          <button
-            class="w-fit rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
-            type="button"
-            (click)="refresh()"
-          >
-            Refresh
-          </button>
+          <div class="flex flex-wrap gap-2">
+            <button
+              class="w-fit rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
+              type="button"
+              (click)="goAdminPurchases()"
+            >
+              Purchases
+            </button>
+            <button
+              class="w-fit rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
+              type="button"
+              (click)="goAdminWallets()"
+            >
+              Wallets
+            </button>
+            <button
+              class="w-fit rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
+              type="button"
+              (click)="refresh()"
+            >
+              Refresh
+            </button>
+          </div>
         </header>
 
         @if (statusMessage()) {
@@ -214,6 +230,14 @@ export class AdminDashboardPage {
 
   goRoom(roomId: string): void {
     void this.router.navigate(['/room', roomId]);
+  }
+
+  goAdminPurchases(): void {
+    void this.router.navigateByUrl('/admin/purchases');
+  }
+
+  goAdminWallets(): void {
+    void this.router.navigateByUrl('/admin/wallets');
   }
 
   async deleteRoom(roomId: string, roomName: string): Promise<void> {

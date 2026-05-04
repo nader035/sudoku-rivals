@@ -167,6 +167,10 @@ const EMPTY_STATS: StatsSummary = {
                         >
                           <span class="uppercase text-primary">{{ room.difficulty }}</span>
                           <span>•</span>
+                          <span>fee {{ room.entryFee }}c</span>
+                          <span>•</span>
+                          <span>pool {{ room.prizePool }}c</span>
+                          <span>•</span>
                           <span>{{ room.playerCount }}/{{ room.maxPlayers }} players</span>
                           <span>•</span>
                           <span
@@ -346,6 +350,22 @@ const EMPTY_STATS: StatsSummary = {
                 </label>
               </div>
 
+              <label class="block space-y-2">
+                <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+                  >Entry fee</span
+                >
+                <select
+                  class="w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
+                  [value]="createRoomForm.entryFee.$currentValue()"
+                  (change)="setFieldValue(createRoomForm.entryFee, $event)"
+                  (blur)="markFieldTouched(createRoomForm.entryFee)"
+                >
+                  @for (fee of entryFeeOptions(); track fee) {
+                    <option [value]="fee">{{ fee }} coins</option>
+                  }
+                </select>
+              </label>
+
               <label class="flex items-center gap-3 rounded-md border border-border/60 px-3 py-3">
                 <input
                   type="checkbox"
@@ -425,6 +445,7 @@ export class LobbyPage {
   readonly creatingRoom = signal(false);
   readonly createRoomError = signal<string | null>(null);
   readonly selectedDifficulty = signal<Difficulty>('medium');
+  readonly entryFeeOptions = signal<number[]>([10, 50, 100, 500]);
 
   readonly difficultyOptions = ['easy', 'medium', 'hard'] as const;
   readonly playerCounts = [2, 3, 4, 5, 6] as const;
@@ -468,6 +489,10 @@ export class LobbyPage {
       initialValue: 2,
       validators: [Min(2, 'Minimum 2 players')],
     },
+    entryFee: {
+      initialValue: 10,
+      validators: [Min(0, 'Entry fee cannot be negative')],
+    },
     isPrivate: {
       initialValue: false,
       validators: [],
@@ -486,6 +511,10 @@ export class LobbyPage {
 
   readonly createRoomValid = signalFormValid(this.createRoomForm);
   readonly createRoomErrors = signalFormErrors(this.createRoomForm);
+
+  constructor() {
+    void this.loadEntryFeeOptions();
+  }
 
   get player() {
     return this.appStore.player;
@@ -520,6 +549,7 @@ export class LobbyPage {
     this.createRoomError.set(null);
     this.selectedDifficulty.set('medium');
     this.createRoomForm.difficulty.$currentValue.set('medium');
+    this.createRoomForm.entryFee.$currentValue.set(this.entryFeeOptions()[0] ?? 10);
     this.createRoomOpen.set(true);
   }
 
@@ -603,8 +633,24 @@ export class LobbyPage {
       name: String(this.createRoomForm.name.$currentValue() ?? '').trim(),
       difficulty: this.selectedDifficulty(),
       maxPlayers: Number(this.createRoomForm.maxPlayers.$currentValue() ?? 2),
+      entryFee: Number(this.createRoomForm.entryFee.$currentValue() ?? 0),
       isPrivate: Boolean(this.createRoomForm.isPrivate.$currentValue()),
       password: String(this.createRoomForm.password.$currentValue() ?? ''),
     };
+  }
+
+  private async loadEntryFeeOptions(): Promise<void> {
+    try {
+      const settings = await this.supabase.getEconomySettings();
+      const values = [...new Set(settings.allowedEntryFees.filter((value) => value >= 0))].sort(
+        (a, b) => a - b,
+      );
+      if (values.length > 0) {
+        this.entryFeeOptions.set(values);
+        this.createRoomForm.entryFee.$currentValue.set(values[0]);
+      }
+    } catch {
+      // keep defaults
+    }
   }
 }
