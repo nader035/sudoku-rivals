@@ -27,6 +27,7 @@ const PENALTY_PERCENT = 3;
 const FREEZE_MS = 3000;
 const MEGA_FREEZE_MS = 10000;
 const MEGA_FREEZE_THRESHOLD = 5;
+const BOARD_RESET_MISTAKE_THRESHOLD = 10;
 
 interface GameStoreState {
   mode: GameMode;
@@ -68,6 +69,12 @@ function cloneBoard(board: number[]): number[] {
 
 function isBoardEmpty(board: number[]): boolean {
   return board.every((value) => value === 0);
+}
+
+function parseIsoToMillis(value: string | null): number | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
 export const GameStore = signalStore(
@@ -188,6 +195,9 @@ export const GameStore = signalStore(
         puzzle: snapshot.puzzle ?? createBoard(),
         solution: snapshot.solution ?? createBoard(),
         rawProgress: currentPlayer?.progress ?? 0,
+        mistakes: currentPlayer?.mistakes ?? 0,
+        penaltyPoints: (currentPlayer?.mistakes ?? 0) * PENALTY_PERCENT,
+        frozenUntil: parseIsoToMillis(currentPlayer?.frozenUntil ?? null),
         loadedRoomId: snapshot.id,
         loading: false,
         error: null,
@@ -363,9 +373,27 @@ export const GameStore = signalStore(
       }
 
       if (solution[index] !== value) {
+        const stableBoard = cloneBoard(board);
         const newMistakes = store.mistakes() + 1;
-        const triggersMegaFreeze = newMistakes >= MEGA_FREEZE_THRESHOLD;
+        const triggersMegaFreeze = newMistakes % MEGA_FREEZE_THRESHOLD === 0;
+        const triggersBoardReset =
+          newMistakes % BOARD_RESET_MISTAKE_THRESHOLD === 0;
         const freezeMs = triggersMegaFreeze ? MEGA_FREEZE_MS : FREEZE_MS;
+
+        if (triggersBoardReset) {
+          const resetBoard = cloneBoard(store.puzzle());
+          patchState(store, {
+            attempt: resetBoard,
+            mistakes: 0,
+            penaltyPoints: 0,
+            shakeIndex: index,
+            selectedIndex: null,
+          });
+          setFrozenFor(freezeMs);
+          window.setTimeout(() => patchState(store, { shakeIndex: null }), 600);
+          void syncProgress(resetBoard, 0);
+          return;
+        }
 
         board[index] = value;
         patchState(store, {
@@ -381,13 +409,12 @@ export const GameStore = signalStore(
         window.setTimeout(() => {
           const currentBoard = cloneBoard(store.attempt());
           if (currentBoard[index] === value) {
-            currentBoard[index] = 0;
+            currentBoard[index] = stableBoard[index];
             clearAndSetAttempt(currentBoard);
-            void syncProgress(currentBoard, newMistakes);
           }
         }, freezeMs);
 
-        void syncProgress(board, newMistakes);
+        void syncProgress(stableBoard, newMistakes);
         return;
       }
 

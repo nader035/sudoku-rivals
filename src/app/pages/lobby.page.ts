@@ -252,6 +252,7 @@ const EMPTY_STATS: StatsSummary = {
                 <ul class="mt-2 list-disc space-y-1.5 pl-4 text-xs font-mono text-muted-foreground">
                   <li>Wrong = 3s freeze + -3% penalty</li>
                   <li>5 mistakes = 10s mega-freeze</li>
+                  <li>10 mistakes = board reset</li>
                   <li>Rivals see your bar drop in real-time</li>
                 </ul>
               </section>

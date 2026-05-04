@@ -20,6 +20,7 @@ const PENALTY_PERCENT = 3;
 const FREEZE_MS = 3000;
 const MEGA_FREEZE_MS = 10000;
 const MEGA_FREEZE_THRESHOLD = 5;
+const BOARD_RESET_MISTAKE_THRESHOLD = 10;
 
 @Component({
   selector: 'app-room-page',
@@ -85,7 +86,7 @@ const MEGA_FREEZE_THRESHOLD = 5;
               <span
                 class="tabular-nums"
                 [class.text-destructive]="gameStore.mistakes() >= MEGA_FREEZE_THRESHOLD"
-                >{{ gameStore.mistakes() }}/{{ MEGA_FREEZE_THRESHOLD }}</span
+                >{{ gameStore.mistakes() }}/{{ BOARD_RESET_MISTAKE_THRESHOLD }}</span
               >
             </div>
 
@@ -308,6 +309,7 @@ const MEGA_FREEZE_THRESHOLD = 5;
                 <ul class="mt-2 list-disc space-y-1.5 pl-4 text-xs font-mono text-muted-foreground">
                   <li>Wrong = 3s freeze + -3% penalty</li>
                   <li>5 mistakes = 10s mega-freeze</li>
+                  <li>10 mistakes = board reset</li>
                   <li>The first valid board wins</li>
                 </ul>
               </div>
@@ -358,8 +360,10 @@ const MEGA_FREEZE_THRESHOLD = 5;
               <div class="max-w-md text-center text-xs font-mono text-muted-foreground">
                 Click a cell and type 1-9. Wrong answers freeze the grid for
                 <span class="text-primary">{{ FREEZE_MS / 1000 }}s</span> and cost
-                <span class="text-destructive">-{{ PENALTY_PERCENT }}%</span>. 5 mistakes triggers a
-                <span class="text-destructive">{{ MEGA_FREEZE_MS / 1000 }}s mega-freeze</span>.
+                <span class="text-destructive">-{{ PENALTY_PERCENT }}%</span>. Every 5 mistakes
+                triggers a
+                <span class="text-destructive">{{ MEGA_FREEZE_MS / 1000 }}s mega-freeze</span>;
+                at 10 mistakes your board resets.
               </div>
 
               <div class="grid w-full max-w-md grid-cols-5 gap-2 sm:grid-cols-10">
@@ -549,7 +553,11 @@ export class RoomPage implements OnInit, OnDestroy {
   readonly FREEZE_MS = FREEZE_MS;
   readonly MEGA_FREEZE_MS = MEGA_FREEZE_MS;
   readonly MEGA_FREEZE_THRESHOLD = MEGA_FREEZE_THRESHOLD;
-  readonly mistakesDots = Array.from({ length: MEGA_FREEZE_THRESHOLD }, (_, index) => index);
+  readonly BOARD_RESET_MISTAKE_THRESHOLD = BOARD_RESET_MISTAKE_THRESHOLD;
+  readonly mistakesDots = Array.from(
+    { length: BOARD_RESET_MISTAKE_THRESHOLD },
+    (_, index) => index,
+  );
   readonly numberPad = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
   readonly currentPlayerId = computed(() => this.appStore.player()?.id ?? null);
