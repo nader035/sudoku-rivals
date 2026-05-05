@@ -24,6 +24,37 @@ import { AppStore } from '../../store/app.store';
         @if (showGameLinks()) {
           @if (appStore.isSignedIn()) {
             <button
+              class="relative rounded-md border border-border/60 px-3 py-2 text-left text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
+              type="button"
+              (click)="goNotifications()"
+              title="Notifications"
+              aria-label="Notifications"
+            >
+              <span class="inline-flex items-center gap-2">
+                <svg
+                  class="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5" />
+                  <path d="M9 17a3 3 0 0 0 6 0" />
+                </svg>
+                <span>Alerts</span>
+              </span>
+              @if (appStore.unreadNotifications() > 0) {
+                <span
+                  class="absolute -right-1 -top-1 min-w-5 rounded-full bg-primary px-1 text-center text-[10px] font-bold text-primary-foreground"
+                >
+                  {{ appStore.unreadNotifications() > 99 ? '99+' : appStore.unreadNotifications() }}
+                </span>
+              }
+            </button>
+            <button
               class="rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-left text-xs font-mono font-bold uppercase tracking-wider text-primary hover:border-primary/70 hover:bg-primary/15"
               type="button"
               (click)="goWallet()"
@@ -163,6 +194,11 @@ export class UserNavComponent {
   goWallet(): void {
     this.menuOpen.set(false);
     void this.router.navigateByUrl('/wallet');
+  }
+
+  goNotifications(): void {
+    this.menuOpen.set(false);
+    void this.router.navigateByUrl('/notifications');
   }
 
   toggleTheme(): void {

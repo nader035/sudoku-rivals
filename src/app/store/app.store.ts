@@ -8,7 +8,7 @@ import {
   withProps,
   withState,
 } from '@ngrx/signals';
-import { PlayerProfile, ThemeMode, WalletSnapshot } from '../core/models';
+import { NotificationSnapshot, PlayerProfile, ThemeMode, WalletSnapshot } from '../core/models';
 import { SupabaseService } from '../core/services/supabase.service';
 
 const THEME_STORAGE_KEY = 'sudokuRival.theme';
@@ -68,15 +68,23 @@ export const AppStore = signalStore(
       injector,
     });
 
+    const notificationsState = toSignal(supabase.observeMyNotifications(), {
+      initialValue: [] as NotificationSnapshot[],
+      injector,
+    });
+
     return {
       supabase,
       authState,
       playerState,
       walletState,
       adminAccessState,
+      notificationsState,
       session: computed(() => authState().session),
       player: computed(() => playerState().player),
       wallet: computed(() => walletState()),
+      notifications: computed(() => notificationsState()),
+      unreadNotifications: computed(() => notificationsState().filter((item) => !item.isRead).length),
       authLoaded: computed(() => authState().loaded),
       playerLoaded: computed(() => playerState().loaded),
       isSignedIn: computed(() => Boolean(authState().session)),

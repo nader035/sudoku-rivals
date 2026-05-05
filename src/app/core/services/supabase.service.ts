@@ -15,6 +15,7 @@ import {
   LeaderboardSort,
   PlatformEconomySettings,
   PlayerProfile,
+  NotificationSnapshot,
   PurchasePaymentMethod,
   PurchaseSnapshot,
   RecentMatch,
@@ -197,6 +198,19 @@ interface PurchaseRow {
   idempotency_key: string | null;
   created_at: string;
   updated_at: string;
+}
+
+interface NotificationRow {
+  id: string;
+  player_id: string;
+  type: string;
+  title: string;
+  message: string;
+  room_id: string | null;
+  sender_id: string | null;
+  is_read: boolean | null;
+  created_at: string;
+  read_at: string | null;
 }
 
 interface RealtimeWatcher {
@@ -933,6 +947,12 @@ export class SupabaseService {
     ]);
   }
 
+  observeMyNotifications(limit = 50): Observable<NotificationSnapshot[]> {
+    return this.createRefreshStream('my-notifications', () => this.getMyNotifications(limit), [
+      { table: 'notifications' },
+    ]);
+  }
+
   async getMyWallet(): Promise<WalletSnapshot | null> {
     const userId = (await this.client.auth.getUser()).data.user?.id;
     if (!userId) return null;
@@ -988,6 +1008,43 @@ export class SupabaseService {
 
     if (error) throw error;
     return (data as PurchaseRow[] | null)?.map((row) => this.mapPurchase(row)) ?? [];
+  }
+
+  async getMyNotifications(limit = 50): Promise<NotificationSnapshot[]> {
+    const userId = (await this.client.auth.getUser()).data.user?.id;
+    if (!userId) return [];
+
+    const { data, error } = await this.client
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data as NotificationRow[] | null)?.map((row) => this.mapNotification(row)) ?? [];
+  }
+
+  async markNotificationRead(notificationId: string): Promise<void> {
+    const { error } = await this.client
+      .from('notifications')
+      .update({
+        is_read: true,
+        read_at: new Date().toISOString(),
+      })
+      .eq('id', notificationId)
+      .eq('is_read', false);
+    if (error) throw error;
+  }
+
+  async markAllNotificationsRead(): Promise<void> {
+    const { error } = await this.client
+      .from('notifications')
+      .update({
+        is_read: true,
+        read_at: new Date().toISOString(),
+      })
+      .eq('is_read', false);
+    if (error) throw error;
   }
 
   async createManualPurchase(
@@ -1456,6 +1513,21 @@ export class SupabaseService {
       idempotencyKey: row.idempotency_key ? String(row.idempotency_key) : null,
       createdAt: String(row.created_at),
       updatedAt: String(row.updated_at),
+    };
+  }
+
+  private mapNotification(row: NotificationRow): NotificationSnapshot {
+    return {
+      id: String(row.id),
+      playerId: String(row.player_id),
+      type: String(row.type) as NotificationSnapshot['type'],
+      title: String(row.title),
+      message: String(row.message),
+      roomId: row.room_id ? String(row.room_id) : null,
+      senderId: row.sender_id ? String(row.sender_id) : null,
+      isRead: Boolean(row.is_read ?? false),
+      createdAt: String(row.created_at),
+      readAt: row.read_at ? String(row.read_at) : null,
     };
   }
 

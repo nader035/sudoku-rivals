@@ -33,6 +33,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'notifications',
+    loadComponent: () => import('./pages/notifications.page').then(m => m.NotificationsPage),
+    canActivate: [authGuard],
+  },
+  {
     path: 'admin',
     loadComponent: () => import('./pages/admin-dashboard.page').then(m => m.AdminDashboardPage),
     canActivate: [adminGuard],

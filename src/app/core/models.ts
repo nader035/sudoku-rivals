@@ -30,7 +30,7 @@ export interface PlayerProfile {
   authId: string | null;
   username: string;
   email: string | null;
-  role: 'player' | 'moderator' | 'admin';
+  role: 'player' | 'moderator' | 'admin' | 'owner';
   totalWins: number;
   totalGames: number;
   totalMistakes: number;
@@ -281,4 +281,19 @@ export interface PlatformEconomySettings {
   vodafoneCashNumber: string;
   instapayLink: string;
   platformFeePercent: number;
+}
+
+export type NotificationType = 'game_invite' | 'game_start' | 'game_finish' | 'achievement' | 'system';
+
+export interface NotificationSnapshot {
+  id: string;
+  playerId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  roomId: string | null;
+  senderId: string | null;
+  isRead: boolean;
+  createdAt: string;
+  readAt: string | null;
 }
