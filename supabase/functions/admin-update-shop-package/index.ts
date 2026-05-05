@@ -1,7 +1,8 @@
 import { corsHeaders } from '../_shared/cors.ts';
 import { createServiceClient, getUserIdFromRequest } from '../_shared/client.ts';
+import { serve } from '../_shared/runtime.ts';
 
-Deno.serve(async (request) => {
+serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
@@ -44,4 +45,3 @@ Deno.serve(async (request) => {
     });
   }
 });
-

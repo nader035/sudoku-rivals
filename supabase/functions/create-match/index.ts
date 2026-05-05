@@ -1,6 +1,7 @@
 import { handleRpcRequest } from '../_shared/rpc.ts';
+import { serve } from '../_shared/runtime.ts';
 
-Deno.serve(async (request) => {
+serve(async (request) => {
   const body = await request.json();
   return handleRpcRequest(request, 'create_room', {
     p_name: body.name,
@@ -19,4 +20,3 @@ Deno.serve(async (request) => {
     p_entry_fee: body.entryFee ?? 0,
   });
 });
-

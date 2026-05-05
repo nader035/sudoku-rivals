@@ -1,10 +1,10 @@
 import { handleRpcRequest } from '../_shared/rpc.ts';
+import { serve } from '../_shared/runtime.ts';
 
-Deno.serve(async (request) => {
+serve(async (request) => {
   const body = await request.json();
   return handleRpcRequest(request, 'admin_refund_match', {
     p_match_id: body.matchId,
     p_reason: body.reason,
   });
 });
-

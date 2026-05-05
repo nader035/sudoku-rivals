@@ -1117,6 +1117,16 @@ export class SupabaseService {
     return this.mapPurchase(data as PurchaseRow);
   }
 
+  async adminBroadcastNotification(title: string, message: string, reason?: string): Promise<number> {
+    const { data, error } = await this.client.rpc('admin_broadcast_notification', {
+      p_title: title,
+      p_message: message,
+      p_reason: reason ?? null,
+    });
+    if (error) throw error;
+    return Number(data ?? 0);
+  }
+
   async adminAdjustWallet(targetUserId: string, amount: number, reason: string): Promise<WalletTransactionSnapshot> {
     const { data, error } = await this.client.rpc('admin_adjust_wallet', {
       p_target_user_id: targetUserId,

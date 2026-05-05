@@ -118,7 +118,13 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
             @if (pendingPurchaseId()) {
               <div class="mt-5 grid gap-3 md:grid-cols-2">
                 <label class="block">
-                  <span class="text-xs font-mono uppercase text-muted-foreground">Sender phone</span>
+                  <span class="text-xs font-mono uppercase text-muted-foreground">
+                    @if (paymentMethod() === 'vodafone_cash') {
+                      Vodafone sender phone (required)
+                    } @else {
+                      InstaPay sender number/username (required)
+                    }
+                  </span>
                   <input
                     class="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
                     [value]="senderPhone()"
@@ -277,8 +283,15 @@ export class ShopPage {
 
   async submitTransferConfirmation(): Promise<void> {
     if (!this.pendingPurchaseId()) return;
-    if (!this.senderPhone().trim()) {
-      this.statusMessage.set('Sender phone is required.');
+    const sender = this.senderPhone().trim();
+    if (this.paymentMethod() === 'vodafone_cash') {
+      const validVodafoneNumber = /^\+?[0-9]{7,20}$/.test(sender);
+      if (!validVodafoneNumber) {
+        this.statusMessage.set('Please enter the Vodafone number you transferred from.');
+        return;
+      }
+    } else if (sender.length < 3) {
+      this.statusMessage.set('Please enter your InstaPay number or username.');
       return;
     }
 
@@ -287,7 +300,7 @@ export class ShopPage {
     try {
       await this.supabase.confirmManualPurchaseTransfer({
         purchaseId: this.pendingPurchaseId()!,
-        senderPhone: this.senderPhone().trim(),
+        senderPhone: sender,
         senderName: this.senderName().trim() || undefined,
         paymentReference: this.paymentReference().trim() || undefined,
         transferScreenshotUrl: this.screenshotUrl().trim() || undefined,

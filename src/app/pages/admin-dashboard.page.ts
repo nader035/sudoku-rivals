@@ -88,6 +88,47 @@ const EMPTY_SUMMARY: AdminDashboardSummary = {
           }
         </section>
 
+        <section class="rounded-md border border-border/60 p-4">
+          <h2 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">Broadcast</h2>
+          <div class="mt-3 grid gap-3 md:grid-cols-2">
+            <label class="block">
+              <span class="text-xs font-mono uppercase text-muted-foreground">Title</span>
+              <input
+                class="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+                [value]="broadcastTitle()"
+                (input)="broadcastTitle.set($any($event.target).value)"
+                placeholder="Announcement title"
+              />
+            </label>
+            <label class="block">
+              <span class="text-xs font-mono uppercase text-muted-foreground">Reason (optional)</span>
+              <input
+                class="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+                [value]="broadcastReason()"
+                (input)="broadcastReason.set($any($event.target).value)"
+                placeholder="Internal admin note"
+              />
+            </label>
+          </div>
+          <label class="mt-3 block">
+            <span class="text-xs font-mono uppercase text-muted-foreground">Message</span>
+            <textarea
+              class="mt-1 min-h-24 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+              [value]="broadcastMessage()"
+              (input)="broadcastMessage.set($any($event.target).value)"
+              placeholder="Send a message to all active users"
+            ></textarea>
+          </label>
+          <button
+            class="mt-3 rounded-md border border-primary/40 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+            [disabled]="busy()"
+            (click)="sendBroadcast()"
+          >
+            Send Broadcast
+          </button>
+        </section>
+
         <section class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <div class="space-y-3">
             <h2 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">
@@ -189,6 +230,9 @@ export class AdminDashboardPage {
   private readonly refreshKey = { value: 0 };
   readonly busy = signal(false);
   readonly statusMessage = signal<string | null>(null);
+  readonly broadcastTitle = signal('');
+  readonly broadcastMessage = signal('');
+  readonly broadcastReason = signal('');
 
   readonly summary = toSignal(
     from(this.supabase.getAdminDashboardSummary()).pipe(catchError(() => of(EMPTY_SUMMARY))),
@@ -271,6 +315,37 @@ export class AdminDashboardPage {
       globalThis.location.reload();
     } catch (error) {
       this.statusMessage.set(error instanceof Error ? error.message : `Unable to ${action} player`);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async sendBroadcast(): Promise<void> {
+    const title = this.broadcastTitle().trim();
+    const message = this.broadcastMessage().trim();
+    const reason = this.broadcastReason().trim();
+
+    if (title.length < 3) {
+      this.statusMessage.set('Broadcast title must be at least 3 characters.');
+      return;
+    }
+    if (message.length < 5) {
+      this.statusMessage.set('Broadcast message must be at least 5 characters.');
+      return;
+    }
+
+    if (!globalThis.confirm('Send this broadcast to all active users?')) return;
+
+    this.busy.set(true);
+    this.statusMessage.set(null);
+    try {
+      const sent = await this.supabase.adminBroadcastNotification(title, message, reason || undefined);
+      this.statusMessage.set(`Broadcast sent to ${sent} users.`);
+      this.broadcastTitle.set('');
+      this.broadcastMessage.set('');
+      this.broadcastReason.set('');
+    } catch (error) {
+      this.statusMessage.set(error instanceof Error ? error.message : 'Unable to send broadcast');
     } finally {
       this.busy.set(false);
     }

@@ -1,8 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { readEnv } from './runtime.ts';
 
 export function createServiceClient() {
-  const url = Deno.env.get('SUPABASE_URL');
-  const serviceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const url = readEnv('SUPABASE_URL');
+  const serviceRole = readEnv('SUPABASE_SERVICE_ROLE_KEY');
   if (!url || !serviceRole) throw new Error('Missing Supabase env vars');
   return createClient(url, serviceRole, {
     auth: { autoRefreshToken: false, persistSession: false },
