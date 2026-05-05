@@ -1038,13 +1038,58 @@ export class SupabaseService {
     paymentMethod: PurchasePaymentMethod,
     idempotencyKey?: string,
   ): Promise<PurchaseSnapshot> {
-    const { data, error } = await this.client.rpc('create_manual_purchase', {
+    const rpc = await this.client.rpc('create_manual_purchase', {
       p_package_id: packageId,
       p_payment_method: paymentMethod,
       p_idempotency_key: idempotencyKey ?? null,
     });
-    if (error) throw error;
-    return this.mapPurchase(data as PurchaseRow);
+    if (!rpc.error) return this.mapPurchase(rpc.data as PurchaseRow);
+
+    if (!this.shouldFallbackPurchaseMutation(rpc.error)) {
+      throw rpc.error;
+    }
+
+    const settings = await this.getEconomySettings();
+    const { data: pkg, error: pkgError } = await this.client
+      .from('shop_packages')
+      .select('id,price,currency,coins_amount,bonus_coins,is_active')
+      .eq('id', packageId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (pkgError) throw pkgError;
+    if (!pkg) throw new Error('Invalid or inactive package');
+
+    const userId = (await this.client.auth.getUser()).data.user?.id;
+    if (!userId) throw new Error('Authentication required');
+
+    const destination =
+      paymentMethod === 'vodafone_cash' ? settings.vodafoneCashNumber : settings.instapayLink;
+    const fallbackKey =
+      idempotencyKey ??
+      `purchase-${userId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const insert = await this.client
+      .from('purchases')
+      .insert({
+        user_id: userId,
+        package_id: packageId,
+        amount_paid: Number((pkg as Record<string, unknown>)['price'] ?? 0),
+        currency: String((pkg as Record<string, unknown>)['currency'] ?? 'EGP'),
+        coins_received:
+          Number((pkg as Record<string, unknown>)['coins_amount'] ?? 0) +
+          Number((pkg as Record<string, unknown>)['bonus_coins'] ?? 0),
+        payment_method: paymentMethod,
+        payment_destination: destination,
+        payment_status: 'awaiting_transfer',
+        idempotency_key: fallbackKey,
+      })
+      .select('*')
+      .maybeSingle();
+
+    if (insert.error) throw insert.error;
+    if (!insert.data) throw new Error('Could not create purchase');
+    return this.mapPurchase(insert.data as PurchaseRow);
   }
 
   async confirmManualPurchaseTransfer(input: {
@@ -1055,7 +1100,7 @@ export class SupabaseService {
     transferScreenshotUrl?: string;
     userNote?: string;
   }): Promise<PurchaseSnapshot> {
-    const { data, error } = await this.client.rpc('confirm_manual_purchase_transfer', {
+    const rpc = await this.client.rpc('confirm_manual_purchase_transfer', {
       p_purchase_id: input.purchaseId,
       p_sender_phone: input.senderPhone,
       p_sender_name: input.senderName ?? null,
@@ -1063,8 +1108,31 @@ export class SupabaseService {
       p_transfer_screenshot_url: input.transferScreenshotUrl ?? null,
       p_user_note: input.userNote ?? null,
     });
-    if (error) throw error;
-    return this.mapPurchase(data as PurchaseRow);
+    if (!rpc.error) return this.mapPurchase(rpc.data as PurchaseRow);
+
+    if (!this.shouldFallbackPurchaseMutation(rpc.error)) {
+      throw rpc.error;
+    }
+
+    const update = await this.client
+      .from('purchases')
+      .update({
+        sender_phone: input.senderPhone.trim(),
+        sender_name: input.senderName?.trim() || null,
+        payment_reference: input.paymentReference?.trim() || null,
+        transfer_screenshot_url: input.transferScreenshotUrl?.trim() || null,
+        user_note: input.userNote?.trim() || null,
+        payment_status: 'pending_admin_review',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', input.purchaseId)
+      .in('payment_status', ['awaiting_transfer', 'pending_admin_review'])
+      .select('*')
+      .maybeSingle();
+
+    if (update.error) throw update.error;
+    if (!update.data) throw new Error('Purchase not found or cannot be updated');
+    return this.mapPurchase(update.data as PurchaseRow);
   }
 
   async getEconomyLeaderboard(
@@ -1608,5 +1676,17 @@ export class SupabaseService {
     if (raw.length >= 2) return raw.slice(0, 24);
 
     return `Player${Math.floor(1000 + Math.random() * 9000)}`;
+  }
+
+  private shouldFallbackPurchaseMutation(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null) return false;
+    const code = String((error as { code?: string }).code ?? '');
+    const message = String((error as { message?: string }).message ?? '').toLowerCase();
+    return (
+      code === '42883' ||
+      code === 'PGRST202' ||
+      message.includes('function create_manual_purchase') ||
+      message.includes('function confirm_manual_purchase_transfer')
+    );
   }
 }
