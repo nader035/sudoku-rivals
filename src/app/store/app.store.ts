@@ -1,5 +1,6 @@
 import { computed, effect, inject, Injectable, Injector, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { catchError, of } from 'rxjs';
 import {
   patchState,
   signalStore,
@@ -68,7 +69,7 @@ export const AppStore = signalStore(
       injector,
     });
 
-    const notificationsState = toSignal(supabase.observeMyNotifications(), {
+    const notificationsState = toSignal(supabase.observeMyNotifications().pipe(catchError(() => of([] as NotificationSnapshot[]))), {
       initialValue: [] as NotificationSnapshot[],
       injector,
     });

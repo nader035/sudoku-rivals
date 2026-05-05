@@ -163,6 +163,18 @@ export interface AdminPlayerSummary {
   lastSeenAt: string;
 }
 
+export interface AdminWalletSummary {
+  walletId: string;
+  userId: string;
+  username: string;
+  balance: number;
+  totalCoinsWon: number;
+  totalCoinsSpent: number;
+  totalCoinsPurchased: number;
+  isFrozen: boolean;
+  updatedAt: string;
+}
+
 export interface SoloPuzzle {
   puzzle: number[];
   solution: number[];

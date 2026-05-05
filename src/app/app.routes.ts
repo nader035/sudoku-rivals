@@ -56,9 +56,8 @@ export const routes: Routes = [
   },
   {
     path: 'admin/wallets',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+    loadComponent: () => import('./pages/admin-wallets.page').then(m => m.AdminWalletsPage),
     canActivate: [adminGuard],
-    data: { title: 'Wallets' },
   },
   {
     path: 'admin/transactions',

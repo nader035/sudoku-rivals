@@ -7,6 +7,7 @@ import {
   AdminDashboardSummary,
   AdminPlayerSummary,
   AdminRoomSummary,
+  AdminWalletSummary,
   AuthCredentials,
   Difficulty,
   GuestCredentials,
@@ -950,6 +951,7 @@ export class SupabaseService {
   observeMyNotifications(limit = 50): Observable<NotificationSnapshot[]> {
     return this.createRefreshStream('my-notifications', () => this.getMyNotifications(limit), [
       { table: 'notifications' },
+      { table: 'players' },
     ]);
   }
 
@@ -1011,39 +1013,23 @@ export class SupabaseService {
   }
 
   async getMyNotifications(limit = 50): Promise<NotificationSnapshot[]> {
-    const userId = (await this.client.auth.getUser()).data.user?.id;
-    if (!userId) return [];
-
-    const { data, error } = await this.client
-      .from('notifications')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    const { data, error } = await this.client.rpc('get_my_notifications', {
+      p_limit: Math.max(1, Math.trunc(limit)),
+    });
 
     if (error) throw error;
     return (data as NotificationRow[] | null)?.map((row) => this.mapNotification(row)) ?? [];
   }
 
   async markNotificationRead(notificationId: string): Promise<void> {
-    const { error } = await this.client
-      .from('notifications')
-      .update({
-        is_read: true,
-        read_at: new Date().toISOString(),
-      })
-      .eq('id', notificationId)
-      .eq('is_read', false);
+    const { error } = await this.client.rpc('mark_notification_read_secure', {
+      p_notification_id: notificationId,
+    });
     if (error) throw error;
   }
 
   async markAllNotificationsRead(): Promise<void> {
-    const { error } = await this.client
-      .from('notifications')
-      .update({
-        is_read: true,
-        read_at: new Date().toISOString(),
-      })
-      .eq('is_read', false);
+    const { error } = await this.client.rpc('mark_all_notifications_read_secure');
     if (error) throw error;
   }
 
@@ -1192,6 +1178,40 @@ export class SupabaseService {
     });
     if (error) throw error;
     return this.mapWalletTransaction(data as WalletTransactionRow);
+  }
+
+  async adminListWallets(limit = 100): Promise<AdminWalletSummary[]> {
+    const { data, error } = await this.client
+      .from('wallets')
+      .select('id,user_id,balance,total_coins_won,total_coins_spent,total_coins_purchased,is_frozen,updated_at')
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+
+    const rows = (data as WalletRow[] | null) ?? [];
+    const userIds = [...new Set(rows.map((row) => String(row.user_id)))];
+    const usernameMap = await this.getProfileUsernameMap(userIds);
+
+    return rows.map((row) => ({
+      walletId: String(row.id),
+      userId: String(row.user_id),
+      username: usernameMap.get(String(row.user_id)) ?? 'Unknown',
+      balance: Number(row.balance ?? 0),
+      totalCoinsWon: Number(row.total_coins_won ?? 0),
+      totalCoinsSpent: Number(row.total_coins_spent ?? 0),
+      totalCoinsPurchased: Number(row.total_coins_purchased ?? 0),
+      isFrozen: Boolean(row.is_frozen ?? false),
+      updatedAt: String(row.updated_at),
+    }));
+  }
+
+  async adminSetWalletFrozen(targetUserId: string, isFrozen: boolean, reason?: string): Promise<void> {
+    const { error } = await this.client.rpc('admin_set_wallet_frozen', {
+      p_target_user_id: targetUserId,
+      p_is_frozen: isFrozen,
+      p_reason: reason ?? null,
+    });
+    if (error) throw error;
   }
 
   private createRefreshStream<T>(
@@ -1352,6 +1372,23 @@ export class SupabaseService {
 
     if (error || !data) return 'Unknown';
     return String((data as { username: string }).username);
+  }
+
+  private async getProfileUsernameMap(userIds: string[]): Promise<Map<string, string>> {
+    if (userIds.length === 0) return new Map();
+
+    const { data, error } = await this.client
+      .from('profiles')
+      .select('id,username')
+      .in('id', userIds);
+
+    if (error || !data) return new Map();
+
+    const map = new Map<string, string>();
+    for (const row of data as { id: string; username: string }[]) {
+      map.set(String(row.id), String(row.username));
+    }
+    return map;
   }
 
   private buildFallbackPlayerProfile(user: Session['user'], username?: string): PlayerProfile {

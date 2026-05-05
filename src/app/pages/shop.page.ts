@@ -115,7 +115,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
               I transferred the money
             </button>
 
-            @if (pendingPurchaseId()) {
+            @if (showTransferForm()) {
               <div class="mt-5 grid gap-3 md:grid-cols-2">
                 <label class="block">
                   <span class="text-xs font-mono uppercase text-muted-foreground">
@@ -213,6 +213,7 @@ export class ShopPage {
   readonly statusMessage = signal<string | null>(null);
   readonly paymentMethod = signal<PurchasePaymentMethod>('vodafone_cash');
   readonly selectedPackageId = signal<string | null>(null);
+  readonly showTransferForm = signal(false);
   readonly pendingPurchaseId = signal<string | null>(null);
   readonly senderPhone = signal('');
   readonly senderName = signal('');
@@ -260,6 +261,7 @@ export class ShopPage {
 
   selectPackage(pkg: ShopPackage): void {
     this.selectedPackageId.set(pkg.id);
+    this.showTransferForm.set(false);
     this.pendingPurchaseId.set(null);
     this.statusMessage.set(null);
   }
@@ -268,12 +270,15 @@ export class ShopPage {
     const pkg = this.selectedPackage();
     if (!pkg) return;
 
+    this.showTransferForm.set(true);
     this.busy.set(true);
     this.statusMessage.set(null);
     try {
-      const purchase = await this.supabase.createManualPurchase(pkg.id, this.paymentMethod());
-      this.pendingPurchaseId.set(purchase.id);
-      this.statusMessage.set('Purchase intent created. Submit transfer confirmation now.');
+      if (!this.pendingPurchaseId()) {
+        const purchase = await this.supabase.createManualPurchase(pkg.id, this.paymentMethod());
+        this.pendingPurchaseId.set(purchase.id);
+      }
+      this.statusMessage.set('Submit transfer confirmation now.');
     } catch (error) {
       this.statusMessage.set(error instanceof Error ? error.message : 'Could not create purchase');
     } finally {
@@ -282,7 +287,9 @@ export class ShopPage {
   }
 
   async submitTransferConfirmation(): Promise<void> {
-    if (!this.pendingPurchaseId()) return;
+    const pkg = this.selectedPackage();
+    if (!pkg) return;
+
     const sender = this.senderPhone().trim();
     if (this.paymentMethod() === 'vodafone_cash') {
       const validVodafoneNumber = /^\+?[0-9]{7,20}$/.test(sender);
@@ -298,6 +305,10 @@ export class ShopPage {
     this.busy.set(true);
     this.statusMessage.set(null);
     try {
+      if (!this.pendingPurchaseId()) {
+        const purchase = await this.supabase.createManualPurchase(pkg.id, this.paymentMethod());
+        this.pendingPurchaseId.set(purchase.id);
+      }
       await this.supabase.confirmManualPurchaseTransfer({
         purchaseId: this.pendingPurchaseId()!,
         senderPhone: sender,
@@ -307,6 +318,7 @@ export class ShopPage {
         userNote: this.userNote().trim() || undefined,
       });
       this.statusMessage.set('Your payment is pending admin review. Coins will be added after approval.');
+      this.showTransferForm.set(false);
       this.pendingPurchaseId.set(null);
       this.senderPhone.set('');
       this.senderName.set('');
