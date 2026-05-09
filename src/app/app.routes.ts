@@ -84,6 +84,11 @@ export const routes: Routes = [
     data: { title: 'Shop' },
   },
   {
+    path: 'admin/vouchers',
+    loadComponent: () => import('./pages/admin-vouchers.page').then(m => m.AdminVouchersPage),
+    canActivate: [adminGuard],
+  },
+  {
     path: 'admin/purchases',
     loadComponent: () => import('./pages/admin-purchases.page').then(m => m.AdminPurchasesPage),
     canActivate: [adminGuard],

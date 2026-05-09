@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AppStore } from '../../store/app.store';
 
@@ -143,6 +143,34 @@ import { AppStore } from '../../store/app.store';
           </button>
         }
       </div>
+
+      @if (liveToast()) {
+        <div class="fixed bottom-4 right-4 z-50 max-w-sm rounded-md border border-primary/35 bg-background/95 p-3 shadow-2xl backdrop-blur-sm">
+          <div class="flex items-start gap-3">
+            <span class="mt-0.5 inline-block h-2.5 w-2.5 rounded-full bg-primary"></span>
+            <div class="min-w-0">
+              <div class="truncate text-sm font-bold">{{ liveToast()!.title }}</div>
+              <div class="mt-1 text-sm text-muted-foreground">{{ liveToast()!.message }}</div>
+              <div class="mt-3 flex gap-2">
+                <button
+                  class="rounded-md border border-primary/40 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary/10"
+                  type="button"
+                  (click)="openToastNotifications()"
+                >
+                  View
+                </button>
+                <button
+                  class="rounded-md border border-border/60 px-2.5 py-1 text-xs font-bold uppercase tracking-wider hover:border-primary/40"
+                  type="button"
+                  (click)="dismissToast()"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -152,6 +180,10 @@ export class UserNavComponent {
   readonly appStore = inject(AppStore);
   readonly showGameLinks = input(true);
   readonly menuOpen = signal(false);
+  readonly liveToast = signal<{ id: string; title: string; message: string } | null>(null);
+  private readonly latestSeenNotificationId = signal<string | null>(null);
+  private readonly notificationsBootstrapped = signal(false);
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly themeLabel = computed(() => {
     const theme = this.appStore.theme();
@@ -163,6 +195,39 @@ export class UserNavComponent {
     const name = this.appStore.displayName().trim();
     return (name[0] ?? 'P').toUpperCase();
   });
+
+  constructor() {
+    effect(() => {
+      if (!this.appStore.isSignedIn()) {
+        this.notificationsBootstrapped.set(false);
+        this.latestSeenNotificationId.set(null);
+        this.clearToastTimer();
+        this.liveToast.set(null);
+        return;
+      }
+
+      const notifications = this.appStore.notifications();
+      if (notifications.length === 0) return;
+
+      const latest = notifications[0];
+      if (!this.notificationsBootstrapped()) {
+        this.notificationsBootstrapped.set(true);
+        this.latestSeenNotificationId.set(latest.id);
+        return;
+      }
+
+      if (!latest.isRead && this.latestSeenNotificationId() !== latest.id) {
+        this.latestSeenNotificationId.set(latest.id);
+        this.liveToast.set({
+          id: latest.id,
+          title: latest.title,
+          message: latest.message,
+        });
+        this.clearToastTimer();
+        this.toastTimer = setTimeout(() => this.liveToast.set(null), 7000);
+      }
+    });
+  }
 
   goLeaderboard(): void {
     this.menuOpen.set(false);
@@ -202,6 +267,22 @@ export class UserNavComponent {
   goNotifications(): void {
     this.menuOpen.set(false);
     void this.router.navigateByUrl('/notifications');
+  }
+
+  openToastNotifications(): void {
+    this.dismissToast();
+    void this.router.navigateByUrl('/notifications');
+  }
+
+  dismissToast(): void {
+    this.clearToastTimer();
+    this.liveToast.set(null);
+  }
+
+  private clearToastTimer(): void {
+    if (!this.toastTimer) return;
+    clearTimeout(this.toastTimer);
+    this.toastTimer = null;
   }
 
   toggleTheme(): void {

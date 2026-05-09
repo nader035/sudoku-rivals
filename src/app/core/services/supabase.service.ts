@@ -28,6 +28,8 @@ import {
   ShopPackage,
   StatsSummary,
   SignUpCredentials,
+  VoucherKind,
+  VoucherSnapshot,
   WalletSnapshot,
   WalletTransactionSnapshot,
 } from '../models';
@@ -197,6 +199,27 @@ interface PurchaseRow {
   reviewed_at: string | null;
   rejection_reason: string | null;
   idempotency_key: string | null;
+  voucher_code?: string | null;
+  voucher_discount_amount?: number | string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface VoucherRow {
+  id: string;
+  code: string;
+  title: string;
+  description: string | null;
+  kind: string;
+  free_coins: number | null;
+  discount_percent: number | string | null;
+  discount_amount: number | string | null;
+  max_total_redemptions: number | null;
+  max_redemptions_per_user: number | null;
+  current_redemptions: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  is_active: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -1037,7 +1060,21 @@ export class SupabaseService {
     packageId: string,
     paymentMethod: PurchasePaymentMethod,
     idempotencyKey?: string,
+    voucherCode?: string,
   ): Promise<PurchaseSnapshot> {
+    const normalizedVoucher = voucherCode?.trim().toUpperCase() || null;
+
+    if (normalizedVoucher) {
+      const rpcVoucher = await this.client.rpc('create_manual_purchase', {
+        p_package_id: packageId,
+        p_payment_method: paymentMethod,
+        p_idempotency_key: idempotencyKey ?? null,
+        p_voucher_code: normalizedVoucher,
+      });
+      if (rpcVoucher.error) throw rpcVoucher.error;
+      return this.mapPurchase(rpcVoucher.data as PurchaseRow);
+    }
+
     const settings = await this.getEconomySettings();
     const { data: pkg, error: pkgError } = await this.client
       .from('shop_packages')
@@ -1145,6 +1182,18 @@ export class SupabaseService {
     throw new Error('Purchase not found or cannot be updated');
   }
 
+  async redeemFreeCoinsVoucher(code: string): Promise<{ code: string; coinsAwarded: number }> {
+    const { data, error } = await this.client.rpc('redeem_free_coins_voucher', {
+      p_code: code.trim().toUpperCase(),
+    });
+    if (error) throw error;
+    const payload = data as Record<string, unknown>;
+    return {
+      code: String(payload['code'] ?? code.trim().toUpperCase()),
+      coinsAwarded: Number(payload['coinsAwarded'] ?? 0),
+    };
+  }
+
   async getEconomyLeaderboard(
     sort: LeaderboardSort,
     limit = 50,
@@ -1246,6 +1295,62 @@ export class SupabaseService {
     });
     if (error) throw error;
     return Number(data ?? 0);
+  }
+
+  async adminListVouchers(limit = 200): Promise<VoucherSnapshot[]> {
+    const { data, error } = await this.client
+      .from('vouchers')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data as VoucherRow[] | null)?.map((row) => this.mapVoucher(row)) ?? [];
+  }
+
+  async adminUpsertVoucher(input: {
+    id?: string | null;
+    code: string;
+    title: string;
+    description?: string;
+    kind: VoucherKind;
+    freeCoins?: number;
+    discountPercent?: number;
+    discountAmount?: number;
+    maxTotalRedemptions?: number | null;
+    maxRedemptionsPerUser?: number;
+    startsAt?: string | null;
+    endsAt?: string | null;
+    isActive?: boolean;
+  }): Promise<VoucherSnapshot> {
+    const { data, error } = await this.client.rpc('admin_upsert_voucher', {
+      p_id: input.id ?? null,
+      p_code: input.code.trim().toUpperCase(),
+      p_title: input.title.trim(),
+      p_kind: input.kind,
+      p_free_coins: Math.max(0, Math.trunc(input.freeCoins ?? 0)),
+      p_discount_percent: Math.max(0, Number(input.discountPercent ?? 0)),
+      p_discount_amount: Math.max(0, Number(input.discountAmount ?? 0)),
+      p_max_total_redemptions:
+        input.maxTotalRedemptions === null || input.maxTotalRedemptions === undefined
+          ? null
+          : Math.max(1, Math.trunc(input.maxTotalRedemptions)),
+      p_max_redemptions_per_user: Math.max(1, Math.trunc(input.maxRedemptionsPerUser ?? 1)),
+      p_starts_at: input.startsAt ?? null,
+      p_ends_at: input.endsAt ?? null,
+      p_is_active: input.isActive ?? true,
+      p_description: input.description?.trim() || null,
+    });
+    if (error) throw error;
+    return this.mapVoucher(data as VoucherRow);
+  }
+
+  async adminSetVoucherActive(voucherId: string, isActive: boolean): Promise<VoucherSnapshot> {
+    const { data, error } = await this.client.rpc('admin_set_voucher_active', {
+      p_voucher_id: voucherId,
+      p_is_active: isActive,
+    });
+    if (error) throw error;
+    return this.mapVoucher(data as VoucherRow);
   }
 
   async adminAdjustWallet(targetUserId: string, amount: number, reason: string): Promise<WalletTransactionSnapshot> {
@@ -1626,6 +1731,29 @@ export class SupabaseService {
       reviewedAt: row.reviewed_at ? String(row.reviewed_at) : null,
       rejectionReason: row.rejection_reason ? String(row.rejection_reason) : null,
       idempotencyKey: row.idempotency_key ? String(row.idempotency_key) : null,
+      voucherCode: row.voucher_code ? String(row.voucher_code) : null,
+      voucherDiscountAmount: Number(row.voucher_discount_amount ?? 0),
+      createdAt: String(row.created_at),
+      updatedAt: String(row.updated_at),
+    };
+  }
+
+  private mapVoucher(row: VoucherRow): VoucherSnapshot {
+    return {
+      id: String(row.id),
+      code: String(row.code),
+      title: String(row.title),
+      description: row.description ? String(row.description) : null,
+      kind: String(row.kind) as VoucherKind,
+      freeCoins: Number(row.free_coins ?? 0),
+      discountPercent: Number(row.discount_percent ?? 0),
+      discountAmount: Number(row.discount_amount ?? 0),
+      maxTotalRedemptions: row.max_total_redemptions === null ? null : Number(row.max_total_redemptions),
+      maxRedemptionsPerUser: Number(row.max_redemptions_per_user ?? 1),
+      currentRedemptions: Number(row.current_redemptions ?? 0),
+      startsAt: row.starts_at ? String(row.starts_at) : null,
+      endsAt: row.ends_at ? String(row.ends_at) : null,
+      isActive: Boolean(row.is_active ?? true),
       createdAt: String(row.created_at),
       updatedAt: String(row.updated_at),
     };

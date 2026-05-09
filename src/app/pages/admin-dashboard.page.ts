@@ -64,6 +64,13 @@ const EMPTY_SUMMARY: AdminDashboardSummary = {
             <button
               class="w-fit rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
               type="button"
+              (click)="goAdminVouchers()"
+            >
+              Vouchers
+            </button>
+            <button
+              class="w-fit rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
+              type="button"
               (click)="refresh()"
             >
               Refresh
@@ -282,6 +289,10 @@ export class AdminDashboardPage {
 
   goAdminWallets(): void {
     void this.router.navigateByUrl('/admin/wallets');
+  }
+
+  goAdminVouchers(): void {
+    void this.router.navigateByUrl('/admin/vouchers');
   }
 
   async deleteRoom(roomId: string, roomName: string): Promise<void> {

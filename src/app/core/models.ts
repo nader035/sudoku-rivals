@@ -271,6 +271,8 @@ export interface PurchaseSnapshot {
   reviewedAt: string | null;
   rejectionReason: string | null;
   idempotencyKey: string | null;
+  voucherCode: string | null;
+  voucherDiscountAmount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -293,6 +295,27 @@ export interface PlatformEconomySettings {
   vodafoneCashNumber: string;
   instapayLink: string;
   platformFeePercent: number;
+}
+
+export type VoucherKind = 'free_coins' | 'discount_percent' | 'discount_fixed';
+
+export interface VoucherSnapshot {
+  id: string;
+  code: string;
+  title: string;
+  description: string | null;
+  kind: VoucherKind;
+  freeCoins: number;
+  discountPercent: number;
+  discountAmount: number;
+  maxTotalRedemptions: number | null;
+  maxRedemptionsPerUser: number;
+  currentRedemptions: number;
+  startsAt: string | null;
+  endsAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type NotificationType = 'game_invite' | 'game_start' | 'game_finish' | 'achievement' | 'system';

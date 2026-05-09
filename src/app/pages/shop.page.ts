@@ -70,6 +70,29 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
           }
         </section>
 
+        <section class="rounded-md border border-border/60 bg-card/40 p-5">
+          <h3 class="text-lg font-bold">Redeem Voucher</h3>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Redeem free-coins vouchers here, or apply discount voucher in purchase below.
+          </p>
+          <div class="mt-3 flex flex-col gap-3 md:flex-row">
+            <input
+              class="w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm uppercase"
+              placeholder="Voucher code"
+              [value]="voucherCode()"
+              (input)="voucherCode.set($any($event.target).value)"
+            />
+            <button
+              class="rounded-md border border-primary/40 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 disabled:opacity-50"
+              type="button"
+              [disabled]="busy() || voucherCode().trim().length < 3"
+              (click)="redeemFreeCoinsVoucher()"
+            >
+              Redeem Free Coins
+            </button>
+          </div>
+        </section>
+
         @if (selectedPackage()) {
           <section class="rounded-md border border-border/60 bg-card/40 p-5">
             <h3 class="text-lg font-bold">Payment Method</h3>
@@ -114,6 +137,10 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
             >
               I transferred the money
             </button>
+
+            <p class="mt-2 text-xs font-mono text-muted-foreground">
+              Optional discount voucher: {{ voucherCode().trim() ? voucherCode().trim().toUpperCase() : 'none' }}
+            </p>
 
             @if (showTransferForm()) {
               <div class="mt-5 grid gap-3 md:grid-cols-2">
@@ -220,6 +247,7 @@ export class ShopPage {
   readonly paymentReference = signal('');
   readonly screenshotUrl = signal('');
   readonly userNote = signal('');
+  readonly voucherCode = signal('');
 
   readonly packages = toSignal(
     this.supabase.observeShopPackages().pipe(catchError(() => of([] as ShopPackage[]))),
@@ -275,7 +303,12 @@ export class ShopPage {
     this.statusMessage.set(null);
     try {
       if (!this.pendingPurchaseId()) {
-        const purchase = await this.supabase.createManualPurchase(pkg.id, this.paymentMethod());
+        const purchase = await this.supabase.createManualPurchase(
+          pkg.id,
+          this.paymentMethod(),
+          undefined,
+          this.voucherCode().trim() || undefined,
+        );
         this.pendingPurchaseId.set(purchase.id);
       }
       this.statusMessage.set('Submit transfer confirmation now.');
@@ -306,7 +339,12 @@ export class ShopPage {
     this.statusMessage.set(null);
     try {
       if (!this.pendingPurchaseId()) {
-        const purchase = await this.supabase.createManualPurchase(pkg.id, this.paymentMethod());
+        const purchase = await this.supabase.createManualPurchase(
+          pkg.id,
+          this.paymentMethod(),
+          undefined,
+          this.voucherCode().trim() || undefined,
+        );
         this.pendingPurchaseId.set(purchase.id);
       }
       await this.supabase.confirmManualPurchaseTransfer({
@@ -327,6 +365,26 @@ export class ShopPage {
       this.userNote.set('');
     } catch (error) {
       this.statusMessage.set(error instanceof Error ? error.message : 'Could not submit confirmation');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async redeemFreeCoinsVoucher(): Promise<void> {
+    const code = this.voucherCode().trim();
+    if (code.length < 3) {
+      this.statusMessage.set('Enter a valid voucher code.');
+      return;
+    }
+
+    this.busy.set(true);
+    this.statusMessage.set(null);
+    try {
+      const result = await this.supabase.redeemFreeCoinsVoucher(code);
+      this.statusMessage.set(`Voucher ${result.code} redeemed: +${result.coinsAwarded} coins.`);
+      this.voucherCode.set('');
+    } catch (error) {
+      this.statusMessage.set(error instanceof Error ? error.message : 'Could not redeem voucher');
     } finally {
       this.busy.set(false);
     }

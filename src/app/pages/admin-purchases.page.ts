@@ -51,6 +51,11 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
                     <div class="text-xs font-mono text-muted-foreground">
                       sender: {{ purchase.senderPhone || '-' }} | ref: {{ purchase.paymentReference || '-' }}
                     </div>
+                    @if (purchase.voucherCode) {
+                      <div class="text-xs font-mono text-primary">
+                        voucher: {{ purchase.voucherCode }} (discount {{ purchase.voucherDiscountAmount }} {{ purchase.currency }})
+                      </div>
+                    }
                     <div class="text-xs font-mono uppercase text-primary">{{ purchase.paymentStatus }}</div>
                     @if (purchase.userNote) {
                       <div class="text-sm text-muted-foreground">{{ purchase.userNote }}</div>
