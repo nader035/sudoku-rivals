@@ -1038,17 +1038,6 @@ export class SupabaseService {
     paymentMethod: PurchasePaymentMethod,
     idempotencyKey?: string,
   ): Promise<PurchaseSnapshot> {
-    const rpc = await this.client.rpc('create_manual_purchase', {
-      p_package_id: packageId,
-      p_payment_method: paymentMethod,
-      p_idempotency_key: idempotencyKey ?? null,
-    });
-    if (!rpc.error) return this.mapPurchase(rpc.data as PurchaseRow);
-
-    if (!this.shouldFallbackPurchaseMutation(rpc.error)) {
-      throw rpc.error;
-    }
-
     const settings = await this.getEconomySettings();
     const { data: pkg, error: pkgError } = await this.client
       .from('shop_packages')
@@ -1087,7 +1076,30 @@ export class SupabaseService {
       .select('*')
       .maybeSingle();
 
-    if (insert.error) throw insert.error;
+    if (!insert.error && insert.data) return this.mapPurchase(insert.data as PurchaseRow);
+
+    if (insert.error && this.isUniqueViolation(insert.error)) {
+      const existing = await this.client
+        .from('purchases')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('idempotency_key', fallbackKey)
+        .maybeSingle();
+      if (existing.error) throw existing.error;
+      if (existing.data) return this.mapPurchase(existing.data as PurchaseRow);
+    }
+
+    const rpc = await this.client.rpc('create_manual_purchase', {
+      p_package_id: packageId,
+      p_payment_method: paymentMethod,
+      p_idempotency_key: fallbackKey,
+    });
+    if (!rpc.error) return this.mapPurchase(rpc.data as PurchaseRow);
+
+    if (!this.shouldFallbackPurchaseMutation(rpc.error) && insert.error) {
+      throw insert.error;
+    }
+    if (rpc.error) throw rpc.error;
     if (!insert.data) throw new Error('Could not create purchase');
     return this.mapPurchase(insert.data as PurchaseRow);
   }
@@ -1100,20 +1112,6 @@ export class SupabaseService {
     transferScreenshotUrl?: string;
     userNote?: string;
   }): Promise<PurchaseSnapshot> {
-    const rpc = await this.client.rpc('confirm_manual_purchase_transfer', {
-      p_purchase_id: input.purchaseId,
-      p_sender_phone: input.senderPhone,
-      p_sender_name: input.senderName ?? null,
-      p_payment_reference: input.paymentReference ?? null,
-      p_transfer_screenshot_url: input.transferScreenshotUrl ?? null,
-      p_user_note: input.userNote ?? null,
-    });
-    if (!rpc.error) return this.mapPurchase(rpc.data as PurchaseRow);
-
-    if (!this.shouldFallbackPurchaseMutation(rpc.error)) {
-      throw rpc.error;
-    }
-
     const update = await this.client
       .from('purchases')
       .update({
@@ -1130,9 +1128,21 @@ export class SupabaseService {
       .select('*')
       .maybeSingle();
 
+    if (!update.error && update.data) return this.mapPurchase(update.data as PurchaseRow);
+
+    const rpc = await this.client.rpc('confirm_manual_purchase_transfer', {
+      p_purchase_id: input.purchaseId,
+      p_sender_phone: input.senderPhone,
+      p_sender_name: input.senderName ?? null,
+      p_payment_reference: input.paymentReference ?? null,
+      p_transfer_screenshot_url: input.transferScreenshotUrl ?? null,
+      p_user_note: input.userNote ?? null,
+    });
+    if (!rpc.error) return this.mapPurchase(rpc.data as PurchaseRow);
+
     if (update.error) throw update.error;
-    if (!update.data) throw new Error('Purchase not found or cannot be updated');
-    return this.mapPurchase(update.data as PurchaseRow);
+    if (rpc.error) throw rpc.error;
+    throw new Error('Purchase not found or cannot be updated');
   }
 
   async getEconomyLeaderboard(
