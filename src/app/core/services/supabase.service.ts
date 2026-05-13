@@ -251,34 +251,73 @@ interface RealtimeChangeFilter {
 
 const EMPTY_BOARD = Array.from({ length: 81 }, () => 0);
 const ACTIVE_WINDOW_MS = 60 * 1000;
+const AUTH_RECOVERY_PATTERNS = [
+  'invalid refresh token',
+  'refresh token not found',
+  'refresh_token_not_found',
+  'jwt expired',
+];
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
-  private readonly client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  private readonly supabaseUrl = SUPABASE_URL.trim();
+  private readonly supabaseAnonKey = SUPABASE_ANON_KEY.trim();
+  private readonly fetchWithApiKey: typeof fetch = async (input, init) => {
+    const headers = new Headers(init?.headers ?? {});
+    if (!headers.has('apikey') && this.supabaseAnonKey) {
+      headers.set('apikey', this.supabaseAnonKey);
+    }
+    return fetch(input, { ...init, headers });
+  };
+
+  private readonly client = createClient(this.supabaseUrl, this.supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
+      flowType: 'pkce',
+    },
+    global: {
+      headers: {
+        apikey: this.supabaseAnonKey,
+      },
+      fetch: this.fetchWithApiKey,
     },
   });
 
-  constructor(private readonly sudokuLogic: SudokuLogicService) {}
+  constructor(private readonly sudokuLogic: SudokuLogicService) {
+    this.assertSupabaseConfig();
+  }
 
   readonly authState$ = new Observable<AuthSnapshot>((subscriber) => {
     let alive = true;
 
     void this.client.auth
       .getSession()
-      .then(({ data, error }) => {
+      .then(async ({ data, error }) => {
         if (!alive) return;
         if (error) {
+          const recovered = await this.recoverAuthSession(error);
+          if (!alive) return;
+          if (recovered) {
+            subscriber.next({ loaded: true, session: null });
+            return;
+          }
           subscriber.error(error);
           return;
         }
 
         subscriber.next({ loaded: true, session: data.session });
       })
-      .catch((error) => subscriber.error(error));
+      .catch(async (error) => {
+        const recovered = await this.recoverAuthSession(error);
+        if (!alive) return;
+        if (recovered) {
+          subscriber.next({ loaded: true, session: null });
+          return;
+        }
+        subscriber.error(error);
+      });
 
     const { data } = this.client.auth.onAuthStateChange((_event, session) => {
       subscriber.next({ loaded: true, session });
@@ -418,6 +457,41 @@ export class SupabaseService {
   async signOut(): Promise<void> {
     const { error } = await this.client.auth.signOut();
     if (error) throw error;
+  }
+
+  private assertSupabaseConfig(): void {
+    if (!this.supabaseUrl || !this.supabaseAnonKey) {
+      throw new Error('Supabase config missing: set SUPABASE_URL and SUPABASE_ANON_KEY/SUPABASE_PUBLISHABLE_KEY.');
+    }
+  }
+
+  private async recoverAuthSession(error: unknown): Promise<boolean> {
+    if (!this.isRecoverableAuthError(error)) return false;
+
+    // Remove stale local session first, then ask Supabase Auth to only clear local scope.
+    this.clearStaleAuthStorage();
+    await this.client.auth.signOut({ scope: 'local' });
+    return true;
+  }
+
+  private isRecoverableAuthError(error: unknown): boolean {
+    const message = String((error as { message?: unknown })?.message ?? '').toLowerCase();
+    return AUTH_RECOVERY_PATTERNS.some((pattern) => message.includes(pattern));
+  }
+
+  private clearStaleAuthStorage(): void {
+    if (typeof localStorage === 'undefined') return;
+
+    const staleKeys: string[] = [];
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (!key) continue;
+      if (key.startsWith('sb-') && key.includes('-auth-token')) {
+        staleKeys.push(key);
+      }
+    }
+
+    staleKeys.forEach((key) => localStorage.removeItem(key));
   }
 
   async ensurePlayerProfile(user: Session['user'], username?: string): Promise<PlayerProfile> {
