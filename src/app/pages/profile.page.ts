@@ -9,14 +9,11 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
   imports: [UserNavComponent],
   template: `
     <div class="min-h-screen bg-background text-foreground">
-      <nav class="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-sm">
-        <div class="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-3 px-4 py-2 md:px-6">
-          <button
-            class="font-black italic uppercase tracking-tight text-primary"
-            type="button"
-            (click)="goHome()"
-          >
-            SUDOKU RIVAL
+      <nav class="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-sm">
+        <div class="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-6">
+          <button class="inline-flex items-center" type="button" (click)="goHome()">
+            <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-9 w-auto dark:block" />
+            <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-9 w-auto dark:hidden" />
           </button>
           <app-user-nav />
         </div>
@@ -27,49 +24,35 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
           Loading profile...
         </div>
       } @else if (player()) {
-        <main class="mx-auto max-w-6xl space-y-8 px-4 py-8 md:px-6">
-          <header class="grid gap-5 rounded-md border border-border/60 bg-card/50 p-5 md:grid-cols-[1fr_auto] md:items-end">
+        <main class="mx-auto max-w-7xl space-y-8 px-4 py-8 md:px-6">
+          <header class="surface-panel grid gap-5 rounded-2xl p-5 md:grid-cols-[1fr_auto] md:items-end">
             <div class="flex items-center gap-4">
-              <div
-                class="flex h-16 w-16 items-center justify-center rounded-md bg-primary font-mono text-3xl font-black uppercase text-primary-foreground"
-              >
+              <div class="flex h-16 w-16 items-center justify-center rounded-xl bg-primary font-mono text-3xl font-black uppercase text-primary-foreground">
                 {{ avatarInitial() }}
               </div>
               <div class="min-w-0">
-                <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">Player profile</div>
-                <h1 class="mt-1 truncate text-3xl font-black tracking-tight md:text-4xl">
-                  {{ player()?.username }}
-                </h1>
-                <p class="mt-1 text-sm font-mono text-muted-foreground">
-                  {{ player()?.email || 'Guest profile' }}
-                </p>
+                <div class="text-ui-kicker text-primary">Player Profile</div>
+                <h1 class="mt-1 truncate text-3xl font-black tracking-tight md:text-4xl">{{ player()?.username }}</h1>
+                <p class="mt-1 text-sm font-mono text-muted-foreground">{{ player()?.email || 'Guest profile' }}</p>
               </div>
             </div>
-            <button
-              class="rounded-md bg-primary px-5 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
-              type="button"
-              (click)="goLobby()"
-            >
+            <button class="btn-game rounded-xl bg-primary px-5 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90" type="button" (click)="goLobby()">
               Enter lobby
             </button>
           </header>
 
-          <section class="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <section class="grid grid-cols-2 gap-3 md:grid-cols-5">
             @for (stat of stats(); track stat.label) {
-              <div class="rounded-md border border-border/60 bg-card/40 p-4">
+              <div class="surface-panel rounded-xl p-4">
                 <div class="text-2xl font-black tabular-nums text-primary">{{ stat.value }}</div>
-                <div class="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                  {{ stat.label }}
-                </div>
+                <div class="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{{ stat.label }}</div>
               </div>
             }
           </section>
 
-          <section class="grid gap-6 lg:grid-cols-[1fr_280px]">
-            <div class="rounded-md border border-border/60 bg-card/40 p-5">
-              <h2 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">
-                Difficulty wins
-              </h2>
+          <section class="grid gap-6 lg:grid-cols-[1fr_320px]">
+            <div class="surface-panel rounded-xl p-5">
+              <h2 class="text-ui-kicker text-muted-foreground">Difficulty Wins</h2>
               <div class="mt-5 space-y-4">
                 @for (item of difficultyStats(); track item.label) {
                   <div>
@@ -78,17 +61,15 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
                       <span class="text-primary">{{ item.value }}W</span>
                     </div>
                     <div class="h-2 overflow-hidden rounded-full bg-muted">
-                      <div class="h-full rounded-full bg-primary" [style.width.%]="item.percent"></div>
+                      <div class="animate-sr-progress h-full rounded-full bg-primary" [style.width.%]="item.percent"></div>
                     </div>
                   </div>
                 }
               </div>
             </div>
 
-            <aside class="space-y-3 rounded-md border border-border/60 bg-card/40 p-5">
-              <h2 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">
-                Preferences
-              </h2>
+            <aside class="surface-panel space-y-3 rounded-xl p-5">
+              <h2 class="text-ui-kicker text-muted-foreground">Preferences</h2>
               <div class="space-y-3 text-sm">
                 <div class="flex justify-between gap-4">
                   <span class="text-muted-foreground">Theme</span>

@@ -9,42 +9,37 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
   standalone: true,
   imports: [SudokuGridComponent],
   template: `
-    <div
-      class="min-h-screen bg-background text-foreground"
-      style="background-image: linear-gradient(rgba(34,211,238,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(34,211,238,0.03) 1px,transparent 1px); background-size: 60px 60px;"
-    >
-      <nav class="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-sm">
-        <div class="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 md:px-6">
-          <button
-            class="flex items-center gap-2 font-black italic uppercase tracking-tight text-primary"
-            type="button"
-            (click)="goHome()"
-          >
-            <span class="text-base">←</span> Sudoku Rival
+    <div class="min-h-screen bg-background text-foreground">
+      <nav class="sticky top-0 z-20 border-b border-border/55 bg-background/85 backdrop-blur-sm">
+        <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
+          <button class="inline-flex items-center gap-2" type="button" (click)="goHome()">
+            <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-8 w-auto dark:block" />
+            <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-8 w-auto dark:hidden" />
           </button>
-          <div class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">
-            Solo Practice
-          </div>
+          <div class="text-ui-kicker text-muted-foreground">Solo Practice</div>
         </div>
       </nav>
 
-      <main class="mx-auto max-w-5xl space-y-6 px-4 py-8 md:px-6">
+      <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 md:px-6">
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 class="text-3xl font-black tracking-tight md:text-4xl">Practice Run</h1>
+            <h1 class="text-3xl font-black tracking-tight md:text-5xl">
+              Practice Run
+            </h1>
             <p class="mt-1 text-sm font-mono text-muted-foreground">
-              Sharpen your skills before entering the multiplayer arena.
+              Sharpen speed and accuracy before entering multiplayer.
             </p>
           </div>
 
           <div class="flex gap-2">
             @for (difficulty of difficulties; track difficulty) {
               <button
-                class="rounded-md px-3 py-2 text-sm font-mono uppercase transition-colors"
+                class="btn-game rounded-lg px-3 py-2 text-sm font-mono uppercase transition-colors"
                 [class.bg-primary]="gameStore.difficulty() === difficulty"
                 [class.text-primary-foreground]="gameStore.difficulty() === difficulty"
                 [class.border]="gameStore.difficulty() !== difficulty"
                 [class.border-border/60]="gameStore.difficulty() !== difficulty"
+                [class.bg-card/70]="gameStore.difficulty() !== difficulty"
                 [class.hover:bg-muted/40]="gameStore.difficulty() !== difficulty"
                 type="button"
                 (click)="startSolo(difficulty)"
@@ -56,11 +51,11 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
         </div>
 
         @if (gameStore.mode() !== 'solo') {
-          <div class="flex items-center justify-center py-24 font-mono text-muted-foreground">
+          <div class="flex min-h-[40vh] items-center justify-center font-mono text-muted-foreground">
             Generating puzzle...
           </div>
         } @else {
-          <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_240px]">
+          <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
             <div class="flex flex-col items-center gap-4">
               <app-sudoku-grid
                 [puzzle]="gameStore.puzzle()"
@@ -74,21 +69,20 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
                 (cellClicked)="selectCell($event)"
               />
 
-
-              <div
-                class="flex w-full max-w-md justify-between text-xs font-mono text-muted-foreground"
-              >
-                <span>
-                  Filled: <span class="text-primary">{{ filledCount() }}</span
-                  >/{{ totalCount() }}
-                </span>
-                <span class="text-primary">{{ progress() }}%</span>
+              <div class="w-full max-w-md">
+                <div class="mb-1 flex justify-between text-xs font-mono text-muted-foreground">
+                  <span>Filled: <span class="text-primary">{{ filledCount() }}</span>/{{ totalCount() }}</span>
+                  <span class="text-primary">{{ progress() }}%</span>
+                </div>
+                <div class="h-2 overflow-hidden rounded-full bg-muted">
+                  <div class="animate-sr-progress h-full rounded-full bg-primary" [style.width.%]="progress()"></div>
+                </div>
               </div>
 
               <div class="grid w-full max-w-md grid-cols-5 gap-2 sm:grid-cols-10">
                 @for (num of numberPad; track num) {
                   <button
-                    class="flex h-12 items-center justify-center rounded-md border border-border/60 bg-card/60 font-mono text-lg font-bold transition-colors hover:border-primary/60 hover:bg-primary/10 active:bg-primary/20"
+                    class="btn-game flex h-12 items-center justify-center rounded-lg border border-border/60 bg-card/70 font-mono text-lg font-bold transition-colors hover:border-primary/60 hover:bg-primary/10 active:bg-primary/20"
                     type="button"
                     (click)="enterNumber(num)"
                   >
@@ -96,58 +90,46 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
                   </button>
                 }
                 <button
-                  class="flex h-12 items-center justify-center rounded-md border border-border/60 bg-card/60 font-mono text-sm font-bold text-destructive transition-colors hover:border-destructive/60 hover:bg-destructive/10 active:bg-destructive/20"
+                  class="btn-game flex h-12 items-center justify-center rounded-lg border border-destructive/45 bg-card/70 font-mono text-sm font-bold text-destructive transition-colors hover:bg-destructive/10 active:bg-destructive/20"
                   type="button"
                   (click)="enterNumber(0)"
                 >
-                  ✕
+                  Del
                 </button>
               </div>
             </div>
 
             <aside class="space-y-3">
-              <h3 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">
-                Controls
-              </h3>
+              <h3 class="text-ui-kicker text-muted-foreground">Controls</h3>
               <button
-                class="flex w-full items-center justify-start rounded-md border border-border/60 px-4 py-3 text-sm font-medium hover:bg-muted/40"
+                class="btn-game flex w-full items-center justify-start rounded-lg border border-border/60 bg-card/70 px-4 py-3 text-sm font-medium hover:bg-muted/40"
                 type="button"
                 (click)="toggleHighlight()"
               >
-                <span class="mr-2">{{ gameStore.highlightSameNumbers() ? '◼' : '◻' }}</span>
                 Number highlight
-                <span
-                  class="ml-auto text-[10px] font-mono uppercase"
-                  [class.text-primary]="gameStore.highlightSameNumbers()"
-                  [class.text-muted-foreground]="!gameStore.highlightSameNumbers()"
-                >
+                <span class="ml-auto text-[10px] font-mono uppercase" [class.text-primary]="gameStore.highlightSameNumbers()" [class.text-muted-foreground]="!gameStore.highlightSameNumbers()">
                   {{ gameStore.highlightSameNumbers() ? 'On' : 'Off' }}
                 </span>
               </button>
               <button
-                class="flex w-full items-center justify-start rounded-md border border-border/60 px-4 py-3 text-sm font-medium hover:bg-muted/40"
+                class="btn-game flex w-full items-center justify-start rounded-lg border border-border/60 bg-card/70 px-4 py-3 text-sm font-medium hover:bg-muted/40"
                 type="button"
                 (click)="toggleValidation()"
               >
-                <span class="mr-2">{{ gameStore.errorValidation() ? '◼' : '◻' }}</span>
                 Error check
-                <span
-                  class="ml-auto text-[10px] font-mono uppercase"
-                  [class.text-primary]="gameStore.errorValidation()"
-                  [class.text-muted-foreground]="!gameStore.errorValidation()"
-                >
+                <span class="ml-auto text-[10px] font-mono uppercase" [class.text-primary]="gameStore.errorValidation()" [class.text-muted-foreground]="!gameStore.errorValidation()">
                   {{ gameStore.errorValidation() ? 'On' : 'Off' }}
                 </span>
               </button>
               <button
-                class="flex w-full items-center justify-start rounded-md border border-border/60 px-4 py-3 text-sm font-medium hover:bg-muted/40"
+                class="btn-game flex w-full items-center justify-start rounded-lg border border-border/60 bg-card/70 px-4 py-3 text-sm font-medium hover:bg-muted/40"
                 type="button"
                 (click)="resetBoard()"
               >
                 Reset board
               </button>
               <button
-                class="flex w-full items-center justify-start rounded-md bg-secondary px-4 py-3 text-sm font-bold uppercase tracking-wider hover:bg-secondary/80"
+                class="btn-game flex w-full items-center justify-start rounded-lg bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
                 type="button"
                 (click)="goLobby()"
               >
@@ -158,66 +140,32 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
         }
 
         @if (gameStore.soloSolved()) {
-          <div
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-          >
-            <div
-              class="w-full max-w-md rounded-2xl border border-border/60 bg-background p-6 text-center shadow-2xl"
-            >
-              <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">
-                Puzzle solved
-              </div>
-              <h2 class="mt-3 text-3xl font-black uppercase italic text-primary">
-                Sudoku Complete
-              </h2>
+          <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div class="surface-panel w-full max-w-md rounded-2xl p-6 text-center shadow-2xl">
+              <div class="text-ui-kicker text-primary">Puzzle solved</div>
+              <h2 class="mt-3 text-3xl font-black uppercase tracking-tight text-primary">Sudoku Complete</h2>
               <p class="mt-4 text-sm text-muted-foreground">
-                Great run. Start another puzzle or move into multiplayer.
+                Great run. Start a new puzzle or jump into multiplayer.
               </p>
               <div class="mt-5 grid grid-cols-2 gap-2">
-                <button
-                  class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
-                  type="button"
-                  (click)="shareNative()"
-                >
+                <button class="btn-game rounded-lg border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40" type="button" (click)="shareNative()">
                   Share
                 </button>
-                <a
-                  class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
-                  [href]="shareLink('x')"
-                  target="_blank"
-                  rel="noopener"
-                >
+                <a class="btn-game rounded-lg border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40" [href]="shareLink('x')" target="_blank" rel="noopener">
                   X
                 </a>
-                <a
-                  class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
-                  [href]="shareLink('facebook')"
-                  target="_blank"
-                  rel="noopener"
-                >
+                <a class="btn-game rounded-lg border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40" [href]="shareLink('facebook')" target="_blank" rel="noopener">
                   Facebook
                 </a>
-                <button
-                  class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40"
-                  type="button"
-                  (click)="copyShare()"
-                >
+                <button class="btn-game rounded-lg border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40" type="button" (click)="copyShare()">
                   Copy
                 </button>
               </div>
               <div class="mt-6 space-y-3">
-                <button
-                  class="w-full rounded-md bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
-                  type="button"
-                  (click)="playAgain()"
-                >
+                <button class="btn-game w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90" type="button" (click)="playAgain()">
                   Play again
                 </button>
-                <button
-                  class="w-full rounded-md border border-border/60 px-4 py-3 text-sm font-mono uppercase tracking-wider hover:bg-muted/40"
-                  type="button"
-                  (click)="goLobby()"
-                >
+                <button class="btn-game w-full rounded-xl border border-border/60 bg-card/70 px-4 py-3 text-sm font-mono uppercase tracking-wider hover:bg-muted/40" type="button" (click)="goLobby()">
                   Enter multiplayer arena
                 </button>
               </div>

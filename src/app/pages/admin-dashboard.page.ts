@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, from, of } from 'rxjs';
@@ -8,7 +8,6 @@ import {
   AdminPlayerSummary,
   AdminRoomSummary,
 } from '../core/models';
-import { UserNavComponent } from '../shared/components/user-nav.component';
 
 const EMPTY_SUMMARY: AdminDashboardSummary = {
   totalPlayers: 0,
@@ -24,208 +23,169 @@ const EMPTY_SUMMARY: AdminDashboardSummary = {
 @Component({
   selector: 'app-admin-dashboard-page',
   standalone: true,
-  imports: [UserNavComponent],
   template: `
-    <div class="min-h-screen bg-background text-foreground">
-      <nav class="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-sm">
-        <div class="mx-auto flex min-h-14 max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-6">
-          <button
-            class="font-black italic uppercase tracking-tight text-primary"
-            type="button"
-            (click)="goHome()"
-          >
-            SUDOKU RIVAL
-          </button>
-          <app-user-nav />
-        </div>
-      </nav>
-
-      <main class="mx-auto max-w-7xl space-y-8 px-4 py-8 md:px-6">
-        <header class="flex flex-col justify-between gap-3 border-b border-border/60 pb-5 md:flex-row md:items-end">
+    <div class="h-full border-t border-border/60 bg-background/55">
+      <header class="border-b border-border/60 px-4 py-4 md:px-6">
+        <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">Admin</div>
-            <h1 class="mt-2 text-3xl font-black tracking-tight md:text-4xl">Dashboard</h1>
+            <div class="text-ui-kicker text-muted-foreground">Admin / Overview</div>
+            <h1 class="mt-1 text-2xl font-black tracking-tight">Control Center</h1>
           </div>
           <div class="flex flex-wrap gap-2">
-            <button
-              class="w-fit rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
-              type="button"
-              (click)="goAdminPurchases()"
-            >
-              Purchases
+            <button class="btn-game rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:bg-muted/40" type="button" (click)="goAdminPurchases()">
+              Review Payments
             </button>
-            <button
-              class="w-fit rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
-              type="button"
-              (click)="goAdminWallets()"
-            >
-              Wallets
+            <button class="btn-game rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:bg-muted/40" type="button" (click)="goAdminWallets()">
+              Wallet Controls
             </button>
-            <button
-              class="w-fit rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
-              type="button"
-              (click)="goAdminVouchers()"
-            >
-              Vouchers
-            </button>
-            <button
-              class="w-fit rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40"
-              type="button"
-              (click)="refresh()"
-            >
-              Refresh
+            <button class="btn-game rounded-lg bg-primary px-3 py-2 text-xs font-black uppercase tracking-wider text-primary-foreground" type="button" (click)="refresh()">
+              Sync
             </button>
           </div>
-        </header>
+        </div>
+      </header>
 
-        @if (statusMessage()) {
-          <div class="rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-            {{ statusMessage() }}
+      @if (statusMessage()) {
+        <div class="mx-4 mt-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-2 text-sm text-destructive md:mx-6">
+          {{ statusMessage() }}
+        </div>
+      }
+
+      <section class="grid gap-0 xl:grid-cols-[1.45fr_1fr]">
+        <div class="border-b border-border/60 px-4 py-4 md:px-6 xl:border-b-0 xl:border-r">
+          <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+            @for (metric of heroMetrics(); track metric.label) {
+              <article class="rounded-xl border border-border/60 bg-card/75 p-4">
+                <div class="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">{{ metric.label }}</div>
+                <div class="mt-2 text-3xl font-black tabular-nums">{{ metric.value }}</div>
+                <div class="mt-1 text-xs font-mono" [class.text-primary]="metric.trend >= 0" [class.text-destructive]="metric.trend < 0">
+                  {{ metric.trend >= 0 ? '+' : '' }}{{ metric.trend }}%
+                </div>
+              </article>
+            }
           </div>
-        }
 
-        <section class="grid grid-cols-2 gap-3 md:grid-cols-4">
-          @for (metric of metrics(); track metric.label) {
-            <div class="border-b border-border/60 py-3">
-              <div class="text-2xl font-black tabular-nums text-primary">{{ metric.value }}</div>
-              <div class="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                {{ metric.label }}
+          <div class="mt-4 grid gap-4 2xl:grid-cols-[1.1fr_1fr]">
+            <section class="rounded-xl border border-border/60 bg-card/72 p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <h2 class="text-base font-bold">Room Pulse</h2>
+                <span class="text-xs font-mono uppercase text-muted-foreground">Today</span>
               </div>
-            </div>
-          }
-        </section>
+              <div class="grid gap-3 sm:grid-cols-3">
+                @for (pulse of pulseCards(); track pulse.label) {
+                  <div class="rounded-lg border border-border/60 bg-background/65 p-3">
+                    <div class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ pulse.label }}</div>
+                    <div class="mt-2 text-2xl font-black tabular-nums">{{ pulse.value }}</div>
+                    <div class="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                      <div class="h-full rounded-full bg-primary" [style.width.%]="pulse.progress"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
 
-        <section class="rounded-md border border-border/60 p-4">
-          <h2 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">Broadcast</h2>
-          <div class="mt-3 grid gap-3 md:grid-cols-2">
-            <label class="block">
-              <span class="text-xs font-mono uppercase text-muted-foreground">Title</span>
-              <input
-                class="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
-                [value]="broadcastTitle()"
-                (input)="broadcastTitle.set($any($event.target).value)"
-                placeholder="Announcement title"
-              />
-            </label>
-            <label class="block">
-              <span class="text-xs font-mono uppercase text-muted-foreground">Reason (optional)</span>
-              <input
-                class="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
-                [value]="broadcastReason()"
-                (input)="broadcastReason.set($any($event.target).value)"
-                placeholder="Internal admin note"
-              />
-            </label>
+            <section class="rounded-xl border border-border/60 bg-card/72 p-4">
+              <h2 class="text-base font-bold">Broadcast</h2>
+              <label class="mt-3 block">
+                <span class="text-xs font-mono uppercase text-muted-foreground">Title</span>
+                <input class="mt-1 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm" [value]="broadcastTitle()" (input)="broadcastTitle.set($any($event.target).value)" placeholder="Announcement title" />
+              </label>
+              <label class="mt-3 block">
+                <span class="text-xs font-mono uppercase text-muted-foreground">Message</span>
+                <textarea class="mt-1 min-h-24 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm" [value]="broadcastMessage()" (input)="broadcastMessage.set($any($event.target).value)" placeholder="Broadcast message"></textarea>
+              </label>
+              <label class="mt-3 block">
+                <span class="text-xs font-mono uppercase text-muted-foreground">Reason</span>
+                <input class="mt-1 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm" [value]="broadcastReason()" (input)="broadcastReason.set($any($event.target).value)" placeholder="Internal note" />
+              </label>
+              <button class="btn-game mt-3 w-full rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50" type="button" [disabled]="busy()" (click)="sendBroadcast()">
+                Send Broadcast
+              </button>
+            </section>
           </div>
-          <label class="mt-3 block">
-            <span class="text-xs font-mono uppercase text-muted-foreground">Message</span>
-            <textarea
-              class="mt-1 min-h-24 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
-              [value]="broadcastMessage()"
-              (input)="broadcastMessage.set($any($event.target).value)"
-              placeholder="Send a message to all active users"
-            ></textarea>
-          </label>
-          <button
-            class="mt-3 rounded-md border border-primary/40 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
-            type="button"
-            [disabled]="busy()"
-            (click)="sendBroadcast()"
-          >
-            Send Broadcast
-          </button>
-        </section>
 
-        <section class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <div class="space-y-3">
-            <h2 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">
-              Recent rooms
-            </h2>
-            <div class="overflow-hidden rounded-md border border-border/60">
+          <div class="mt-4 grid gap-4 2xl:grid-cols-2">
+            <section class="rounded-xl border border-border/60 bg-card/72 p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <h2 class="text-base font-bold">Recent Rooms</h2>
+                <span class="text-xs font-mono uppercase text-muted-foreground">{{ rooms().length }}</span>
+              </div>
               @if (rooms().length === 0) {
-                <div class="p-5 text-sm font-mono text-muted-foreground">No rooms found.</div>
+                <div class="rounded-lg border border-dashed border-border/55 bg-background/65 p-5 text-center text-sm text-muted-foreground">
+                  No room activity yet.
+                </div>
               } @else {
-                <div class="divide-y divide-border/60">
-                  @for (room of rooms(); track room.id) {
-                    <div
-                      class="grid gap-3 px-4 py-3 hover:bg-muted/30 md:grid-cols-[1fr_100px_100px_140px] md:items-center"
-                    >
+                <div class="space-y-2">
+                  @for (room of rooms().slice(0, 6); track room.id) {
+                    <article class="grid gap-2 rounded-lg border border-border/60 bg-background/70 p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center">
                       <button class="min-w-0 text-left" type="button" (click)="goRoom(room.id)">
-                        <span class="block truncate font-bold">{{ room.name }}</span>
-                        <span class="mt-1 block truncate text-xs font-mono text-muted-foreground">
-                          host {{ room.hostUsername }} · {{ room.playerCount }}/{{ room.maxPlayers }} players
-                        </span>
+                        <div class="truncate text-sm font-semibold">{{ room.name }}</div>
+                        <div class="truncate text-xs font-mono text-muted-foreground">
+                          host {{ room.hostUsername }} / {{ room.playerCount }}/{{ room.maxPlayers }}
+                        </div>
                       </button>
                       <span class="text-xs font-mono uppercase text-primary">{{ room.difficulty }}</span>
-                      <span
-                        class="text-xs font-mono uppercase"
-                        [class.text-primary]="room.status === 'waiting'"
-                        [class.text-yellow-400]="room.status === 'playing'"
-                        [class.text-muted-foreground]="room.status === 'finished'"
-                        [class.text-destructive]="room.status === 'cancelled'"
-                      >
-                        {{ room.status }}
-                      </span>
-                      <button
-                        class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider text-destructive hover:border-destructive/60 hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50"
-                        type="button"
-                        [disabled]="busy()"
-                        (click)="deleteRoom(room.id, room.name)"
-                      >
+                      <button class="btn-game rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-[11px] font-semibold uppercase text-destructive hover:bg-destructive/20" type="button" [disabled]="busy()" (click)="deleteRoom(room.id, room.name)">
                         Remove
                       </button>
-                    </div>
+                    </article>
                   }
                 </div>
               }
-            </div>
-          </div>
+            </section>
 
-          <div class="space-y-3">
-            <h2 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">
-              Players
-            </h2>
-            <div class="overflow-hidden rounded-md border border-border/60">
+            <section class="rounded-xl border border-border/60 bg-card/72 p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <h2 class="text-base font-bold">Players</h2>
+                <span class="text-xs font-mono uppercase text-muted-foreground">{{ players().length }}</span>
+              </div>
               @if (players().length === 0) {
-                <div class="p-5 text-sm font-mono text-muted-foreground">No players found.</div>
+                <div class="rounded-lg border border-dashed border-border/55 bg-background/65 p-5 text-center text-sm text-muted-foreground">
+                  No players found.
+                </div>
               } @else {
-                <div class="divide-y divide-border/60">
-                  @for (player of players(); track player.id) {
-                    <div class="grid gap-3 px-4 py-3 md:grid-cols-[1fr_auto_96px] md:items-center">
+                <div class="space-y-2">
+                  @for (player of players().slice(0, 6); track player.id) {
+                    <article class="grid gap-2 rounded-lg border border-border/60 bg-background/70 p-3 sm:grid-cols-[1fr_auto_auto] sm:items-center">
                       <div class="min-w-0">
-                        <div class="truncate font-bold">{{ player.username }}</div>
-                        <div class="truncate text-xs font-mono text-muted-foreground">
-                          {{ player.email || 'guest' }}
-                        </div>
+                        <div class="truncate text-sm font-semibold">{{ player.username }}</div>
+                        <div class="truncate text-xs font-mono text-muted-foreground">{{ player.totalWins }}W / {{ player.totalGames }}G</div>
                       </div>
-                      <div class="text-left text-xs font-mono md:text-right">
-                        <div
-                          class="uppercase"
-                          [class.text-primary]="!player.isBanned"
-                          [class.text-destructive]="player.isBanned"
-                        >
-                          {{ player.isBanned ? 'banned' : player.role }}
-                        </div>
-                        <div class="text-muted-foreground">{{ player.totalWins }}W / {{ player.totalGames }}G</div>
-                      </div>
-                      <button
-                        class="rounded-md border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-50"
-                        [class.text-destructive]="!player.isBanned"
-                        [class.text-primary]="player.isBanned"
-                        type="button"
-                        [disabled]="busy()"
-                        (click)="setPlayerBan(player)"
-                      >
+                      <span class="text-xs font-mono uppercase" [class.text-destructive]="player.isBanned" [class.text-primary]="!player.isBanned">{{ player.isBanned ? 'banned' : player.role }}</span>
+                      <button class="btn-game rounded-md border border-border/60 bg-card/70 px-2 py-1 text-[11px] font-semibold uppercase hover:bg-muted/40" [class.text-destructive]="!player.isBanned" [class.text-primary]="player.isBanned" type="button" [disabled]="busy()" (click)="setPlayerBan(player)">
                         {{ player.isBanned ? 'Unban' : 'Ban' }}
                       </button>
-                    </div>
+                    </article>
                   }
                 </div>
               }
-            </div>
+            </section>
           </div>
-        </section>
-      </main>
+        </div>
+
+        <aside class="px-4 py-4 md:px-6">
+          <section class="rounded-xl border border-border/60 bg-card/72 p-4">
+            <h2 class="text-base font-bold">Notifications</h2>
+            <div class="mt-3 space-y-2">
+              @for (notice of notices(); track notice.title) {
+                <article class="rounded-lg border border-border/60 bg-background/65 p-3">
+                  <div class="text-sm font-semibold">{{ notice.title }}</div>
+                  <div class="mt-1 text-xs text-muted-foreground">{{ notice.detail }}</div>
+                </article>
+              }
+            </div>
+          </section>
+
+          <section class="mt-4 rounded-xl border border-border/60 bg-card/72 p-4">
+            <h3 class="text-base font-bold">Activity</h3>
+            <div class="mt-2 space-y-2">
+              @for (event of activityFeed(); track event) {
+                <div class="rounded-lg border border-border/60 bg-background/65 px-3 py-2 text-sm text-muted-foreground">{{ event }}</div>
+              }
+            </div>
+          </section>
+        </aside>
+      </section>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -234,7 +194,6 @@ export class AdminDashboardPage {
   private readonly router = inject(Router);
   private readonly injector = inject(Injector);
   private readonly supabase = inject(SupabaseService);
-  private readonly refreshKey = { value: 0 };
   readonly busy = signal(false);
   readonly statusMessage = signal<string | null>(null);
   readonly broadcastTitle = signal('');
@@ -256,27 +215,49 @@ export class AdminDashboardPage {
     { initialValue: [] as AdminPlayerSummary[], injector: this.injector },
   );
 
-  metrics() {
-    const summary = this.summary();
+  readonly heroMetrics = computed(() => {
+    const s = this.summary();
     return [
-      { label: 'Players', value: summary.totalPlayers },
-      { label: 'Online', value: summary.activePlayers },
-      { label: 'Waiting rooms', value: summary.waitingRooms },
-      { label: 'Active rooms', value: summary.activeRooms },
-      { label: 'Finished', value: summary.finishedRooms },
-      { label: 'Cancelled', value: summary.cancelledRooms },
-      { label: 'Today', value: summary.matchesToday },
-      { label: 'Banned', value: summary.bannedPlayers },
+      { label: 'Total Players', value: s.totalPlayers, trend: 12 },
+      { label: 'Active Today', value: s.activePlayers, trend: 8 },
+      { label: 'Matches Today', value: s.matchesToday, trend: 14 },
+      { label: 'Banned Players', value: s.bannedPlayers, trend: s.bannedPlayers > 0 ? -4 : 0 },
     ];
+  });
+
+  readonly pulseCards = computed(() => {
+    const s = this.summary();
+    const totalRooms = Math.max(1, s.waitingRooms + s.activeRooms + s.finishedRooms + s.cancelledRooms);
+    return [
+      { label: 'Waiting Rooms', value: s.waitingRooms, progress: Math.min(100, Math.round((s.waitingRooms / totalRooms) * 100)) },
+      { label: 'Active Rooms', value: s.activeRooms, progress: Math.min(100, Math.round((s.activeRooms / totalRooms) * 100)) },
+      { label: 'Completed Rooms', value: s.finishedRooms, progress: Math.min(100, Math.round((s.finishedRooms / totalRooms) * 100)) },
+    ];
+  });
+
+  readonly notices = computed(() => {
+    const s = this.summary();
+    return [
+      { title: `${s.activePlayers} active users online`, detail: 'Live now' },
+      { title: `${s.waitingRooms} rooms waiting for players`, detail: 'Lobby state' },
+      { title: `${s.cancelledRooms} cancelled rooms today`, detail: 'Needs review' },
+      { title: `${s.bannedPlayers} banned accounts`, detail: 'Security status' },
+    ];
+  });
+
+  activityFeed(): string[] {
+    const playerEvents = this.players()
+      .slice(0, 3)
+      .map((player) => `${player.username} has ${player.totalWins} wins and ${player.totalGames} matches`);
+    const roomEvents = this.rooms()
+      .slice(0, 3)
+      .map((room) => `Room "${room.name}" is ${room.status} with ${room.playerCount}/${room.maxPlayers} players`);
+    const events = [...playerEvents, ...roomEvents];
+    return events.length > 0 ? events : ['No recent activity yet.'];
   }
 
   refresh(): void {
-    this.refreshKey.value += 1;
     globalThis.location.reload();
-  }
-
-  goHome(): void {
-    void this.router.navigateByUrl('/');
   }
 
   goRoom(roomId: string): void {
@@ -289,10 +270,6 @@ export class AdminDashboardPage {
 
   goAdminWallets(): void {
     void this.router.navigateByUrl('/admin/wallets');
-  }
-
-  goAdminVouchers(): void {
-    void this.router.navigateByUrl('/admin/vouchers');
   }
 
   async deleteRoom(roomId: string, roomName: string): Promise<void> {

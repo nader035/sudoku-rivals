@@ -12,20 +12,21 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
   imports: [UserNavComponent],
   template: `
     <div class="min-h-screen bg-background text-foreground">
-      <nav class="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-sm">
-        <div class="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-3 px-4 py-2 md:px-6">
+      <nav class="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-sm">
+        <div class="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-6">
           <button
-            class="font-black italic uppercase tracking-tight text-primary"
+            class="inline-flex items-center"
             type="button"
             (click)="goHome()"
           >
-            SUDOKU RIVAL
+            <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-9 w-auto dark:block" />
+            <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-9 w-auto dark:hidden" />
           </button>
           <app-user-nav />
         </div>
       </nav>
 
-      <main class="mx-auto max-w-6xl space-y-8 px-4 py-8 md:px-6">
+      <main class="mx-auto max-w-7xl space-y-8 px-4 py-8 md:px-6">
         <header>
           <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">Economy</div>
           <h1 class="mt-2 text-3xl font-black tracking-tight md:text-4xl">Coin Shop</h1>
@@ -35,7 +36,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
         </header>
 
         @if (statusMessage()) {
-          <div class="rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+          <div class="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
             {{ statusMessage() }}
           </div>
         }
@@ -43,7 +44,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
         <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           @for (pkg of packages(); track pkg.id) {
             <article
-              class="rounded-md border border-border/60 bg-card/40 p-4"
+              class="surface-panel rounded-xl p-4"
               [class.border-primary]="selectedPackageId() === pkg.id"
             >
               <div class="flex items-start justify-between gap-2">
@@ -60,7 +61,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
               </div>
               <div class="mt-3 text-sm font-mono">{{ pkg.price }} {{ pkg.currency }}</div>
               <button
-                class="mt-4 w-full rounded-md bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90"
+                class="btn-game mt-4 w-full rounded-lg bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90"
                 type="button"
                 (click)="selectPackage(pkg)"
               >
@@ -70,20 +71,20 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
           }
         </section>
 
-        <section class="rounded-md border border-border/60 bg-card/40 p-5">
+        <section class="surface-panel rounded-xl p-5">
           <h3 class="text-lg font-bold">Redeem Voucher</h3>
           <p class="mt-1 text-sm text-muted-foreground">
             Redeem free-coins vouchers here, or apply discount voucher in purchase below.
           </p>
           <div class="mt-3 flex flex-col gap-3 md:flex-row">
             <input
-              class="w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm uppercase"
+              class="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm uppercase"
               placeholder="Voucher code"
               [value]="voucherCode()"
               (input)="voucherCode.set($any($event.target).value)"
             />
             <button
-              class="rounded-md border border-primary/40 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 disabled:opacity-50"
+              class="btn-game rounded-lg border border-primary/40 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 disabled:opacity-50"
               type="button"
               [disabled]="busy() || voucherCode().trim().length < 3"
               (click)="redeemFreeCoinsVoucher()"
@@ -94,11 +95,11 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
         </section>
 
         @if (selectedPackage()) {
-          <section class="rounded-md border border-border/60 bg-card/40 p-5">
+          <section class="surface-panel rounded-xl p-5">
             <h3 class="text-lg font-bold">Payment Method</h3>
             <div class="mt-4 grid gap-3 md:grid-cols-2">
               <button
-                class="rounded-md border px-3 py-2 text-left text-sm font-semibold"
+                class="btn-game rounded-lg border px-3 py-2 text-left text-sm font-semibold"
                 [class.border-primary]="paymentMethod() === 'vodafone_cash'"
                 [class.border-border]="paymentMethod() !== 'vodafone_cash'"
                 type="button"
@@ -107,7 +108,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
                 Vodafone Cash
               </button>
               <button
-                class="rounded-md border px-3 py-2 text-left text-sm font-semibold"
+                class="btn-game rounded-lg border px-3 py-2 text-left text-sm font-semibold"
                 [class.border-primary]="paymentMethod() === 'instapay'"
                 [class.border-border]="paymentMethod() !== 'instapay'"
                 type="button"
@@ -117,7 +118,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
               </button>
             </div>
 
-            <div class="mt-4 rounded-md border border-primary/30 bg-primary/5 p-4 text-sm font-mono">
+            <div class="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm font-mono">
               @if (paymentMethod() === 'vodafone_cash') {
                 Please transfer {{ selectedPackage()?.price }} {{ selectedPackage()?.currency }} to Vodafone Cash number:
                 <span class="font-bold text-primary">{{ settings().vodafoneCashNumber }}</span>
@@ -130,7 +131,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
             </div>
 
             <button
-              class="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              class="btn-game mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               type="button"
               [disabled]="busy()"
               (click)="beginTransferConfirmation()"
@@ -153,7 +154,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
                     }
                   </span>
                   <input
-                    class="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+                    class="mt-1 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
                     [value]="senderPhone()"
                     (input)="senderPhone.set($any($event.target).value)"
                   />
@@ -161,7 +162,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
                 <label class="block">
                   <span class="text-xs font-mono uppercase text-muted-foreground">Sender name (optional)</span>
                   <input
-                    class="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+                    class="mt-1 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
                     [value]="senderName()"
                     (input)="senderName.set($any($event.target).value)"
                   />
@@ -169,7 +170,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
                 <label class="block">
                   <span class="text-xs font-mono uppercase text-muted-foreground">Payment reference (optional)</span>
                   <input
-                    class="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+                    class="mt-1 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
                     [value]="paymentReference()"
                     (input)="paymentReference.set($any($event.target).value)"
                   />
@@ -177,7 +178,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
                 <label class="block">
                   <span class="text-xs font-mono uppercase text-muted-foreground">Screenshot URL (optional)</span>
                   <input
-                    class="mt-1 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+                    class="mt-1 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
                     [value]="screenshotUrl()"
                     (input)="screenshotUrl.set($any($event.target).value)"
                   />
@@ -186,13 +187,13 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
               <label class="mt-3 block">
                 <span class="text-xs font-mono uppercase text-muted-foreground">Note to admin (optional)</span>
                 <textarea
-                  class="mt-1 min-h-20 w-full rounded-md border border-border/60 bg-background px-3 py-2 text-sm"
+                  class="mt-1 min-h-20 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
                   [value]="userNote()"
                   (input)="userNote.set($any($event.target).value)"
                 ></textarea>
               </label>
               <button
-                class="mt-4 rounded-md border border-primary/40 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 disabled:opacity-50"
+                class="btn-game mt-4 rounded-lg border border-primary/40 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 disabled:opacity-50"
                 type="button"
                 [disabled]="busy()"
                 (click)="submitTransferConfirmation()"
@@ -205,7 +206,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
 
         <section class="space-y-3">
           <h3 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">Purchase history</h3>
-          <div class="overflow-hidden rounded-md border border-border/60">
+          <div class="surface-panel overflow-hidden rounded-xl">
             @if (purchases().length === 0) {
               <div class="p-4 text-sm font-mono text-muted-foreground">No purchases yet.</div>
             } @else {
@@ -215,7 +216,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
                     <div class="min-w-0">
                       <div class="truncate font-semibold">{{ purchase.coinsReceived }} coins</div>
                       <div class="text-xs font-mono text-muted-foreground">
-                        {{ purchase.paymentMethod }} · {{ purchase.amountPaid }} {{ purchase.currency }}
+                        {{ purchase.paymentMethod }} / {{ purchase.amountPaid }} {{ purchase.currency }}
                       </div>
                     </div>
                     <span class="text-xs font-mono uppercase text-primary">{{ purchase.paymentStatus }}</span>

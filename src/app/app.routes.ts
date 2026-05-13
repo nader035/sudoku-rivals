@@ -39,89 +39,82 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    loadComponent: () => import('./pages/admin-dashboard.page').then(m => m.AdminDashboardPage),
     canActivate: [adminGuard],
-  },
-  {
-    path: 'admin/users',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'Users' },
-  },
-  {
-    path: 'admin/users/:id',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'User Details' },
-  },
-  {
-    path: 'admin/wallets',
-    loadComponent: () => import('./pages/admin-wallets.page').then(m => m.AdminWalletsPage),
-    canActivate: [adminGuard],
-  },
-  {
-    path: 'admin/transactions',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'Transactions' },
-  },
-  {
-    path: 'admin/matches',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'Matches' },
-  },
-  {
-    path: 'admin/matches/:id',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'Match Details' },
-  },
-  {
-    path: 'admin/shop',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'Shop' },
-  },
-  {
-    path: 'admin/vouchers',
-    loadComponent: () => import('./pages/admin-vouchers.page').then(m => m.AdminVouchersPage),
-    canActivate: [adminGuard],
-  },
-  {
-    path: 'admin/purchases',
-    loadComponent: () => import('./pages/admin-purchases.page').then(m => m.AdminPurchasesPage),
-    canActivate: [adminGuard],
-  },
-  {
-    path: 'admin/leaderboard',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'Leaderboard' },
-  },
-  {
-    path: 'admin/settings',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'Settings' },
-  },
-  {
-    path: 'admin/disputes',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'Disputes' },
-  },
-  {
-    path: 'admin/audit-logs',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'Audit Logs' },
-  },
-  {
-    path: 'admin/alerts',
-    loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
-    canActivate: [adminGuard],
-    data: { title: 'Alerts' },
+    canActivateChild: [adminGuard],
+    loadComponent: () => import('./pages/admin-shell.page').then(m => m.AdminShellPage),
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./pages/admin-dashboard.page').then(m => m.AdminDashboardPage),
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'Users' },
+      },
+      {
+        path: 'users/:id',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'User Details' },
+      },
+      {
+        path: 'wallets',
+        loadComponent: () => import('./pages/admin-wallets.page').then(m => m.AdminWalletsPage),
+      },
+      {
+        path: 'transactions',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'Transactions' },
+      },
+      {
+        path: 'matches',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'Matches' },
+      },
+      {
+        path: 'matches/:id',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'Match Details' },
+      },
+      {
+        path: 'shop',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'Shop' },
+      },
+      {
+        path: 'vouchers',
+        loadComponent: () => import('./pages/admin-vouchers.page').then(m => m.AdminVouchersPage),
+      },
+      {
+        path: 'purchases',
+        loadComponent: () => import('./pages/admin-purchases.page').then(m => m.AdminPurchasesPage),
+      },
+      {
+        path: 'leaderboard',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'Leaderboard' },
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'Settings' },
+      },
+      {
+        path: 'disputes',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'Disputes' },
+      },
+      {
+        path: 'audit-logs',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'Audit Logs' },
+      },
+      {
+        path: 'alerts',
+        loadComponent: () => import('./pages/admin-placeholder.page').then(m => m.AdminPlaceholderPage),
+        data: { title: 'Alerts' },
+      },
+    ],
   },
   {
     path: 'auth/callback',

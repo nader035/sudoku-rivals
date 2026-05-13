@@ -5,6 +5,7 @@ type SudokuCellState = {
   value: number;
   isGiven: boolean;
   isSelected: boolean;
+  isPeer: boolean;
   isSameValue: boolean;
   isError: boolean;
   isShaking: boolean;
@@ -33,6 +34,7 @@ export class SudokuCellComponent {
   readonly value = input.required<number>();
   readonly isGiven = input.required<boolean>();
   readonly isSelected = input(false);
+  readonly isPeer = input(false);
   readonly isSameValue = input(false);
   readonly isError = input(false);
   readonly isShaking = input(false);
@@ -44,23 +46,24 @@ export class SudokuCellComponent {
 
   readonly classes = computed(() => {
     const classNames = [
-      'flex h-10 w-10 items-center justify-center select-none border-r border-b border-border/60 font-mono text-lg transition-colors sm:h-12 sm:w-12 sm:text-xl',
-      this.isRightThick() ? 'border-r-2 border-r-primary' : '',
-      this.isBottomThick() ? 'border-b-2 border-b-primary' : '',
+      'group relative flex h-10 w-10 items-center justify-center select-none border-r border-b border-border/70 font-mono text-lg font-semibold transition-all duration-150 sm:h-12 sm:w-12 sm:text-xl md:h-[3.15rem] md:w-[3.15rem] md:text-[1.24rem]',
+      this.isRightThick() ? 'border-r-[2px] border-r-primary/75' : '',
+      this.isBottomThick() ? 'border-b-[2px] border-b-primary/75' : '',
       this.index() % 9 === 8 ? 'border-r-0' : '',
       Math.floor(this.index() / 9) === 8 ? 'border-b-0' : '',
-      this.isSelected() ? 'bg-primary/25 ring-2 ring-inset ring-primary' : '',
-      this.isSameValue() ? 'bg-primary/10' : '',
-      this.isError() ? 'bg-destructive/15 font-bold text-destructive' : '',
-      this.isGiven() ? 'font-bold text-foreground' : 'text-primary',
-      this.isShaking() ? 'animate-sr-shake bg-destructive/30 text-destructive' : '',
-      this.frozen() ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-primary/10',
+      this.isSelected() ? 'z-10 border-primary/90 bg-primary/20 ring-2 ring-primary/70 ring-inset shadow-[0_0_0_1px_hsl(var(--primary)/0.24)]' : '',
+      this.isPeer() && !this.isSelected() ? 'bg-primary/8' : '',
+      this.isSameValue() ? 'bg-primary/14 text-lime' : '',
+      this.isError() ? 'bg-destructive/18 text-destructive' : '',
+      this.isGiven() ? 'bg-muted/35 text-foreground' : 'text-primary',
+      this.isShaking() ? 'animate-sr-shake bg-destructive/34 text-destructive ring-2 ring-destructive/45 ring-inset' : '',
+      this.frozen() ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:border-primary/50 hover:bg-primary/14 active:scale-[0.98]',
     ];
 
     return classNames.filter(Boolean).join(' ');
   });
 
-  readonly label = computed(() => `Cell ${this.index() + 1}`);
+  readonly label = computed(() => `Cell ${this.index() + 1}, value ${this.value() || 'empty'}`);
 }
 
 @Component({
@@ -69,26 +72,29 @@ export class SudokuCellComponent {
   imports: [SudokuCellComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div
-      class="grid w-fit grid-cols-9 overflow-hidden rounded-md border-2 border-primary bg-background transition-opacity duration-300"
-      [class.opacity-50]="frozen()"
+    <div class="relative w-fit rounded-2xl p-2.5 surface-panel sudoku-outline sm:p-3">
+      <div
+      class="grid w-fit grid-cols-9 overflow-hidden rounded-xl border-2 border-primary/70 bg-background/90 transition-opacity duration-300"
+      [class.opacity-55]="frozen()"
       data-testid="sudoku-board"
-    >
-      @for (cell of cells(); track cell.index) {
-        <app-sudoku-cell
-          [index]="cell.index"
-          [value]="cell.value"
-          [isGiven]="cell.isGiven"
-          [isSelected]="cell.isSelected"
-          [isSameValue]="cell.isSameValue"
-          [isError]="cell.isError"
-          [isShaking]="cell.isShaking"
-          [isRightThick]="cell.isRightThick"
-          [isBottomThick]="cell.isBottomThick"
-          [frozen]="frozen()"
-          (clicked)="cellClicked.emit($event)"
-        />
-      }
+      >
+        @for (cell of cells(); track cell.index) {
+          <app-sudoku-cell
+            [index]="cell.index"
+            [value]="cell.value"
+            [isGiven]="cell.isGiven"
+            [isSelected]="cell.isSelected"
+            [isPeer]="cell.isPeer"
+            [isSameValue]="cell.isSameValue"
+            [isError]="cell.isError"
+            [isShaking]="cell.isShaking"
+            [isRightThick]="cell.isRightThick"
+            [isBottomThick]="cell.isBottomThick"
+            [frozen]="frozen()"
+            (clicked)="cellClicked.emit($event)"
+          />
+        }
+      </div>
     </div>
   `,
 })
@@ -116,6 +122,17 @@ export class SudokuGridComponent {
       const col = index % 9;
       const isGiven = puzzle[index] !== 0;
       const isSelected = selectedIndex === index;
+      const selectedRow = selectedIndex !== null ? Math.floor(selectedIndex / 9) : -1;
+      const selectedCol = selectedIndex !== null ? selectedIndex % 9 : -1;
+      const selectedBox =
+        selectedIndex !== null
+          ? Math.floor(selectedRow / 3) * 3 + Math.floor(selectedCol / 3)
+          : -1;
+      const cellBox = Math.floor(row / 3) * 3 + Math.floor(col / 3);
+      const isPeer =
+        selectedIndex !== null &&
+        !isSelected &&
+        (row === selectedRow || col === selectedCol || cellBox === selectedBox);
       const isSameValue =
         this.highlightSameNumbers() &&
         selectedValue !== 0 &&
@@ -134,6 +151,7 @@ export class SudokuGridComponent {
         value,
         isGiven,
         isSelected,
+        isPeer,
         isSameValue,
         isError,
         isShaking: this.shakeIndex() === index,

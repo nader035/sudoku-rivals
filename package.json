@@ -36,6 +36,8 @@
     "@ngrx/signals": "^21.1.0",
     "@supabase/supabase-js": "^2.105.1",
     "bcryptjs": "^3.0.3",
+    "lucide": "^1.14.0",
+    "lucide-angular": "^1.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

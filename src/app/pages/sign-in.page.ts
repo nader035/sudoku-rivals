@@ -6,7 +6,6 @@ import {
   signalFormSetTouched,
   signalFormValid,
   signalFormValue,
-  resetSignalForm,
 } from '@luistabotelho/angular-signal-forms';
 import {
   Email,
@@ -24,53 +23,50 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
   standalone: true,
   template: `
     <div class="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground">
-      <!-- Background grid -->
-      <div
-        aria-hidden="true"
-        class="pointer-events-none fixed inset-0 opacity-[0.05]"
-        style="background-image: linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px); background-size: 48px 48px; mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%); -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);"
-      ></div>
+      <div class="pointer-events-none fixed inset-0 bg-background"></div>
 
-      <div class="relative z-10 grid w-full max-w-5xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <!-- Left panel -->
-        <section class="hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-2xl backdrop-blur lg:flex lg:flex-col lg:justify-between">
+      <div class="relative z-10 grid w-full max-w-6xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <section class="surface-panel hidden rounded-3xl p-10 lg:flex lg:flex-col lg:justify-between">
           <div>
-            <button class="text-lg font-black uppercase italic text-primary" type="button" (click)="goHome()">Sudoku Rival</button>
-            <h1 class="mt-6 text-5xl font-black uppercase italic leading-[0.92] tracking-tight text-primary">
-              Enter the<br />arena
+            <button class="inline-flex items-center" type="button" (click)="goHome()">
+              <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-10 w-auto dark:block" />
+              <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-10 w-auto dark:hidden" />
+            </button>
+            <h1 class="mt-6 text-5xl font-black uppercase leading-[0.92] tracking-tight text-primary">
+              Enter the
+              <br />
+              arena
             </h1>
             <p class="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
-              Sign in to create rooms, track your progress, and challenge rivals in real time.
+              Sign in to create rooms, track your match stats, and challenge rivals in real time.
             </p>
           </div>
           <div class="mt-10 grid gap-4 sm:grid-cols-2">
-            <div class="group rounded-xl border border-border/60 bg-background/60 p-5 transition-colors hover:border-primary/40">
-              <div class="text-2xl">⚔️</div>
+            <div class="rounded-xl border border-border/60 bg-background/60 p-5">
+              <div class="text-ui-kicker text-primary">Realtime</div>
               <div class="mt-2 text-sm font-bold">Live Rooms</div>
-              <div class="mt-1 text-xs text-muted-foreground">Real-time multiplayer matches</div>
+              <div class="mt-1 text-xs text-muted-foreground">Synced multiplayer matches</div>
             </div>
-            <div class="group rounded-xl border border-border/60 bg-background/60 p-5 transition-colors hover:border-primary/40">
-              <div class="text-2xl">🏆</div>
+            <div class="rounded-xl border border-border/60 bg-background/60 p-5">
+              <div class="text-ui-kicker text-primary">Ranked</div>
               <div class="mt-2 text-sm font-bold">Global Leaderboard</div>
-              <div class="mt-1 text-xs text-muted-foreground">Climb the competitive ranks</div>
+              <div class="mt-1 text-xs text-muted-foreground">Compete for top positions</div>
             </div>
           </div>
         </section>
 
-        <!-- Right panel (form) -->
-        <section class="rounded-3xl border border-border/60 bg-card/80 p-6 shadow-2xl backdrop-blur sm:p-8">
+        <section class="surface-panel rounded-3xl p-6 shadow-2xl sm:p-8">
           <div class="flex items-start justify-between gap-4">
             <div>
-              <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">Welcome back</div>
-              <h2 class="mt-2 text-3xl font-black uppercase italic text-primary">Sign in</h2>
+              <div class="text-ui-kicker text-primary">Welcome back</div>
+              <h2 class="mt-2 text-3xl font-black uppercase tracking-tight text-primary">Sign in</h2>
             </div>
-            <button class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/40" type="button" (click)="goHome()">Home</button>
+            <button class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/40" type="button" (click)="goHome()">Home</button>
           </div>
 
           <div class="mt-6 space-y-5">
-            <!-- Twitter OAuth -->
             <button
-              class="flex w-full items-center justify-center gap-3 rounded-lg border border-border/60 bg-background/80 px-4 py-3 text-sm font-semibold transition-all hover:border-primary/60 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
+              class="btn-game flex w-full items-center justify-center gap-3 rounded-lg border border-border/60 bg-background/80 px-4 py-3 text-sm font-semibold transition-all hover:border-primary/60 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
               type="button"
               [disabled]="signingInWithX()"
               (click)="signInWithX()"
@@ -79,18 +75,16 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
               {{ signingInWithX() ? 'Redirecting...' : 'Continue with X' }}
             </button>
 
-            <!-- Divider -->
             <div class="flex items-center gap-4">
               <div class="h-px flex-1 bg-border/60"></div>
               <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">or</span>
               <div class="h-px flex-1 bg-border/60"></div>
             </div>
 
-            <!-- Email / Password -->
             <label class="block space-y-2">
               <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Email</span>
               <input
-                class="w-full rounded-lg border border-border/60 bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/30"
+                class="w-full rounded-lg border border-border/60 bg-background/80 px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/30"
                 [value]="signInForm.email.$currentValue()"
                 (input)="setFieldValue(signInForm.email, $event)"
                 (blur)="markTouched(signInForm.email)"
@@ -105,7 +99,7 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
             <label class="block space-y-2">
               <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Password</span>
               <input
-                class="w-full rounded-lg border border-border/60 bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/30"
+                class="w-full rounded-lg border border-border/60 bg-background/80 px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/30"
                 [value]="signInForm.password.$currentValue()"
                 (input)="setFieldValue(signInForm.password, $event)"
                 (blur)="markTouched(signInForm.password)"
@@ -124,43 +118,13 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
             }
 
             <button
-              class="w-full rounded-lg bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+              class="btn-game w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
               type="button"
               [disabled]="signingIn()"
               (click)="submitSignIn()"
             >
               {{ signingIn() ? 'Signing in...' : 'Sign in with Email' }}
             </button>
-
-            <!-- Guest section -->
-            <!-- <div class="rounded-2xl border border-border/60 bg-background/60 p-5">
-              <div class="flex items-center gap-2">
-                <span class="text-lg">👤</span>
-                <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">Quick play</div>
-              </div>
-              <label class="mt-3 block space-y-2">
-                <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Guest username</span>
-                <input
-                  class="w-full rounded-lg border border-border/60 bg-background px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/30"
-                  [value]="guestForm.username.$currentValue()"
-                  (input)="setFieldValue(guestForm.username, $event)"
-                  (blur)="markTouched(guestForm.username)"
-                  type="text"
-                  placeholder="Choose a username"
-                />
-                @if (guestForm.username.$touched() && guestForm.username.$stateMessage()) {
-                  <span class="text-xs text-destructive">{{ guestForm.username.$stateMessage() }}</span>
-                }
-              </label>
-              <button
-                class="mt-4 w-full rounded-lg border border-border/60 px-4 py-3 text-sm font-bold uppercase tracking-wider transition-colors hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
-                type="button"
-                [disabled]="guestSigningIn()"
-                (click)="submitGuestSignIn()"
-              >
-                {{ guestSigningIn() ? 'Entering...' : 'Play as Guest' }}
-              </button>
-            </div> -->
 
             @if (signInErrors().length > 0) {
               <ul class="space-y-1 rounded-lg border border-border/60 bg-muted/20 p-3 text-xs text-muted-foreground">
@@ -171,7 +135,7 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
             }
 
             <button
-              class="w-full rounded-lg border border-border/60 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/40"
+              class="btn-game w-full rounded-lg border border-border/60 px-4 py-3 text-sm font-medium transition-colors hover:bg-muted/40"
               type="button"
               (click)="goSignUp()"
             >
@@ -223,8 +187,12 @@ export class SignInPage {
     }
   });
 
-  goHome(): void { void this.router.navigateByUrl('/'); }
-  goSignUp(): void { void this.router.navigateByUrl('/sign-up'); }
+  goHome(): void {
+    void this.router.navigateByUrl('/');
+  }
+  goSignUp(): void {
+    void this.router.navigateByUrl('/sign-up');
+  }
 
   setFieldValue<T>(field: SignalFormField<T>, event: Event): void {
     const target = event.target as HTMLInputElement;

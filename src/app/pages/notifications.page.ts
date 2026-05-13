@@ -12,27 +12,28 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
   imports: [UserNavComponent],
   template: `
     <div class="min-h-screen bg-background text-foreground">
-      <nav class="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-sm">
-        <div class="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-3 px-4 py-2 md:px-6">
+      <nav class="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-sm">
+        <div class="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-6">
           <button
-            class="font-black italic uppercase tracking-tight text-primary"
+            class="inline-flex items-center"
             type="button"
             (click)="goHome()"
           >
-            SUDOKU RIVAL
+            <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-9 w-auto dark:block" />
+            <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-9 w-auto dark:hidden" />
           </button>
           <app-user-nav />
         </div>
       </nav>
 
-      <main class="mx-auto max-w-6xl space-y-6 px-4 py-8 md:px-6">
+      <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 md:px-6">
         <header class="flex items-center justify-between gap-3">
           <div>
             <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">Inbox</div>
             <h1 class="mt-2 text-3xl font-black tracking-tight">Notifications</h1>
           </div>
           <button
-            class="rounded-md border border-border/60 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
+            class="btn-game rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
             type="button"
             [disabled]="busy()"
             (click)="markAllAsRead()"
@@ -42,12 +43,12 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
         </header>
 
         @if (statusMessage()) {
-          <div class="rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+          <div class="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
             {{ statusMessage() }}
           </div>
         }
 
-        <section class="overflow-hidden rounded-md border border-border/60">
+        <section class="surface-panel overflow-hidden rounded-xl">
           @if (notifications().length === 0) {
             <div class="p-5 text-sm font-mono text-muted-foreground">No notifications yet.</div>
           } @else {
@@ -72,7 +73,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
                     <span>{{ item.createdAt }}</span>
                     @if (!item.isRead) {
                       <button
-                        class="rounded-md border border-border/60 px-2 py-1 text-[10px] uppercase tracking-wider hover:border-primary/40"
+                        class="btn-game rounded-md border border-border/60 px-2 py-1 text-[10px] uppercase tracking-wider hover:border-primary/40"
                         type="button"
                         (click)="markRead(item, $event)"
                       >
@@ -140,4 +141,3 @@ export class NotificationsPage {
     await this.router.navigateByUrl('/lobby');
   }
 }
-

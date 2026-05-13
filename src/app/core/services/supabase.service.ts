@@ -683,13 +683,37 @@ export class SupabaseService {
     playerId: string,
     password?: string | null,
   ): Promise<RoomSnapshot> {
-    const { error } = await this.client.rpc('join_room', {
+    let { data, error } = await this.client.rpc('join_room', {
       p_room_id: roomId,
       p_player_id: playerId,
       p_password: password ?? null,
     });
 
+    if (error && this.shouldFallbackJoinRoomMutation(error)) {
+      const fallback = await this.client.rpc('join_room', {
+        p_room_id: roomId,
+        p_password: password ?? null,
+      });
+      data = fallback.data;
+      error = fallback.error;
+    }
+
+    if (error && this.shouldFallbackJoinRoomMutation(error)) {
+      const fallback = await this.client.rpc('join_room', {
+        room_id: roomId,
+        player_id: playerId,
+        password: password ?? null,
+      });
+      data = fallback.data;
+      error = fallback.error;
+    }
+
     if (error) throw error;
+
+    const rpcResult = data as { success?: boolean; error?: string } | null;
+    if (rpcResult && rpcResult.success === false) {
+      throw new Error(rpcResult.error ?? 'Unable to join room');
+    }
 
     const snapshot = await this.getRoom(roomId);
     if (!snapshot) {
@@ -1825,6 +1849,20 @@ export class SupabaseService {
       code === 'PGRST202' ||
       message.includes('function create_manual_purchase') ||
       message.includes('function confirm_manual_purchase_transfer')
+    );
+  }
+
+  private shouldFallbackJoinRoomMutation(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null) return false;
+    const code = String((error as { code?: string }).code ?? '');
+    const message = String((error as { message?: string }).message ?? '').toLowerCase();
+    return (
+      code === '42883' ||
+      code === 'PGRST202' ||
+      code === 'PGRST204' ||
+      message.includes('function join_room') ||
+      message.includes('p_player_id') ||
+      message.includes('unexpected parameter')
     );
   }
 }
