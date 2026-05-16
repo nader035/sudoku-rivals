@@ -249,6 +249,10 @@ interface RealtimeChangeFilter {
   filter?: string;
 }
 
+interface RefreshStreamOptions {
+  refreshOnAuthChange?: boolean;
+}
+
 const EMPTY_BOARD = Array.from({ length: 81 }, () => 0);
 const ACTIVE_WINDOW_MS = 60 * 1000;
 const AUTH_RECOVERY_PATTERNS = [
@@ -1048,19 +1052,30 @@ export class SupabaseService {
   }
 
   observeMyWallet(): Observable<WalletSnapshot | null> {
-    return this.createRefreshStream('my-wallet', () => this.getMyWallet(), [{ table: 'wallets' }]);
+    return this.createRefreshStream(
+      'my-wallet',
+      () => this.getMyWallet(),
+      [{ table: 'wallets' }],
+      { refreshOnAuthChange: true },
+    );
   }
 
   observeMyPurchases(limit = 50): Observable<PurchaseSnapshot[]> {
-    return this.createRefreshStream('my-purchases', () => this.getMyPurchases(limit), [
-      { table: 'purchases' },
-    ]);
+    return this.createRefreshStream(
+      'my-purchases',
+      () => this.getMyPurchases(limit),
+      [{ table: 'purchases' }],
+      { refreshOnAuthChange: true },
+    );
   }
 
   observeMyWalletTransactions(limit = 100): Observable<WalletTransactionSnapshot[]> {
-    return this.createRefreshStream('my-wallet-transactions', () => this.getMyWalletTransactions(limit), [
-      { table: 'wallet_transactions' },
-    ]);
+    return this.createRefreshStream(
+      'my-wallet-transactions',
+      () => this.getMyWalletTransactions(limit),
+      [{ table: 'wallet_transactions' }],
+      { refreshOnAuthChange: true },
+    );
   }
 
   observeShopPackages(): Observable<ShopPackage[]> {
@@ -1070,10 +1085,15 @@ export class SupabaseService {
   }
 
   observeMyNotifications(limit = 50): Observable<NotificationSnapshot[]> {
-    return this.createRefreshStream('my-notifications', () => this.getMyNotifications(limit), [
-      { table: 'notifications' },
-      { table: 'players' },
-    ]);
+    return this.createRefreshStream(
+      'my-notifications',
+      () => this.getMyNotifications(limit),
+      [
+        { table: 'notifications' },
+        { table: 'players' },
+      ],
+      { refreshOnAuthChange: true },
+    );
   }
 
   async getMyWallet(): Promise<WalletSnapshot | null> {
@@ -1499,6 +1519,7 @@ export class SupabaseService {
     label: string,
     refresh: () => Promise<T>,
     watchers: Array<RealtimeWatcher>,
+    options?: RefreshStreamOptions,
   ): Observable<T> {
     return new Observable<T>((subscriber) => {
       let alive = true;
@@ -1533,8 +1554,15 @@ export class SupabaseService {
         return channel;
       });
 
+      const authSubscription = options?.refreshOnAuthChange
+        ? this.client.auth.onAuthStateChange(() => {
+            void emit();
+          }).data.subscription
+        : null;
+
       return () => {
         alive = false;
+        authSubscription?.unsubscribe();
         channels.forEach((channel) => {
           void this.client.removeChannel(channel);
         });

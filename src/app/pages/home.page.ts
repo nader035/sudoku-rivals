@@ -9,12 +9,12 @@ import {
   Home,
   Info,
   Instagram,
+  Linkedin,
   Play,
   Shield,
   Trophy,
   Twitter,
   Users,
-  Youtube,
   Zap,
 } from 'lucide-angular/src/icons';
 
@@ -225,9 +225,16 @@ import {
             <div class="text-sm font-bold">Follow Us</div>
             <div class="mt-3 flex gap-2">
               @for (social of socials; track social.label) {
-                <span class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-border/60 bg-background/70 px-2 text-xs font-semibold" [title]="social.label">
+                <a
+                  class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-border/60 bg-background/70 px-2 text-xs font-semibold transition-colors hover:border-primary/45 hover:bg-primary/10"
+                  [href]="social.href"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  [title]="social.label"
+                  [attr.aria-label]="social.label"
+                >
                   <i-lucide [img]="social.icon" [size]="16"></i-lucide>
-                </span>
+                </a>
               }
             </div>
           </div>
@@ -321,9 +328,9 @@ export class HomePage {
   ];
 
   readonly socials = [
-    { label: 'X', icon: Twitter },
-    { label: 'Instagram', icon: Instagram },
-    { label: 'YouTube', icon: Youtube },
+    { label: 'X', icon: Twitter, href: 'https://x.com/nader0305' },
+    { label: 'LinkedIn', icon: Linkedin, href: 'https://www.linkedin.com/in/nader0305/' },
+    { label: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/nader.designss/' },
   ];
 
   readonly heroActions = ['Pause', 'Give Up', 'Notes', 'Erase', 'Undo', 'Hint'];

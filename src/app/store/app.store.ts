@@ -83,9 +83,27 @@ export const AppStore = signalStore(
       notificationsState,
       session: computed(() => authState().session),
       player: computed(() => playerState().player),
-      wallet: computed(() => walletState()),
-      notifications: computed(() => notificationsState()),
-      unreadNotifications: computed(() => notificationsState().filter((item) => !item.isRead).length),
+      wallet: computed(() => {
+        const sessionUserId = authState().session?.user?.id ?? null;
+        const wallet = walletState();
+        if (!sessionUserId || !wallet) return null;
+        return wallet.userId === sessionUserId ? wallet : null;
+      }),
+      notifications: computed(() => {
+        const sessionUserId = authState().session?.user?.id ?? null;
+        const currentPlayerId = playerState().player?.id ?? null;
+        const items = notificationsState();
+        if (!sessionUserId || !currentPlayerId) return [];
+        return items.filter((item) => item.playerId === currentPlayerId);
+      }),
+      unreadNotifications: computed(() => {
+        const sessionUserId = authState().session?.user?.id ?? null;
+        const currentPlayerId = playerState().player?.id ?? null;
+        if (!sessionUserId || !currentPlayerId) return 0;
+        return notificationsState().filter(
+          (item) => item.playerId === currentPlayerId && !item.isRead,
+        ).length;
+      }),
       authLoaded: computed(() => authState().loaded),
       playerLoaded: computed(() => playerState().loaded),
       isSignedIn: computed(() => Boolean(authState().session)),
