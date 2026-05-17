@@ -41,7 +41,16 @@ export class AuthCallbackPage implements OnInit {
 
     try {
       if (code) {
-        await this.supabase.completeOAuthSignIn(code);
+        try {
+          await this.supabase.completeOAuthSignIn(code);
+        } catch (exchangeError) {
+          // If the code was already processed (or the PKCE verifier is gone), continue with the active session.
+          try {
+            await this.supabase.completeCurrentSessionProfile();
+          } catch {
+            throw exchangeError;
+          }
+        }
       } else {
         await this.supabase.completeCurrentSessionProfile();
       }

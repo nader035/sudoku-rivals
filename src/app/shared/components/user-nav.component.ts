@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs/operators';
 import { LucideAngularModule } from 'lucide-angular';
 import {
   Bell,
@@ -205,8 +207,8 @@ import { AppStore } from '../../store/app.store';
         </div>
       }
 
-      @if (liveToast()) {
-        <div class="animate-sr-fade-up fixed bottom-4 right-4 z-50 max-w-sm rounded-xl border border-primary/35 bg-background/95 p-3 shadow-2xl backdrop-blur-sm">
+      @if (liveToast() && !isNotificationsPage()) {
+        <div class="animate-sr-fade-up absolute right-0 top-12 z-50 w-[min(92vw,22rem)] rounded-xl border border-primary/35 bg-background/95 p-3 shadow-2xl backdrop-blur-sm">
           <div class="flex items-start gap-3">
             <span class="animate-sr-pulse-glow mt-0.5 inline-block h-2.5 w-2.5 rounded-full bg-primary"></span>
             <div class="min-w-0">
@@ -235,6 +237,7 @@ export class UserNavComponent {
   readonly menuOpen = signal(false);
   readonly desktopMenuOpen = signal(false);
   readonly liveToast = signal<{ id: string; title: string; message: string } | null>(null);
+  readonly currentUrl = signal(this.router.url);
   private readonly latestSeenNotificationId = signal<string | null>(null);
   private readonly notificationsBootstrapped = signal(false);
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -263,8 +266,18 @@ export class UserNavComponent {
     const name = this.appStore.displayName().trim();
     return (name[0] ?? 'P').toUpperCase();
   });
+  readonly isNotificationsPage = computed(() => this.currentUrl().startsWith('/notifications'));
 
   constructor() {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe((event) => {
+        this.currentUrl.set(event.urlAfterRedirects);
+      });
+
     effect(() => {
       if (!this.appStore.isSignedIn()) {
         this.notificationsBootstrapped.set(false);
@@ -280,6 +293,13 @@ export class UserNavComponent {
       if (notifications.length === 0) return;
 
       const latest = notifications[0];
+      if (this.isNotificationsPage()) {
+        this.latestSeenNotificationId.set(latest.id);
+        this.clearToastTimer();
+        this.liveToast.set(null);
+        return;
+      }
+
       if (!this.notificationsBootstrapped()) {
         this.notificationsBootstrapped.set(true);
         this.latestSeenNotificationId.set(latest.id);

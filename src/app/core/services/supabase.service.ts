@@ -490,12 +490,17 @@ export class SupabaseService {
     for (let index = 0; index < localStorage.length; index += 1) {
       const key = localStorage.key(index);
       if (!key) continue;
+      if (this.isPkceVerifierStorageKey(key)) continue;
       if (key.startsWith('sb-') && key.includes('-auth-token')) {
         staleKeys.push(key);
       }
     }
 
     staleKeys.forEach((key) => localStorage.removeItem(key));
+  }
+
+  private isPkceVerifierStorageKey(key: string): boolean {
+    return key.startsWith('sb-') && key.includes('-code-verifier');
   }
 
   async ensurePlayerProfile(user: Session['user'], username?: string): Promise<PlayerProfile> {

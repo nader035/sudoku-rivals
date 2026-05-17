@@ -1,8 +1,7 @@
-import { ChangeDetectionStrategy, Component, Injector, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, of } from 'rxjs';
 import { NotificationSnapshot } from '../core/models';
+import { AppStore } from '../store/app.store';
 import { SupabaseService } from '../core/services/supabase.service';
 import { UserNavComponent } from '../shared/components/user-nav.component';
 
@@ -93,16 +92,12 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
 })
 export class NotificationsPage {
   private readonly router = inject(Router);
-  private readonly injector = inject(Injector);
+  readonly appStore = inject(AppStore);
   private readonly supabase = inject(SupabaseService);
 
   readonly busy = signal(false);
   readonly statusMessage = signal<string | null>(null);
-
-  readonly notifications = toSignal(
-    this.supabase.observeMyNotifications().pipe(catchError(() => of([] as NotificationSnapshot[]))),
-    { initialValue: [] as NotificationSnapshot[], injector: this.injector },
-  );
+  readonly notifications = computed(() => this.appStore.notifications());
 
   goHome(): void {
     void this.router.navigateByUrl('/');
