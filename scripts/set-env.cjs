@@ -9,6 +9,7 @@ function readExistingEnvironment() {
       production: false,
       supabaseUrl: '',
       supabaseKey: '',
+      appUrl: '',
     };
   }
 
@@ -16,11 +17,13 @@ function readExistingEnvironment() {
   const boolMatch = source.match(/production:\s*(true|false)/);
   const urlMatch = source.match(/supabaseUrl:\s*'([^']*)'/);
   const keyMatch = source.match(/supabaseKey:\s*'([^']*)'/);
+  const appUrlMatch = source.match(/appUrl:\s*'([^']*)'/);
 
   return {
     production: boolMatch ? boolMatch[1] === 'true' : false,
     supabaseUrl: urlMatch ? urlMatch[1] : '',
     supabaseKey: keyMatch ? keyMatch[1] : '',
+    appUrl: appUrlMatch ? appUrlMatch[1] : '',
   };
 }
 
@@ -31,11 +34,17 @@ const resolvedSupabaseKey =
   process.env['SUPABASE_ANON_KEY'] ||
   process.env['SUPABASE_PUBLISHABLE_KEY'] ||
   existing.supabaseKey;
+const resolvedAppUrl =
+  process.env['APP_URL'] ||
+  process.env['PUBLIC_APP_URL'] ||
+  process.env['VERCEL_PROJECT_PRODUCTION_URL'] ||
+  existing.appUrl;
 
 const envConfigFile = `export const environment = {
   production: ${resolvedProduction},
   supabaseUrl: '${resolvedSupabaseUrl}',
-  supabaseKey: '${resolvedSupabaseKey}'
+  supabaseKey: '${resolvedSupabaseKey}',
+  appUrl: '${resolvedAppUrl}'
 };
 `;
 

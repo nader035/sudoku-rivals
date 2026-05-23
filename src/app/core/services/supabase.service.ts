@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { createClient, Session } from '@supabase/supabase-js';
 import { Observable, shareReplay } from 'rxjs';
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from '../config/supabase.config';
+import { APP_URL, SUPABASE_ANON_KEY, SUPABASE_URL } from '../config/supabase.config';
 import {
   ActivePlayerSummary,
   AdminDashboardSummary,
@@ -266,6 +266,7 @@ const AUTH_RECOVERY_PATTERNS = [
 export class SupabaseService {
   private readonly supabaseUrl = SUPABASE_URL.trim();
   private readonly supabaseAnonKey = SUPABASE_ANON_KEY.trim();
+  private readonly configuredAppUrl = APP_URL.trim();
   private readonly fetchWithApiKey: typeof fetch = async (input, init) => {
     const headers = new Headers(init?.headers ?? {});
     if (!headers.has('apikey') && this.supabaseAnonKey) {
@@ -402,7 +403,7 @@ export class SupabaseService {
       email: credentials.email,
       password: credentials.password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${this.getAuthOrigin()}/auth/callback`,
         data: {
           username: credentials.username,
         },
@@ -420,7 +421,7 @@ export class SupabaseService {
     const { error } = await this.client.auth.signInWithOAuth({
       provider: 'x',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`,
+        redirectTo: `${this.getAuthOrigin()}/auth/callback?next=${encodeURIComponent(safeNext)}`,
         scopes: 'tweet.read users.read',
       },
     });
@@ -466,6 +467,23 @@ export class SupabaseService {
   private assertSupabaseConfig(): void {
     if (!this.supabaseUrl || !this.supabaseAnonKey) {
       throw new Error('Supabase config missing: set SUPABASE_URL and SUPABASE_ANON_KEY/SUPABASE_PUBLISHABLE_KEY.');
+    }
+  }
+
+  private getAuthOrigin(): string {
+    if (typeof window === 'undefined') return this.toOrigin(this.configuredAppUrl) ?? '';
+    return this.toOrigin(this.configuredAppUrl) ?? window.location.origin;
+  }
+
+  private toOrigin(value: string): string | null {
+    const raw = value.trim();
+    if (!raw) return null;
+
+    try {
+      const parsed = new URL(raw.includes('://') ? raw : `https://${raw}`);
+      return parsed.origin;
+    } catch {
+      return null;
     }
   }
 
