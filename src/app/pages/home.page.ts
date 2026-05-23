@@ -112,12 +112,25 @@ import {
                   </div>
 
                   <div class="rounded-xl border border-border/70 bg-card/65 p-3">
-                    <div class="grid grid-cols-9 overflow-hidden rounded-lg border border-border/70">
-                      @for (cell of heroBoard; track $index) {
-                        <div class="flex h-9 items-center justify-center border-b border-r border-border/50 text-lg font-semibold sm:h-10" [class.text-primary]="cell.primary" [class.bg-primary/20]="cell.active">
+                    <div class="aspect-square overflow-hidden rounded-lg border-2 border-border/85 bg-background/95 shadow-inner">
+                      <div class="grid h-full grid-cols-9 grid-rows-9">
+                        @for (cell of heroBoard; track $index; let index = $index) {
+                          <div
+                            class="flex items-center justify-center border-border/35 text-lg font-extrabold leading-none transition-colors sm:text-xl"
+                            [class.border-r]="!isHeroLastCol(index) && !isHeroBoxRight(index)"
+                            [class.border-b]="!isHeroLastRow(index) && !isHeroBoxBottom(index)"
+                            [class.border-r-2]="isHeroBoxRight(index) && !isHeroLastCol(index)"
+                            [class.border-b-2]="isHeroBoxBottom(index) && !isHeroLastRow(index)"
+                            [class.bg-primary/4]="isHeroBoxTint(index) && !cell.active"
+                            [class.bg-primary/22]="cell.active"
+                            [class.text-primary]="cell.primary"
+                            [class.text-foreground]="!cell.primary && !!cell.value"
+                            [class.text-muted-foreground]="!cell.value"
+                          >
                           {{ cell.value }}
-                        </div>
-                      }
+                          </div>
+                        }
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -346,6 +359,32 @@ export class HomePage {
     { value: '' }, { value: '2', primary: true }, { value: '' }, { value: '' }, { value: '' }, { value: '' }, { value: '' }, { value: '8', primary: true }, { value: '' },
     { value: '' }, { value: '' }, { value: '4' }, { value: '1' }, { value: '9' }, { value: '5' }, { value: '' }, { value: '' }, { value: '' },
   ];
+
+  isHeroLastCol(index: number): boolean {
+    return index % 9 === 8;
+  }
+
+  isHeroLastRow(index: number): boolean {
+    return Math.floor(index / 9) === 8;
+  }
+
+  isHeroBoxRight(index: number): boolean {
+    const col = index % 9;
+    return col === 2 || col === 5;
+  }
+
+  isHeroBoxBottom(index: number): boolean {
+    const row = Math.floor(index / 9);
+    return row === 2 || row === 5;
+  }
+
+  isHeroBoxTint(index: number): boolean {
+    const row = Math.floor(index / 9);
+    const col = index % 9;
+    const boxRow = Math.floor(row / 3);
+    const boxCol = Math.floor(col / 3);
+    return (boxRow + boxCol) % 2 === 0;
+  }
 
   goHome(): void {
     void this.router.navigateByUrl('/');
