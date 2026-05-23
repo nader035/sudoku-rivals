@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Router } from '@angular/router';
 import { AppStore } from '../store/app.store';
 import { UserNavComponent } from '../shared/components/user-nav.component';
+import { GsapCountUpDirective } from '../shared/directives/gsap-count-up.directive';
 
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [UserNavComponent],
+  imports: [UserNavComponent, GsapCountUpDirective],
   template: `
     <div class="min-h-screen bg-background text-foreground">
       <nav class="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-sm">
@@ -44,7 +45,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
           <section class="grid grid-cols-2 gap-3 md:grid-cols-5">
             @for (stat of stats(); track stat.label) {
               <div class="surface-panel rounded-xl p-4">
-                <div class="text-2xl font-black tabular-nums text-primary">{{ stat.value }}</div>
+                <div class="text-2xl font-black tabular-nums text-primary" [appGsapCountUp]="stat.value"></div>
                 <div class="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{{ stat.label }}</div>
               </div>
             }

@@ -1,8 +1,13 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   Injector,
+  NgZone,
+  OnDestroy,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -23,6 +28,7 @@ import {
 import { MaxLength, Min, Required } from '@luistabotelho/angular-signal-forms/validators';
 import { SignalFormField } from '../shared/forms/signal-form-helpers';
 import { UserNavComponent } from '../shared/components/user-nav.component';
+import { GsapCountUpDirective } from '../shared/directives/gsap-count-up.directive';
 import {
   ArrowRight,
   CircleAlert,
@@ -74,7 +80,7 @@ const EMPTY_STATS: StatsSummary = {
         </div>
       } @else {
         <main class="relative z-10 mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6">
-          <section class="surface-panel rounded-lg border-border/80 p-5 md:p-6">
+          <section class="surface-panel rounded-lg border-border/80 p-5 md:p-6" data-gsap-surface>
             <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div class="min-w-0">
                 <div class="text-ui-kicker text-primary">Multiplayer Lobby</div>
@@ -93,6 +99,7 @@ const EMPTY_STATS: StatsSummary = {
                 class="btn-game inline-flex items-center justify-center gap-2 rounded-lg border border-primary/65 bg-primary px-6 py-3 text-sm font-black uppercase tracking-wider text-primary-foreground transition-all hover:shadow-lg hover:shadow-primary/25"
                 type="button"
                 (click)="openCreateRoom()"
+                data-gsap-lift
               >
                 <i-lucide [img]="PlusIcon" [size]="16"></i-lucide>
                 {{ appStore.isSignedIn() ? 'Create Room' : 'Sign in to host' }}
@@ -102,50 +109,50 @@ const EMPTY_STATS: StatsSummary = {
 
           @if (stats()) {
             <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <article class="surface-panel flex items-center gap-3 rounded-lg p-3.5">
+              <article class="surface-panel flex items-center gap-3 rounded-lg p-3.5" data-gsap-stagger>
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-primary">
                   <i-lucide [img]="UsersIcon" [size]="18"></i-lucide>
                 </div>
                 <div class="min-w-0">
                   <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">Online Players</div>
-                  <div class="mt-1 text-2xl font-black tabular-nums">{{ stats().playersOnline }}</div>
+                  <div class="mt-1 text-2xl font-black tabular-nums" [appGsapCountUp]="stats().playersOnline"></div>
                 </div>
               </article>
 
-              <article class="surface-panel flex items-center gap-3 rounded-lg p-3.5">
+              <article class="surface-panel flex items-center gap-3 rounded-lg p-3.5" data-gsap-stagger>
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-primary">
                   <i-lucide [img]="DoorOpenIcon" [size]="18"></i-lucide>
                 </div>
                 <div class="min-w-0">
                   <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">Active Rooms</div>
-                  <div class="mt-1 text-2xl font-black tabular-nums">{{ stats().activeRooms }}</div>
+                  <div class="mt-1 text-2xl font-black tabular-nums" [appGsapCountUp]="stats().activeRooms"></div>
                 </div>
               </article>
 
-              <article class="surface-panel flex items-center gap-3 rounded-lg p-3.5">
+              <article class="surface-panel flex items-center gap-3 rounded-lg p-3.5" data-gsap-stagger>
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-primary">
                   <i-lucide [img]="PlayIcon" [size]="18"></i-lucide>
                 </div>
                 <div class="min-w-0">
                   <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">Today Matches</div>
-                  <div class="mt-1 text-2xl font-black tabular-nums">{{ stats().matchesToday }}</div>
+                  <div class="mt-1 text-2xl font-black tabular-nums" [appGsapCountUp]="stats().matchesToday"></div>
                 </div>
               </article>
 
-              <article class="surface-panel flex items-center gap-3 rounded-lg p-3.5">
+              <article class="surface-panel flex items-center gap-3 rounded-lg p-3.5" data-gsap-stagger>
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-primary">
                   <i-lucide [img]="TargetIcon" [size]="18"></i-lucide>
                 </div>
                 <div class="min-w-0">
                   <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">Total Matches</div>
-                  <div class="mt-1 text-2xl font-black tabular-nums">{{ stats().totalMatches }}</div>
+                  <div class="mt-1 text-2xl font-black tabular-nums" [appGsapCountUp]="stats().totalMatches"></div>
                 </div>
               </article>
             </section>
           }
 
           <section class="grid grid-cols-1 gap-4 xl:grid-cols-[1.75fr_0.95fr]">
-            <section class="surface-panel space-y-3 rounded-lg p-3.5 md:p-4">
+            <section class="surface-panel space-y-3 rounded-lg p-3.5 md:p-4" data-gsap-surface>
               <div class="flex items-center justify-between">
                 <h2 class="text-ui-kicker text-foreground">Open Rooms</h2>
                 <span class="text-xs font-mono text-muted-foreground">{{ rooms().length }} open</span>
@@ -162,7 +169,7 @@ const EMPTY_STATS: StatsSummary = {
 
               <div class="space-y-3">
                 @for (room of rooms(); track room.id) {
-                  <article class="rounded-lg border bg-card/64 p-3 transition-colors" [class.border-primary/65]="isRoomJoinable(room)" [class.border-border/65]="!isRoomJoinable(room)">
+                  <article class="rounded-lg border bg-card/64 p-3 transition-colors" [class.border-primary/65]="isRoomJoinable(room)" [class.border-border/65]="!isRoomJoinable(room)" [attr.data-room-id]="room.id" data-gsap-room-card data-gsap-stagger>
                     <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div class="min-w-0 flex-1">
                         <div class="flex items-start gap-3">
@@ -236,6 +243,7 @@ const EMPTY_STATS: StatsSummary = {
                         [class.hover:border-primary/45]="!isRoomJoinable(room)"
                         type="button"
                         (click)="handleRoomAction(room)"
+                        data-gsap-lift
                       >
                         {{ roomActionLabel(room) }}
                         <i-lucide [img]="ArrowRightIcon" [size]="15"></i-lucide>
@@ -245,14 +253,14 @@ const EMPTY_STATS: StatsSummary = {
                 }
               </div>
 
-              <button class="btn-game inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border/65 bg-background/55 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.1em] hover:border-primary/45 hover:bg-muted/30" type="button" (click)="goLeaderboard()">
+              <button class="btn-game inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border/65 bg-background/55 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.1em] hover:border-primary/45 hover:bg-muted/30" type="button" (click)="goLeaderboard()" data-gsap-lift>
                 <i-lucide [img]="Grid2x2Icon" [size]="15"></i-lucide>
                 View Leaderboard
               </button>
             </section>
 
             <aside class="space-y-4">
-              <section class="surface-panel rounded-lg p-4">
+              <section class="surface-panel rounded-lg p-4" data-gsap-surface>
                 <div class="mb-3 flex items-center gap-2">
                   <i-lucide [img]="CrownIcon" [size]="17" class="text-primary"></i-lucide>
                   <h2 class="text-ui-kicker text-foreground">Top Players</h2>
@@ -282,7 +290,7 @@ const EMPTY_STATS: StatsSummary = {
                 }
               </section>
 
-              <section class="surface-panel rounded-lg p-4">
+              <section class="surface-panel rounded-lg p-4" data-gsap-surface>
                 <div class="mb-3 flex items-center gap-2">
                   <i-lucide [img]="CircleAlertIcon" [size]="17" class="text-primary"></i-lucide>
                   <h2 class="text-ui-kicker text-foreground">Penalty Rules</h2>
@@ -449,11 +457,13 @@ const EMPTY_STATS: StatsSummary = {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [UserNavComponent, LucideAngularModule],
+  imports: [UserNavComponent, LucideAngularModule, GsapCountUpDirective],
 })
-export class LobbyPage {
+export class LobbyPage implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly injector = inject(Injector);
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly zone = inject(NgZone);
   readonly appStore = inject(AppStore);
   readonly supabase = inject(SupabaseService);
   readonly currentYear = new Date().getFullYear();
@@ -462,6 +472,9 @@ export class LobbyPage {
   readonly createRoomError = signal<string | null>(null);
   readonly selectedDifficulty = signal<Difficulty>('medium');
   readonly entryFeeOptions = signal<number[]>([10, 50, 100, 500]);
+  private gsapCleanup: Array<() => void> = [];
+  private roomMotionReady = false;
+  private roomSignatures = new Map<string, string>();
 
   readonly PlusIcon = Plus;
   readonly UsersIcon = Users;
@@ -550,10 +563,144 @@ export class LobbyPage {
 
   constructor() {
     void this.loadEntryFeeOptions();
+    effect(() => this.scheduleRoomMotion(this.rooms()));
+  }
+
+  ngAfterViewInit(): void {
+    this.zone.runOutsideAngular(() => {
+      queueMicrotask(() => this.bootGsapAnimations());
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.gsapCleanup.forEach((cleanup) => cleanup());
+    this.gsapCleanup = [];
   }
 
   get player() {
     return this.appStore.player;
+  }
+
+  private bootGsapAnimations(attempt = 0): void {
+    if (this.getGsap()) {
+      this.runGsapAnimations();
+      return;
+    }
+
+    if (attempt >= 20 || typeof window === 'undefined') return;
+    const timer = window.setTimeout(() => this.bootGsapAnimations(attempt + 1), 80);
+    this.gsapCleanup.push(() => window.clearTimeout(timer));
+  }
+
+  private runGsapAnimations(): void {
+    const gsap = this.getGsap();
+    if (!gsap || this.prefersReducedMotion()) return;
+
+    const root = this.host.nativeElement;
+    const surfaces = Array.from(root.querySelectorAll('[data-gsap-surface]')) as HTMLElement[];
+    const stagger = Array.from(root.querySelectorAll('[data-gsap-stagger]')) as HTMLElement[];
+
+    if (surfaces.length > 0) gsap.set(surfaces, { autoAlpha: 0, y: 22 });
+    if (stagger.length > 0) gsap.set(stagger, { autoAlpha: 0, y: 14 });
+
+    const tl = gsap.timeline({ defaults: { duration: 0.56, ease: 'power2.out' } });
+    if (surfaces.length > 0) tl.to(surfaces, { autoAlpha: 1, y: 0, stagger: 0.08 }, 0);
+    if (stagger.length > 0) tl.to(stagger, { autoAlpha: 1, y: 0, stagger: 0.03 }, 0.15);
+
+    this.gsapCleanup.push(() => tl.kill());
+    this.setupLiftInteractions(gsap, root);
+    this.primeRoomMotion();
+  }
+
+  private primeRoomMotion(): void {
+    this.roomMotionReady = true;
+    this.roomSignatures = this.buildRoomSignatures(this.rooms());
+  }
+
+  private scheduleRoomMotion(rooms: RoomSummary[]): void {
+    const nextSignatures = this.buildRoomSignatures(rooms);
+
+    if (!this.roomMotionReady) {
+      this.roomSignatures = nextSignatures;
+      return;
+    }
+
+    const changes = rooms
+      .map((room) => ({
+        id: room.id,
+        isNew: !this.roomSignatures.has(room.id),
+        changed: this.roomSignatures.get(room.id) !== nextSignatures.get(room.id),
+      }))
+      .filter((change) => change.isNew || change.changed);
+
+    this.roomSignatures = nextSignatures;
+    if (changes.length === 0 || typeof window === 'undefined') return;
+
+    const timer = window.setTimeout(() => this.animateRoomChanges(changes), 0);
+    this.gsapCleanup.push(() => window.clearTimeout(timer));
+  }
+
+  private animateRoomChanges(changes: Array<{ id: string; isNew: boolean }>): void {
+    const gsap = this.getGsap();
+    if (!gsap || this.prefersReducedMotion()) return;
+
+    const cards = Array.from(
+      this.host.nativeElement.querySelectorAll('[data-gsap-room-card]'),
+    ) as HTMLElement[];
+
+    for (const change of changes) {
+      const card = cards.find((item) => item.dataset['roomId'] === change.id);
+      if (!card) continue;
+
+      if (change.isNew) {
+        gsap.fromTo(
+          card,
+          { autoAlpha: 0, x: -20, scale: 0.985 },
+          { autoAlpha: 1, x: 0, scale: 1, duration: 0.46, ease: 'power3.out', overwrite: 'auto' },
+        );
+      } else {
+        gsap.fromTo(
+          card,
+          { boxShadow: '0 0 0 1px rgba(198, 248, 19, 0.72), 0 0 28px rgba(198, 248, 19, 0.18)' },
+          { boxShadow: '0 0 0 0 rgba(198, 248, 19, 0)', duration: 0.9, ease: 'power2.out', overwrite: 'auto' },
+        );
+      }
+    }
+  }
+
+  private buildRoomSignatures(rooms: RoomSummary[]): Map<string, string> {
+    return new Map(
+      rooms.map((room) => [
+        room.id,
+        [room.status, room.playerCount, room.maxPlayers, room.entryFee, room.prizePool].join(':'),
+      ]),
+    );
+  }
+
+  private setupLiftInteractions(gsap: any, root: HTMLElement): void {
+    const liftItems = Array.from(root.querySelectorAll('[data-gsap-lift]')) as HTMLElement[];
+    if (liftItems.length === 0) return;
+
+    for (const item of liftItems) {
+      const onEnter = () => gsap.to(item, { y: -3, duration: 0.2, ease: 'power2.out' });
+      const onLeave = () => gsap.to(item, { y: 0, duration: 0.22, ease: 'power2.out' });
+      item.addEventListener('mouseenter', onEnter);
+      item.addEventListener('mouseleave', onLeave);
+      this.gsapCleanup.push(() => {
+        item.removeEventListener('mouseenter', onEnter);
+        item.removeEventListener('mouseleave', onLeave);
+      });
+    }
+  }
+
+  private getGsap(): any | null {
+    if (typeof window === 'undefined') return null;
+    return (window as Window & { gsap?: any }).gsap ?? null;
+  }
+
+  private prefersReducedMotion(): boolean {
+    if (typeof window === 'undefined') return true;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   goHome(): void {

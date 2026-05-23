@@ -4,6 +4,7 @@ import { catchError, of } from 'rxjs';
 import { SupabaseService } from '../core/services/supabase.service';
 import { EconomyLeaderboardEntry, LeaderboardSort, RecentMatch, StatsSummary } from '../core/models';
 import { UserNavComponent } from '../shared/components/user-nav.component';
+import { GsapCountUpDirective } from '../shared/directives/gsap-count-up.directive';
 
 const EMPTY_STATS: StatsSummary = {
   activeRooms: 0,
@@ -37,19 +38,19 @@ const EMPTY_STATS: StatsSummary = {
         @if (stats()) {
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             <div class="surface-panel rounded-xl p-4">
-              <div class="mt-1 text-2xl font-black tabular-nums text-primary">{{ stats().activeRooms }}</div>
+              <div class="mt-1 text-2xl font-black tabular-nums text-primary" [appGsapCountUp]="stats().activeRooms"></div>
               <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Active Rooms</div>
             </div>
             <div class="surface-panel rounded-xl p-4">
-              <div class="mt-1 text-2xl font-black tabular-nums text-primary">{{ stats().playersOnline }}</div>
+              <div class="mt-1 text-2xl font-black tabular-nums text-primary" [appGsapCountUp]="stats().playersOnline"></div>
               <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Players Online</div>
             </div>
             <div class="surface-panel rounded-xl p-4">
-              <div class="mt-1 text-2xl font-black tabular-nums text-primary">{{ stats().matchesToday }}</div>
+              <div class="mt-1 text-2xl font-black tabular-nums text-primary" [appGsapCountUp]="stats().matchesToday"></div>
               <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Matches Today</div>
             </div>
             <div class="surface-panel rounded-xl p-4">
-              <div class="mt-1 text-2xl font-black tabular-nums text-primary">{{ stats().totalMatches }}</div>
+              <div class="mt-1 text-2xl font-black tabular-nums text-primary" [appGsapCountUp]="stats().totalMatches"></div>
               <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Total Matches</div>
             </div>
           </div>
@@ -133,7 +134,7 @@ const EMPTY_STATS: StatsSummary = {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [UserNavComponent],
+  imports: [UserNavComponent, GsapCountUpDirective],
 })
 export class LeaderboardPage {
   private readonly router = inject(Router);

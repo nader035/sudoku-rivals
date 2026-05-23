@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  NgZone,
+  OnDestroy,
+  inject,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AppStore } from '../store/app.store';
@@ -65,36 +74,36 @@ import {
       </header>
 
       <main>
-        <section class="relative border-b border-border/60 py-12 sm:py-16">
+        <section class="relative border-b border-border/60 py-12 sm:py-16" data-gsap-surface>
           <div class="mx-auto grid w-full max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_1.15fr]">
             <div class="space-y-7">
-              <div class="inline-flex items-center rounded-full border border-border/70 bg-card/70 px-4 py-2 text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">
+              <div class="inline-flex items-center rounded-full border border-border/70 bg-card/70 px-4 py-2 text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground" data-gsap-reveal>
                 Real-time multiplayer Sudoku
               </div>
-              <h1 class="max-w-xl text-5xl font-black uppercase leading-[0.92] tracking-tight sm:text-6xl">
+              <h1 class="max-w-xl text-5xl font-black uppercase leading-[0.92] tracking-tight sm:text-6xl" data-gsap-reveal>
                 The Ultimate
                 <br />
                 Sudoku <span class="text-primary">Battle</span>
               </h1>
-              <p class="max-w-xl text-xl leading-relaxed text-muted-foreground">
+              <p class="max-w-xl text-xl leading-relaxed text-muted-foreground" data-gsap-reveal>
                 Compete in real-time Sudoku matches against players worldwide. Fast thinking, sharp strategy, and precision decide the winner.
               </p>
-              <div class="flex flex-col gap-3 sm:flex-row">
-                <button class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-base font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/20" type="button" (click)="goMultiplayer()">
+              <div class="flex flex-col gap-3 sm:flex-row" data-gsap-reveal>
+                <button class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-base font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/20" type="button" (click)="goMultiplayer()" data-gsap-lift>
                   <i-lucide [img]="ZapIcon" [size]="18"></i-lucide>
                   Play Now
                 </button>
-                <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/70 bg-card/70 px-8 py-3 text-base font-semibold hover:bg-muted/40" type="button" (click)="showHowTo.set(true)">
+                <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/70 bg-card/70 px-8 py-3 text-base font-semibold hover:bg-muted/40" type="button" (click)="showHowTo.set(true)" data-gsap-lift>
                   <i-lucide [img]="InfoIcon" [size]="18"></i-lucide>
                   Learn More
                 </button>
               </div>
             </div>
 
-            <div class="surface-panel rounded-3xl p-4 sm:p-5">
+            <div class="surface-panel rounded-3xl p-4 sm:p-5" data-gsap-reveal>
               <div class="rounded-2xl border border-border/70 bg-background p-3 sm:p-4">
                 <div class="mb-3 grid gap-3 sm:grid-cols-[220px_1fr]">
-                  <div class="rounded-xl border border-border/70 bg-card/70 p-3">
+                  <div class="rounded-xl border border-border/70 bg-card/70 p-3" data-gsap-reveal>
                     <div class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Live Match</div>
                     <div class="mt-2 text-sm font-semibold">Game #R7X9</div>
                     <div class="mt-3 space-y-2 text-sm">
@@ -111,7 +120,7 @@ import {
                     <div class="mt-4 text-xs font-mono text-muted-foreground">Mistakes: 2 / 10</div>
                   </div>
 
-                  <div class="rounded-xl border border-border/70 bg-card/65 p-3">
+                  <div class="rounded-xl border border-border/70 bg-card/65 p-3" data-gsap-reveal>
                     <div class="aspect-square overflow-hidden rounded-lg border-2 border-border/85 bg-background/95 shadow-inner">
                       <div class="grid h-full grid-cols-9 grid-rows-9">
                         @for (cell of heroBoard; track $index; let index = $index) {
@@ -136,7 +145,7 @@ import {
                 </div>
                 <div class="grid grid-cols-3 gap-2 text-sm">
                   @for (action of heroActions; track action) {
-                    <div class="rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-center font-medium">{{ action }}</div>
+                    <div class="rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-center font-medium" data-gsap-lift>{{ action }}</div>
                   }
                 </div>
               </div>
@@ -144,10 +153,10 @@ import {
           </div>
         </section>
 
-        <section class="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6">
+        <section class="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6" data-gsap-surface>
           <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               @for (feature of features; track feature.title) {
-                <article class="surface-panel rounded-2xl p-5">
+                <article class="surface-panel rounded-2xl p-5" data-gsap-stagger>
                   <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
                     <i-lucide [img]="feature.icon" [size]="20"></i-lucide>
                   </div>
@@ -159,7 +168,7 @@ import {
           </div>
         </section>
 
-        <section class="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6">
+        <section class="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6" data-gsap-surface>
           <div class="surface-panel rounded-2xl p-5 sm:p-6">
             <div class="mb-4 flex items-center justify-between gap-3">
               <h2 class="text-ui-kicker text-muted-foreground">Top Players</h2>
@@ -170,7 +179,7 @@ import {
             </div>
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               @for (player of topPlayers; track player.rank) {
-                <article class="rounded-xl border border-border/60 bg-card/70 px-4 py-3">
+                <article class="rounded-xl border border-border/60 bg-card/70 px-4 py-3" data-gsap-stagger>
                   <div class="flex items-center justify-between">
                     <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/25 text-sm font-black text-primary">
                       {{ player.rank }}
@@ -184,14 +193,14 @@ import {
           </div>
         </section>
 
-        <section id="about" class="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6">
+        <section id="about" class="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6" data-gsap-surface>
           <div class="mb-4 flex items-center justify-between">
             <h2 class="text-ui-kicker text-muted-foreground">Team</h2>
             <span class="text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">Built by Sudoku Rival Games</span>
           </div>
           <div class="grid gap-3 md:grid-cols-1">
             @for (member of team; track member.name) {
-              <article class="surface-panel rounded-2xl p-5">
+              <article class="surface-panel rounded-2xl p-5" data-gsap-stagger>
                 <div class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/20 text-lg font-black text-primary">
                   {{ member.initial }}
                 </div>
@@ -283,8 +292,10 @@ import {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomePage {
+export class HomePage implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly zone = inject(NgZone);
   readonly appStore = inject(AppStore);
   readonly HomeIcon = Home;
   readonly PlayIcon = Play;
@@ -295,6 +306,7 @@ export class HomePage {
   readonly ArrowRightIcon = ArrowRight;
   readonly showHowTo = signal(false);
   readonly currentYear = new Date().getFullYear();
+  private gsapCleanup: Array<() => void> = [];
 
   readonly features = [
     {
@@ -384,6 +396,84 @@ export class HomePage {
     const boxRow = Math.floor(row / 3);
     const boxCol = Math.floor(col / 3);
     return (boxRow + boxCol) % 2 === 0;
+  }
+
+  ngAfterViewInit(): void {
+    this.zone.runOutsideAngular(() => {
+      queueMicrotask(() => this.bootGsapAnimations());
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.gsapCleanup.forEach((cleanup) => cleanup());
+    this.gsapCleanup = [];
+  }
+
+  private bootGsapAnimations(attempt = 0): void {
+    if (this.getGsap()) {
+      this.runGsapAnimations();
+      return;
+    }
+
+    if (attempt >= 20 || typeof window === 'undefined') return;
+    const timer = window.setTimeout(() => this.bootGsapAnimations(attempt + 1), 80);
+    this.gsapCleanup.push(() => window.clearTimeout(timer));
+  }
+
+  private runGsapAnimations(): void {
+    const gsap = this.getGsap();
+    if (!gsap || this.prefersReducedMotion()) return;
+
+    const root = this.host.nativeElement;
+    const reveal = Array.from(root.querySelectorAll('[data-gsap-reveal]')) as HTMLElement[];
+    const surfaces = Array.from(root.querySelectorAll('[data-gsap-surface]')) as HTMLElement[];
+    const staggerCards = Array.from(root.querySelectorAll('[data-gsap-stagger]')) as HTMLElement[];
+
+    if (reveal.length > 0) gsap.set(reveal, { autoAlpha: 0, y: 18 });
+    if (surfaces.length > 0) gsap.set(surfaces, { autoAlpha: 0, y: 26, scale: 0.985 });
+    if (staggerCards.length > 0) gsap.set(staggerCards, { autoAlpha: 0, y: 14 });
+
+    const tl = gsap.timeline({ defaults: { duration: 0.62, ease: 'power2.out' } });
+    if (surfaces.length > 0) {
+      tl.to(surfaces, { autoAlpha: 1, y: 0, scale: 1, stagger: 0.09, clearProps: 'transform' }, 0);
+    }
+    if (reveal.length > 0) {
+      tl.to(reveal, { autoAlpha: 1, y: 0, stagger: 0.07 }, 0.1);
+    }
+    if (staggerCards.length > 0) {
+      tl.to(staggerCards, { autoAlpha: 1, y: 0, stagger: 0.035 }, 0.25);
+    }
+
+    this.gsapCleanup.push(() => tl.kill());
+    this.setupLiftInteractions(gsap, root);
+  }
+
+  private setupLiftInteractions(gsap: any, root: HTMLElement): void {
+    const liftItems = Array.from(root.querySelectorAll('[data-gsap-lift]')) as HTMLElement[];
+    if (liftItems.length === 0) return;
+
+    for (const item of liftItems) {
+      const onEnter = () => gsap.to(item, { y: -3, duration: 0.22, ease: 'power2.out' });
+      const onLeave = () => gsap.to(item, { y: 0, duration: 0.24, ease: 'power2.out' });
+
+      item.addEventListener('mouseenter', onEnter);
+      item.addEventListener('mouseleave', onLeave);
+
+      this.gsapCleanup.push(() => {
+        item.removeEventListener('mouseenter', onEnter);
+        item.removeEventListener('mouseleave', onLeave);
+      });
+    }
+  }
+
+  private getGsap(): any | null {
+    if (typeof window === 'undefined') return null;
+    return (window as Window & { gsap?: any }).gsap ?? null;
+  }
+
+  private prefersReducedMotion(): boolean {
+    if (typeof window === 'undefined') return true;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   goHome(): void {
