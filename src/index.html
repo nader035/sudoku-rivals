@@ -5,19 +5,34 @@
     <title>Sudoku Rival - Play Sudoku Online</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- DNS Prefetch & Preconnect for High-Performance Asset Loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+
     <meta
       name="description"
       content="Play Sudoku online, challenge your friends, and improve your puzzle skills with Sudoku Rival."
     />
     <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="google-site-verification" content="Q26NqQkKzmZp6GCDI5CjW0X65n_3FjTwr-g4yWC9qlM" />
     <meta name="theme-color" content="#09090b" />
 
-    <!-- Open Graph -->
+    <!-- Static Canonical and Language alternates fallback -->
+    <link rel="canonical" href="https://sudokurival.me/en" />
+    <link rel="alternate" hreflang="en" href="https://sudokurival.me/en" />
+    <link rel="alternate" hreflang="ar" href="https://sudokurival.me/ar" />
+    <link rel="alternate" hreflang="x-default" href="https://sudokurival.me/en" />
+
+    <!-- Open Graph (Facebook / LinkedIn) -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Sudoku Rival" />
     <meta property="og:title" content="Sudoku Rival - Play Sudoku Online" />
     <meta property="og:description" content="Play Sudoku online, challenge your friends, and improve your puzzle skills with Sudoku Rival." />
-    <meta property="og:url" content="https://sudokurival.me/" />
+    <meta property="og:url" content="https://sudokurival.me/en" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="ar_EG" />
+    
     <meta property="og:image" content="https://sudokurival.me/assets/seo/og-default.png" />
     <meta property="og:image:secure_url" content="https://sudokurival.me/assets/seo/og-default.png" />
     <meta property="og:image:width" content="1200" />
@@ -25,14 +40,19 @@
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:alt" content="Sudoku Rival - Play Sudoku Online" />
 
-    <!-- Twitter Card -->
+    <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@SudokuRival" />
+    <meta name="twitter:creator" content="@SudokuRival" />
     <meta name="twitter:title" content="Sudoku Rival - Play Sudoku Online" />
     <meta name="twitter:description" content="Play Sudoku online, challenge your friends, and improve your puzzle skills with Sudoku Rival." />
     <meta name="twitter:image" content="https://sudokurival.me/assets/seo/og-default.png" />
     <meta name="twitter:image:alt" content="Sudoku Rival - Play Sudoku Online" />
 
-    <link rel="icon" type="image/x-icon" href="favicon.svg" />
+    <!-- PWA & Mobile Web Capabilities -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/assets/seo/logo-512.png" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   </head>
   <body>
     <app-root></app-root>

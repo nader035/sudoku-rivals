@@ -66,6 +66,8 @@ export class SeoService {
 
     // Twitter Card tags
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.meta.updateTag({ name: 'twitter:site', content: '@SudokuRival' });
+    this.meta.updateTag({ name: 'twitter:creator', content: '@SudokuRival' });
     this.meta.updateTag({ name: 'twitter:title', content: title });
     this.meta.updateTag({ name: 'twitter:description', content: description });
     this.meta.updateTag({ name: 'twitter:image', content: OG_IMAGE });
@@ -158,6 +160,7 @@ export class SeoService {
         url: `${SITE_URL}/`,
         logo: LOGO_IMAGE,
         image: OG_IMAGE,
+        sameAs: ['https://x.com/SudokuRival'],
       },
     ]);
   }

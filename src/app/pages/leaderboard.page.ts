@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { SupabaseService } from '../core/services/supabase.service';
 import { EconomyLeaderboardEntry, LeaderboardSort, RecentMatch, StatsSummary } from '../core/models';
@@ -64,12 +65,13 @@ const EMPTY_STATS: StatsSummary = {
             <div class="flex flex-wrap gap-2">
               @for (item of sortOptions; track item.value) {
                 <button
-                  class="btn-game rounded-lg border px-3 py-1.5 text-xs font-bold uppercase tracking-wider"
+                  class="btn-game rounded-lg border px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all duration-200 hover:text-primary hover:border-primary/60"
                   [class.border-primary]="sortBy() === item.value"
                   [class.bg-primary/15]="sortBy() === item.value"
                   [class.text-primary]="sortBy() === item.value"
                   [class.border-border]="sortBy() !== item.value"
                   [class.bg-card/70]="sortBy() !== item.value"
+                  [class.text-muted-foreground]="sortBy() !== item.value"
                   [disabled]="loadingLeaderboard()"
                   type="button"
                   (click)="changeSort(item.value)"
@@ -108,8 +110,19 @@ const EMPTY_STATS: StatsSummary = {
                       </div>
                     </div>
                     <div class="text-right">
-                      <div class="text-base font-black tabular-nums text-primary">{{ entry.currentCoins }} {{ 'common.coins' | transloco }}</div>
-                      <div class="text-xs font-mono text-muted-foreground">{{ entry.wins }}W / {{ entry.losses }}L / {{ entry.winRate }}%</div>
+                      @if (sortBy() === 'wins') {
+                        <div class="text-base font-black tabular-nums text-primary">{{ entry.wins }} {{ 'leaderboard.sort.wins' | transloco }}</div>
+                        <div class="text-xs font-mono text-muted-foreground">{{ entry.currentCoins }} {{ 'common.coins' | transloco }} / {{ entry.winRate }}%</div>
+                      } @else if (sortBy() === 'win_rate') {
+                        <div class="text-base font-black tabular-nums text-primary">{{ entry.winRate }}%</div>
+                        <div class="text-xs font-mono text-muted-foreground">{{ entry.wins }}W / {{ entry.losses }}L / {{ entry.currentCoins }} {{ 'common.coins' | transloco }}</div>
+                      } @else if (sortBy() === 'coins') {
+                        <div class="text-base font-black tabular-nums text-primary">{{ entry.currentCoins }} {{ 'common.coins' | transloco }}</div>
+                        <div class="text-xs font-mono text-muted-foreground">{{ entry.wins }}W / {{ entry.losses }}L / {{ entry.winRate }}%</div>
+                      } @else if (sortBy() === 'coins_won') {
+                        <div class="text-base font-black tabular-nums text-primary">{{ entry.totalCoinsWon }} {{ 'common.coins' | transloco }}</div>
+                        <div class="text-xs font-mono text-muted-foreground">{{ 'leaderboard.sort.coinsWon' | transloco }} / {{ entry.winRate }}%</div>
+                      }
                     </div>
                   </li>
                 }
@@ -152,6 +165,7 @@ const EMPTY_STATS: StatsSummary = {
 export class LeaderboardPage {
   private readonly localizedRouter = inject(LocalizedRouterService);
   private readonly i18n = inject(I18nService);
+  private readonly destroyRef = inject(DestroyRef);
   readonly supabase = inject(SupabaseService);
   readonly sortBy = signal<LeaderboardSort>('wins');
   readonly leaderboard = signal<EconomyLeaderboardEntry[]>([]);
@@ -172,11 +186,17 @@ export class LeaderboardPage {
     void this.loadLeaderboard();
     this.supabase
       .observeStatsSummary()
-      .pipe(catchError(() => of(EMPTY_STATS)))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => of(EMPTY_STATS))
+      )
       .subscribe((value) => this.stats.set(value));
     this.supabase
       .observeRecentMatches()
-      .pipe(catchError(() => of([] as RecentMatch[])))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => of([] as RecentMatch[]))
+      )
       .subscribe((value) => this.recent.set(value));
   }
 

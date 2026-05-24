@@ -481,7 +481,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   ];
 
   readonly socials = [
-    { label: 'X', icon: Twitter, href: 'https://x.com/nader0305' },
+    { label: 'X', icon: Twitter, href: 'https://x.com/SudokuRival' },
     { label: 'LinkedIn', icon: Linkedin, href: 'https://www.linkedin.com/in/nader0305/' },
     { label: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/nader.designss/' },
   ];

@@ -1,13 +1,9 @@
 User-agent: *
-Allow: /
-
-# Private and low-value sections
-Disallow: */admin
-Disallow: */profile
-Disallow: */auth
-Disallow: */room
-Disallow: */sign-in
-Disallow: */sign-up
-Disallow: */lobby
+Allow: /assets/
+Disallow: */wallet
+Disallow: */shop
+Disallow: */notifications
+Disallow: */auth/callback
+Disallow: */settings
 
 Sitemap: https://sudokurival.me/sitemap.xml
