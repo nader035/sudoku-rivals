@@ -105,11 +105,12 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
               [placeholder]="'shop.voucherCode' | transloco"
               [value]="voucherCode()"
               (input)="voucherCode.set($any($event.target).value)"
+              minlength="2"
             />
             <button
               class="btn-game rounded-lg border border-primary/40 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10 disabled:opacity-50"
               type="button"
-              [disabled]="busy() || voucherCode().trim().length < 3"
+              [disabled]="busy() || voucherCode().trim().length < 2"
               (click)="redeemFreeCoinsVoucher()"
             >
               {{ 'shop.redeemFreeCoins' | transloco }}
@@ -436,7 +437,7 @@ export class ShopPage {
 
   async redeemFreeCoinsVoucher(): Promise<void> {
     const code = this.voucherCode().trim();
-    if (code.length < 3) {
+    if (code.length < 2) {
       this.statusMessage.set(this.i18n.t('shop.errors.voucherCode'));
       return;
     }
