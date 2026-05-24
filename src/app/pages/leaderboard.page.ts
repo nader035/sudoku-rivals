@@ -5,6 +5,8 @@ import { EconomyLeaderboardEntry, LeaderboardSort, RecentMatch, StatsSummary } f
 import { UserNavComponent } from '../shared/components/user-nav.component';
 import { GsapCountUpDirective } from '../shared/directives/gsap-count-up.directive';
 import { LocalizedRouterService } from '../core/services/localized-router.service';
+import { I18nService } from '../core/i18n/i18n.service';
+import { TranslocoPipe } from '../core/i18n/transloco.pipe';
 
 const EMPTY_STATS: StatsSummary = {
   activeRooms: 0,
@@ -30,35 +32,35 @@ const EMPTY_STATS: StatsSummary = {
 
       <main class="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6 sm:py-14">
         <header class="space-y-3">
-          <div class="text-ui-kicker text-primary">Global Ranking</div>
-          <h1 class="text-4xl font-black uppercase tracking-tight text-primary sm:text-5xl">Leaderboard</h1>
-          <p class="font-mono text-sm text-muted-foreground">Rank players by wins, win rate, or coin performance.</p>
+          <div class="text-ui-kicker text-primary">{{ 'leaderboard.kicker' | transloco }}</div>
+          <h1 class="text-4xl font-black uppercase tracking-tight text-primary sm:text-5xl">{{ 'leaderboard.title' | transloco }}</h1>
+          <p class="font-mono text-sm text-muted-foreground">{{ 'leaderboard.description' | transloco }}</p>
         </header>
 
         @if (stats()) {
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             <div class="surface-panel rounded-xl p-4">
               <div class="mt-1 text-2xl font-black tabular-nums text-primary" [appGsapCountUp]="stats().activeRooms"></div>
-              <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Active Rooms</div>
+              <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">{{ 'lobby.stats.activeRooms' | transloco }}</div>
             </div>
             <div class="surface-panel rounded-xl p-4">
               <div class="mt-1 text-2xl font-black tabular-nums text-primary" [appGsapCountUp]="stats().playersOnline"></div>
-              <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Players Online</div>
+              <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">{{ 'lobby.stats.onlinePlayers' | transloco }}</div>
             </div>
             <div class="surface-panel rounded-xl p-4">
               <div class="mt-1 text-2xl font-black tabular-nums text-primary" [appGsapCountUp]="stats().matchesToday"></div>
-              <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Matches Today</div>
+              <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">{{ 'lobby.stats.todayMatches' | transloco }}</div>
             </div>
             <div class="surface-panel rounded-xl p-4">
               <div class="mt-1 text-2xl font-black tabular-nums text-primary" [appGsapCountUp]="stats().totalMatches"></div>
-              <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Total Matches</div>
+              <div class="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">{{ 'lobby.stats.totalMatches' | transloco }}</div>
             </div>
           </div>
         }
 
         <section class="space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-xl font-bold uppercase tracking-tight">Top Players</h2>
+            <h2 class="text-xl font-bold uppercase tracking-tight">{{ 'leaderboard.topPlayers' | transloco }}</h2>
             <div class="flex flex-wrap gap-2">
               @for (item of sortOptions; track item.value) {
                 <button
@@ -72,7 +74,7 @@ const EMPTY_STATS: StatsSummary = {
                   type="button"
                   (click)="changeSort(item.value)"
                 >
-                  {{ item.label }}
+                  {{ item.labelKey | transloco }}
                 </button>
               }
             </div>
@@ -84,12 +86,12 @@ const EMPTY_STATS: StatsSummary = {
           }
           @if (loadingLeaderboard()) {
             <div class="rounded-lg border border-border/60 bg-card/50 px-3 py-2 text-xs font-mono text-muted-foreground">
-              Updating leaderboard...
+              {{ 'leaderboard.updating' | transloco }}
             </div>
           }
           <div class="surface-panel overflow-hidden rounded-xl">
             @if (leaderboard().length === 0) {
-              <div class="p-6 font-mono text-sm text-muted-foreground">No players ranked yet.</div>
+              <div class="p-6 font-mono text-sm text-muted-foreground">{{ 'leaderboard.empty' | transloco }}</div>
             } @else {
               <ul class="divide-y divide-border/60">
                 @for (entry of leaderboard(); track entry.playerId; let index = $index) {
@@ -101,12 +103,12 @@ const EMPTY_STATS: StatsSummary = {
                       <div class="space-y-0.5">
                         <div class="font-bold">{{ entry.username }}</div>
                         <div class="text-xs font-mono text-muted-foreground">
-                          {{ entry.wins + entry.losses }} {{ entry.wins + entry.losses === 1 ? 'match' : 'matches' }}
+                          {{ matchCountLabel(entry.wins + entry.losses) }}
                         </div>
                       </div>
                     </div>
                     <div class="text-right">
-                      <div class="text-base font-black tabular-nums text-primary">{{ entry.currentCoins }} coins</div>
+                      <div class="text-base font-black tabular-nums text-primary">{{ entry.currentCoins }} {{ 'common.coins' | transloco }}</div>
                       <div class="text-xs font-mono text-muted-foreground">{{ entry.wins }}W / {{ entry.losses }}L / {{ entry.winRate }}%</div>
                     </div>
                   </li>
@@ -118,17 +120,17 @@ const EMPTY_STATS: StatsSummary = {
 
         @if (recent().length > 0) {
           <section class="space-y-3">
-            <h2 class="text-xl font-bold uppercase tracking-tight">Recent Matches</h2>
+            <h2 class="text-xl font-bold uppercase tracking-tight">{{ 'leaderboard.recentMatches' | transloco }}</h2>
             <div class="surface-panel overflow-hidden rounded-xl">
               <ul class="divide-y divide-border/60">
                 @for (match of recent().slice(0, 8); track match.roomId) {
                   <li class="flex items-center justify-between px-5 py-3 text-sm font-mono">
                     <div>
                       <span class="font-bold text-primary">{{ match.winnerUsername }}</span>
-                      <span class="text-muted-foreground"> won </span>
+                      <span class="text-muted-foreground"> {{ 'leaderboard.won' | transloco }} </span>
                       <span>{{ match.roomName }}</span>
                     </div>
-                    <div class="text-xs uppercase tracking-widest text-muted-foreground">{{ match.difficulty }}</div>
+                    <div class="text-xs uppercase tracking-widest text-muted-foreground">{{ difficultyLabel(match.difficulty) }}</div>
                   </li>
                 }
               </ul>
@@ -138,28 +140,29 @@ const EMPTY_STATS: StatsSummary = {
 
         <div class="flex justify-center pt-2">
           <button class="btn-game rounded-xl bg-primary px-5 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90" type="button" (click)="goLobby()">
-            Go to Lobby
+            {{ 'leaderboard.goLobby' | transloco }}
           </button>
         </div>
       </main>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [UserNavComponent, GsapCountUpDirective],
+  imports: [UserNavComponent, GsapCountUpDirective, TranslocoPipe],
 })
 export class LeaderboardPage {
   private readonly localizedRouter = inject(LocalizedRouterService);
+  private readonly i18n = inject(I18nService);
   readonly supabase = inject(SupabaseService);
   readonly sortBy = signal<LeaderboardSort>('wins');
   readonly leaderboard = signal<EconomyLeaderboardEntry[]>([]);
   readonly loadingLeaderboard = signal(false);
   readonly leaderboardError = signal<string | null>(null);
   private leaderboardRequestId = 0;
-  readonly sortOptions: Array<{ label: string; value: LeaderboardSort }> = [
-    { label: 'Wins', value: 'wins' },
-    { label: 'Win Rate', value: 'win_rate' },
-    { label: 'Coins', value: 'coins' },
-    { label: 'Coins Won', value: 'coins_won' },
+  readonly sortOptions: Array<{ labelKey: string; value: LeaderboardSort }> = [
+    { labelKey: 'leaderboard.sort.wins', value: 'wins' },
+    { labelKey: 'leaderboard.sort.winRate', value: 'win_rate' },
+    { labelKey: 'leaderboard.sort.coins', value: 'coins' },
+    { labelKey: 'leaderboard.sort.coinsWon', value: 'coins_won' },
   ];
 
   readonly stats = signal<StatsSummary>(EMPTY_STATS);
@@ -189,7 +192,7 @@ export class LeaderboardPage {
     } catch (error) {
       if (requestId !== this.leaderboardRequestId) return;
       this.leaderboardError.set(
-        error instanceof Error ? error.message : 'Unable to update leaderboard filter.',
+        error instanceof Error ? error.message : this.i18n.t('leaderboard.errors.update'),
       );
     } finally {
       if (requestId === this.leaderboardRequestId) {
@@ -202,6 +205,16 @@ export class LeaderboardPage {
     if (this.sortBy() === next) return;
     this.sortBy.set(next);
     await this.loadLeaderboard(next);
+  }
+
+  matchCountLabel(count: number): string {
+    return this.i18n.t(count === 1 ? 'leaderboard.matchCountSingle' : 'leaderboard.matchCountPlural', {
+      count,
+    });
+  }
+
+  difficultyLabel(difficulty: string): string {
+    return this.i18n.t(`lobby.difficulty.${difficulty}`);
   }
 
   goHome(): void {

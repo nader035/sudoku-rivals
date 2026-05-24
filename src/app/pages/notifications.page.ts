@@ -4,11 +4,13 @@ import { AppStore } from '../store/app.store';
 import { SupabaseService } from '../core/services/supabase.service';
 import { UserNavComponent } from '../shared/components/user-nav.component';
 import { LocalizedRouterService } from '../core/services/localized-router.service';
+import { I18nService } from '../core/i18n/i18n.service';
+import { TranslocoPipe } from '../core/i18n/transloco.pipe';
 
 @Component({
   selector: 'app-notifications-page',
   standalone: true,
-  imports: [UserNavComponent],
+  imports: [UserNavComponent, TranslocoPipe],
   template: `
     <div class="min-h-screen bg-background text-foreground">
       <nav class="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-sm">
@@ -28,8 +30,8 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
       <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 md:px-6">
         <header class="flex items-center justify-between gap-3">
           <div>
-            <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">Inbox</div>
-            <h1 class="mt-2 text-3xl font-black tracking-tight">Notifications</h1>
+            <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">{{ 'notifications.kicker' | transloco }}</div>
+            <h1 class="mt-2 text-3xl font-black tracking-tight">{{ 'notifications.title' | transloco }}</h1>
           </div>
           <button
             class="btn-game rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-sm font-medium hover:border-primary/40 hover:bg-muted/40 disabled:cursor-not-allowed disabled:opacity-60"
@@ -37,7 +39,7 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
             [disabled]="busy()"
             (click)="markAllAsRead()"
           >
-            Mark all read
+            {{ 'notifications.markAllRead' | transloco }}
           </button>
         </header>
 
@@ -49,7 +51,7 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
 
         <section class="surface-panel overflow-hidden rounded-xl">
           @if (notifications().length === 0) {
-            <div class="p-5 text-sm font-mono text-muted-foreground">No notifications yet.</div>
+            <div class="p-5 text-sm font-mono text-muted-foreground">{{ 'notifications.empty' | transloco }}</div>
           } @else {
             <div class="divide-y divide-border/60">
               @for (item of notifications(); track item.id) {
@@ -62,7 +64,7 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
                       <span class="truncate font-semibold">{{ item.title }}</span>
                       @if (!item.isRead) {
                         <span class="rounded border border-primary/40 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-primary">
-                          New
+                          {{ 'notifications.new' | transloco }}
                         </span>
                       }
                     </div>
@@ -76,7 +78,7 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
                         type="button"
                         (click)="markRead(item, $event)"
                       >
-                        Mark read
+                        {{ 'notifications.markRead' | transloco }}
                       </button>
                     }
                   </div>
@@ -92,6 +94,7 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
 })
 export class NotificationsPage {
   private readonly localizedRouter = inject(LocalizedRouterService);
+  private readonly i18n = inject(I18nService);
   readonly appStore = inject(AppStore);
   private readonly supabase = inject(SupabaseService);
 
@@ -108,9 +111,9 @@ export class NotificationsPage {
     this.statusMessage.set(null);
     try {
       await this.supabase.markAllNotificationsRead();
-      this.statusMessage.set('All notifications marked as read.');
+      this.statusMessage.set(this.i18n.t('notifications.allRead'));
     } catch (error) {
-      this.statusMessage.set(error instanceof Error ? error.message : 'Unable to mark notifications as read');
+      this.statusMessage.set(error instanceof Error ? error.message : this.i18n.t('notifications.errors.markAll'));
     } finally {
       this.busy.set(false);
     }
@@ -123,7 +126,7 @@ export class NotificationsPage {
     try {
       await this.supabase.markNotificationRead(item.id);
     } catch (error) {
-      this.statusMessage.set(error instanceof Error ? error.message : 'Unable to mark notification as read');
+      this.statusMessage.set(error instanceof Error ? error.message : this.i18n.t('notifications.errors.markOne'));
     }
   }
 

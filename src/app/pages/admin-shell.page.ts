@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { UserNavComponent } from '../shared/components/user-nav.component';
 import { LocalizedRouterService } from '../core/services/localized-router.service';
+import { TranslocoPipe } from '../core/i18n/transloco.pipe';
 
 @Component({
   selector: 'app-admin-shell-page',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, UserNavComponent],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, UserNavComponent, TranslocoPipe],
   template: `
     <div class="min-h-screen bg-background text-foreground">
       <header class="sticky top-0 z-30 border-b border-border/70 bg-background/92 backdrop-blur">
@@ -28,34 +29,34 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
               routerLinkActive="bg-primary text-primary-foreground border-primary/50"
               class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-semibold"
             >
-              Overview
+              {{ 'admin.nav.overview' | transloco }}
             </a>
             <a [routerLink]="localizedRouter.localize('/admin/purchases')" routerLinkActive="bg-primary text-primary-foreground border-primary/50" class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-semibold">
-              Purchases
+              {{ 'admin.nav.purchases' | transloco }}
             </a>
             <a [routerLink]="localizedRouter.localize('/admin/wallets')" routerLinkActive="bg-primary text-primary-foreground border-primary/50" class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-semibold">
-              Wallets
+              {{ 'admin.nav.wallets' | transloco }}
             </a>
             <a [routerLink]="localizedRouter.localize('/admin/vouchers')" routerLinkActive="bg-primary text-primary-foreground border-primary/50" class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-semibold">
-              Vouchers
+              {{ 'admin.nav.vouchers' | transloco }}
             </a>
             <a [routerLink]="localizedRouter.localize('/admin/users')" routerLinkActive="bg-primary text-primary-foreground border-primary/50" class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-semibold">
-              Users
+              {{ 'admin.nav.users' | transloco }}
             </a>
             <a [routerLink]="localizedRouter.localize('/admin/matches')" routerLinkActive="bg-primary text-primary-foreground border-primary/50" class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-semibold">
-              Matches
+              {{ 'admin.nav.matches' | transloco }}
             </a>
             <a [routerLink]="localizedRouter.localize('/admin/shop')" routerLinkActive="bg-primary text-primary-foreground border-primary/50" class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-semibold">
-              Shop
+              {{ 'admin.nav.shop' | transloco }}
             </a>
             <a [routerLink]="localizedRouter.localize('/admin/settings')" routerLinkActive="bg-primary text-primary-foreground border-primary/50" class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-semibold">
-              Settings
+              {{ 'admin.nav.settings' | transloco }}
             </a>
             <a [routerLink]="localizedRouter.localize('/admin/audit-logs')" routerLinkActive="bg-primary text-primary-foreground border-primary/50" class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-semibold">
-              Audit Logs
+              {{ 'admin.nav.auditLogs' | transloco }}
             </a>
             <a [routerLink]="localizedRouter.localize('/admin/alerts')" routerLinkActive="bg-primary text-primary-foreground border-primary/50" class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-semibold">
-              Alerts
+              {{ 'admin.nav.alerts' | transloco }}
             </a>
           </nav>
         </aside>

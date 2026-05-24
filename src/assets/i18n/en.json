@@ -148,6 +148,188 @@
       "guestMessage": "Sign in to manage profile, wallet, rooms, and match history."
     }
   },
+  "lobby": {
+    "loading": "Loading lobby...",
+    "kicker": "Multiplayer Lobby",
+    "welcome": "Welcome,",
+    "subtitle": "Join an open room or create your own match.",
+    "publicTitle": "Public Lobby",
+    "publicSubtitle": "Sign in to host rooms and play live.",
+    "createRoom": "Create Room",
+    "signInToHost": "Sign in to host",
+    "openRooms": "Open Rooms",
+    "open": "open",
+    "noOpenRooms": "No open rooms yet.",
+    "createFirstRoom": "Create the first room",
+    "private": "Private",
+    "entryFee": "Entry Fee",
+    "prizePool": "Prize Pool",
+    "players": "Players",
+    "host": "Host",
+    "joinRoom": "Join Room",
+    "viewDetails": "View Details",
+    "viewLeaderboard": "View Leaderboard",
+    "topPlayers": "Top Players",
+    "noChampions": "No champions yet.",
+    "viewFullLeaderboard": "View Full Leaderboard",
+    "penaltyRules": "Penalty Rules",
+    "madeBy": "Made by",
+    "hostMatch": "Host a match",
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "status": {
+      "playing": "In Progress",
+      "waiting": "Waiting",
+      "finished": "Finished",
+      "cancelled": "Cancelled"
+    },
+    "stats": {
+      "onlinePlayers": "Online Players",
+      "activeRooms": "Active Rooms",
+      "todayMatches": "Today Matches",
+      "totalMatches": "Total Matches"
+    },
+    "penalties": {
+      "wrong": "Wrong answer = 3s freeze + -3% penalty",
+      "megaFreeze": "5 mistakes = 10s mega-freeze",
+      "reset": "10 mistakes = board reset",
+      "realtime": "Rivals see progress drops in real-time"
+    },
+    "form": {
+      "roomName": "Room name",
+      "userRoom": "{{ name }}'s Room",
+      "difficulty": "Difficulty",
+      "maxPlayers": "Max players",
+      "entryFee": "Entry fee",
+      "privateRoom": "Private room",
+      "passwordRequired": "Password required to join.",
+      "roomPassword": "Room password",
+      "creating": "Creating...",
+      "startHosting": "Start hosting",
+      "errors": {
+        "roomNameRequired": "Room name is required",
+        "roomNameTooLong": "Room name is too long",
+        "difficultyRequired": "Difficulty is required",
+        "minimumPlayers": "Minimum 2 players",
+        "entryFeeNegative": "Entry fee cannot be negative",
+        "passwordRequired": "Password is required for private rooms",
+        "passwordTooLong": "Password is too long",
+        "createRoom": "Could not create room"
+      }
+    }
+  },
+  "wallet": {
+    "kicker": "Economy",
+    "title": "Wallet",
+    "balance": "Balance",
+    "coinsWon": "Coins Won",
+    "coinsSpent": "Coins Spent",
+    "coinsPurchased": "Coins Purchased",
+    "transactionHistory": "Transaction history",
+    "noTransactions": "No wallet transactions yet.",
+    "noReason": "No reason provided"
+  },
+  "notifications": {
+    "kicker": "Inbox",
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": "No notifications yet.",
+    "new": "New",
+    "markRead": "Mark read",
+    "allRead": "All notifications marked as read.",
+    "errors": {
+      "markAll": "Unable to mark notifications as read",
+      "markOne": "Unable to mark notification as read"
+    }
+  },
+  "admin": {
+    "nav": {
+      "overview": "Overview",
+      "purchases": "Purchases",
+      "wallets": "Wallets",
+      "vouchers": "Vouchers",
+      "users": "Users",
+      "userDetails": "User Details",
+      "transactions": "Transactions",
+      "matches": "Matches",
+      "matchDetails": "Match Details",
+      "shop": "Shop",
+      "settings": "Settings",
+      "leaderboard": "Leaderboard",
+      "disputes": "Disputes",
+      "auditLogs": "Audit Logs",
+      "alerts": "Alerts"
+    },
+    "placeholder": {
+      "title": "Admin Section",
+      "description": "This sub-route is already wired into the admin shell and ready for the next feature implementation.",
+      "back": "Back to Overview"
+    },
+    "dashboard": {
+      "kicker": "Admin / Overview",
+      "title": "Control Center",
+      "reviewPayments": "Review Payments",
+      "walletControls": "Wallet Controls",
+      "sync": "Sync",
+      "roomPulse": "Room Pulse",
+      "today": "Today",
+      "broadcast": "Broadcast",
+      "broadcastTitle": "Title",
+      "announcementTitle": "Announcement title",
+      "broadcastMessage": "Message",
+      "broadcastMessagePlaceholder": "Broadcast message",
+      "reason": "Reason",
+      "internalNote": "Internal note",
+      "sendBroadcast": "Send Broadcast",
+      "recentRooms": "Recent Rooms",
+      "noRoomActivity": "No room activity yet.",
+      "host": "host",
+      "remove": "Remove",
+      "players": "Players",
+      "noPlayers": "No players found.",
+      "banned": "banned",
+      "ban": "Ban",
+      "unban": "Unban",
+      "activity": "Activity",
+      "activityPlayer": "{{ name }} has {{ wins }} wins and {{ matches }} matches",
+      "activityRoom": "Room \"{{ name }}\" is {{ status }} with {{ count }} players",
+      "noRecentActivity": "No recent activity yet.",
+      "confirmRemoveRoom": "Remove room \"{{ name }}\"? This cannot be undone.",
+      "confirmBan": "Are you sure you want to {{ action }} {{ name }}?",
+      "adminAction": "Admin action",
+      "confirmBroadcast": "Send this broadcast to all active users?",
+      "broadcastSent": "Broadcast sent to {{ count }} users.",
+      "metrics": {
+        "totalPlayers": "Total Players",
+        "activeToday": "Active Today",
+        "matchesToday": "Matches Today",
+        "bannedPlayers": "Banned Players",
+        "waitingRooms": "Waiting Rooms",
+        "activeRooms": "Active Rooms",
+        "completedRooms": "Completed Rooms"
+      },
+      "notices": {
+        "activeUsers": "{{ count }} active users online",
+        "waitingRooms": "{{ count }} rooms waiting for players",
+        "cancelledRooms": "{{ count }} cancelled rooms today",
+        "bannedAccounts": "{{ count }} banned accounts",
+        "liveNow": "Live now",
+        "lobbyState": "Lobby state",
+        "needsReview": "Needs review",
+        "securityStatus": "Security status"
+      },
+      "errors": {
+        "removeRoom": "Unable to remove room",
+        "updatePlayer": "Unable to update player",
+        "titleLength": "Broadcast title must be at least 3 characters.",
+        "messageLength": "Broadcast message must be at least 5 characters.",
+        "broadcast": "Unable to send broadcast"
+      }
+    }
+  },
   "seo": {
     "siteName": "Sudoku Rival",
     "home": {

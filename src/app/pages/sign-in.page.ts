@@ -18,10 +18,13 @@ import { SupabaseService } from '../core/services/supabase.service';
 import { AuthCredentials, GuestCredentials } from '../core/models';
 import { SignalFormField } from '../shared/forms/signal-form-helpers';
 import { LocalizedRouterService } from '../core/services/localized-router.service';
+import { I18nService } from '../core/i18n/i18n.service';
+import { TranslocoPipe } from '../core/i18n/transloco.pipe';
 
 @Component({
   selector: 'app-sign-in-page',
   standalone: true,
+  imports: [TranslocoPipe],
   template: `
     <div class="flex min-h-screen items-center justify-center bg-background px-4 py-8 text-foreground">
       <div class="pointer-events-none fixed inset-0 bg-background"></div>
@@ -34,24 +37,24 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
               <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-10 w-auto dark:hidden" />
             </button>
             <h1 class="mt-6 text-5xl font-black uppercase leading-[0.92] tracking-tight text-primary">
-              Enter the
+              {{ 'auth.signIn.heroLine1' | transloco }}
               <br />
-              arena
+              {{ 'auth.signIn.heroLine2' | transloco }}
             </h1>
             <p class="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
-              Sign in to create rooms, track your match stats, and challenge rivals in real time.
+              {{ 'auth.signIn.heroDescription' | transloco }}
             </p>
           </div>
           <div class="mt-10 grid gap-4 sm:grid-cols-2">
             <div class="rounded-xl border border-border/60 bg-background/60 p-5">
-              <div class="text-ui-kicker text-primary">Realtime</div>
-              <div class="mt-2 text-sm font-bold">Live Rooms</div>
-              <div class="mt-1 text-xs text-muted-foreground">Synced multiplayer matches</div>
+              <div class="text-ui-kicker text-primary">{{ 'auth.signIn.cards.realtimeKicker' | transloco }}</div>
+              <div class="mt-2 text-sm font-bold">{{ 'auth.signIn.cards.liveRooms' | transloco }}</div>
+              <div class="mt-1 text-xs text-muted-foreground">{{ 'auth.signIn.cards.syncedMatches' | transloco }}</div>
             </div>
             <div class="rounded-xl border border-border/60 bg-background/60 p-5">
-              <div class="text-ui-kicker text-primary">Ranked</div>
-              <div class="mt-2 text-sm font-bold">Global Leaderboard</div>
-              <div class="mt-1 text-xs text-muted-foreground">Compete for top positions</div>
+              <div class="text-ui-kicker text-primary">{{ 'auth.signIn.cards.rankedKicker' | transloco }}</div>
+              <div class="mt-2 text-sm font-bold">{{ 'auth.signIn.cards.globalLeaderboard' | transloco }}</div>
+              <div class="mt-1 text-xs text-muted-foreground">{{ 'auth.signIn.cards.compete' | transloco }}</div>
             </div>
           </div>
         </section>
@@ -59,10 +62,10 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
         <section class="surface-panel rounded-3xl p-6 shadow-2xl sm:p-8">
           <div class="flex items-start justify-between gap-4">
             <div>
-              <div class="text-ui-kicker text-primary">Welcome back</div>
-              <h2 class="mt-2 text-3xl font-black uppercase tracking-tight text-primary">Sign in</h2>
+              <div class="text-ui-kicker text-primary">{{ 'auth.signIn.kicker' | transloco }}</div>
+              <h2 class="mt-2 text-3xl font-black uppercase tracking-tight text-primary">{{ 'common.signIn' | transloco }}</h2>
             </div>
-            <button class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/40" type="button" (click)="goHome()">Home</button>
+            <button class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-medium transition-colors hover:bg-muted/40" type="button" (click)="goHome()">{{ 'common.home' | transloco }}</button>
           </div>
 
           <div class="mt-6 space-y-5">
@@ -73,24 +76,24 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
               (click)="signInWithX()"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              {{ signingInWithX() ? 'Redirecting...' : 'Continue with X' }}
+              {{ (signingInWithX() ? 'auth.redirecting' : 'auth.continueWithX') | transloco }}
             </button>
 
             <div class="flex items-center gap-4">
               <div class="h-px flex-1 bg-border/60"></div>
-              <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">or</span>
+              <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'auth.or' | transloco }}</span>
               <div class="h-px flex-1 bg-border/60"></div>
             </div>
 
             <label class="block space-y-2">
-              <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Email</span>
+              <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'common.email' | transloco }}</span>
               <input
                 class="w-full rounded-lg border border-border/60 bg-background/80 px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/30"
                 [value]="signInForm.email.$currentValue()"
                 (input)="setFieldValue(signInForm.email, $event)"
                 (blur)="markTouched(signInForm.email)"
                 type="email"
-                placeholder="you@example.com"
+                [placeholder]="'auth.emailPlaceholder' | transloco"
               />
               @if (signInForm.email.$touched() && signInForm.email.$stateMessage()) {
                 <span class="text-xs text-destructive">{{ signInForm.email.$stateMessage() }}</span>
@@ -98,14 +101,14 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
             </label>
 
             <label class="block space-y-2">
-              <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Password</span>
+              <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'common.password' | transloco }}</span>
               <input
                 class="w-full rounded-lg border border-border/60 bg-background/80 px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/30"
                 [value]="signInForm.password.$currentValue()"
                 (input)="setFieldValue(signInForm.password, $event)"
                 (blur)="markTouched(signInForm.password)"
                 type="password"
-                placeholder="Password"
+                [placeholder]="'common.password' | transloco"
               />
               @if (signInForm.password.$touched() && signInForm.password.$stateMessage()) {
                 <span class="text-xs text-destructive">{{ signInForm.password.$stateMessage() }}</span>
@@ -124,7 +127,7 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
               [disabled]="signingIn()"
               (click)="submitSignIn()"
             >
-              {{ signingIn() ? 'Signing in...' : 'Sign in with Email' }}
+              {{ (signingIn() ? 'auth.signIn.signingIn' : 'auth.signIn.withEmail') | transloco }}
             </button>
 
             @if (signInErrors().length > 0) {
@@ -140,7 +143,7 @@ import { LocalizedRouterService } from '../core/services/localized-router.servic
               type="button"
               (click)="goSignUp()"
             >
-              Need an account? <span class="font-bold text-primary">Sign up</span>
+              {{ 'auth.signIn.needAccount' | transloco }} <span class="font-bold text-primary">{{ 'common.signUp' | transloco }}</span>
             </button>
           </div>
         </section>
@@ -153,6 +156,7 @@ export class SignInPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly localizedRouter = inject(LocalizedRouterService);
+  private readonly i18n = inject(I18nService);
   readonly appStore = inject(AppStore);
   readonly supabase = inject(SupabaseService);
   readonly signingIn = signal(false);
@@ -163,18 +167,18 @@ export class SignInPage {
   readonly signInForm = signalForm<AuthCredentials>({
     email: {
       initialValue: '',
-      validators: [Required('Email is required'), Email()],
+      validators: [Required(this.i18n.t('auth.errors.emailRequired')), Email()],
     },
     password: {
       initialValue: '',
-      validators: [Required('Password is required'), MinLength(8)],
+      validators: [Required(this.i18n.t('auth.errors.passwordRequired')), MinLength(8)],
     },
   });
 
   readonly guestForm = signalForm<GuestCredentials>({
     username: {
       initialValue: '',
-      validators: [Required('Username is required'), MinLength(3), MaxLength(24)],
+      validators: [Required(this.i18n.t('auth.errors.usernameRequired')), MinLength(3), MaxLength(24)],
     },
   });
 
@@ -212,7 +216,7 @@ export class SignInPage {
     try {
       await this.supabase.signInWithX(this.nextUrl());
     } catch (error) {
-      this.statusMessage.set(error instanceof Error ? error.message : 'Unable to sign in with X');
+      this.statusMessage.set(error instanceof Error ? error.message : this.i18n.t('auth.errors.signInWithX'));
       this.signingInWithX.set(false);
     }
   }
@@ -226,7 +230,7 @@ export class SignInPage {
       await this.supabase.signInWithPassword(this.signInValue() as AuthCredentials);
       await this.router.navigateByUrl(this.nextUrl());
     } catch (error) {
-      this.statusMessage.set(error instanceof Error ? error.message : 'Unable to sign in');
+      this.statusMessage.set(error instanceof Error ? error.message : this.i18n.t('auth.errors.signIn'));
     } finally {
       this.signingIn.set(false);
     }
@@ -241,7 +245,7 @@ export class SignInPage {
       await this.supabase.signInAsGuest(this.guestValue() as GuestCredentials);
       await this.router.navigateByUrl(this.nextUrl());
     } catch (error) {
-      this.statusMessage.set(error instanceof Error ? error.message : 'Unable to enter as guest');
+      this.statusMessage.set(error instanceof Error ? error.message : this.i18n.t('auth.errors.guest'));
     } finally {
       this.guestSigningIn.set(false);
     }

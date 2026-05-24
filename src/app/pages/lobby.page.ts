@@ -29,6 +29,8 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
 import { UserNavComponent } from '../shared/components/user-nav.component';
 import { GsapCountUpDirective } from '../shared/directives/gsap-count-up.directive';
 import { LocalizedRouterService } from '../core/services/localized-router.service';
+import { I18nService } from '../core/i18n/i18n.service';
+import { TranslocoPipe } from '../core/i18n/transloco.pipe';
 import {
   ArrowRight,
   CircleAlert,
@@ -61,6 +63,7 @@ const EMPTY_STATS: StatsSummary = {
 @Component({
   selector: 'app-lobby-page',
   standalone: true,
+  imports: [UserNavComponent, LucideAngularModule, GsapCountUpDirective, TranslocoPipe],
   template: `
     <div class="relative min-h-screen bg-background text-foreground">
 
@@ -76,22 +79,22 @@ const EMPTY_STATS: StatsSummary = {
 
       @if (!appStore.authLoaded() || (appStore.isSignedIn() && !player())) {
         <div class="relative z-10 flex min-h-[60vh] items-center justify-center font-mono text-muted-foreground">
-          Loading lobby...
+          {{ 'lobby.loading' | transloco }}
         </div>
       } @else {
         <main class="relative z-10 mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6">
           <section class="surface-panel rounded-lg border-border/80 p-5 md:p-6" data-gsap-surface>
             <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div class="min-w-0">
-                <div class="text-ui-kicker text-primary">Multiplayer Lobby</div>
+                <div class="text-ui-kicker text-primary">{{ 'lobby.kicker' | transloco }}</div>
                 @if (player()) {
                   <h1 class="mt-2 text-4xl font-black tracking-tight md:text-5xl">
-                    Welcome, <span class="text-primary">{{ player()?.username }}</span>
+                    {{ 'lobby.welcome' | transloco }} <span class="text-primary">{{ player()?.username }}</span>
                   </h1>
-                  <p class="mt-2 text-base text-muted-foreground">Join an open room or create your own match.</p>
+                  <p class="mt-2 text-base text-muted-foreground">{{ 'lobby.subtitle' | transloco }}</p>
                 } @else {
-                  <h1 class="mt-2 text-4xl font-black tracking-tight md:text-5xl">Public Lobby</h1>
-                  <p class="mt-2 text-base text-muted-foreground">Sign in to host rooms and play live.</p>
+                  <h1 class="mt-2 text-4xl font-black tracking-tight md:text-5xl">{{ 'lobby.publicTitle' | transloco }}</h1>
+                  <p class="mt-2 text-base text-muted-foreground">{{ 'lobby.publicSubtitle' | transloco }}</p>
                 }
               </div>
 
@@ -102,7 +105,7 @@ const EMPTY_STATS: StatsSummary = {
                 data-gsap-lift
               >
                 <i-lucide [img]="PlusIcon" [size]="16"></i-lucide>
-                {{ appStore.isSignedIn() ? 'Create Room' : 'Sign in to host' }}
+                {{ appStore.isSignedIn() ? ('lobby.createRoom' | transloco) : ('lobby.signInToHost' | transloco) }}
               </button>
             </div>
           </section>
@@ -114,7 +117,7 @@ const EMPTY_STATS: StatsSummary = {
                   <i-lucide [img]="UsersIcon" [size]="18"></i-lucide>
                 </div>
                 <div class="min-w-0">
-                  <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">Online Players</div>
+                  <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">{{ 'lobby.stats.onlinePlayers' | transloco }}</div>
                   <div class="mt-1 text-2xl font-black tabular-nums" [appGsapCountUp]="stats().playersOnline"></div>
                 </div>
               </article>
@@ -124,7 +127,7 @@ const EMPTY_STATS: StatsSummary = {
                   <i-lucide [img]="DoorOpenIcon" [size]="18"></i-lucide>
                 </div>
                 <div class="min-w-0">
-                  <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">Active Rooms</div>
+                  <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">{{ 'lobby.stats.activeRooms' | transloco }}</div>
                   <div class="mt-1 text-2xl font-black tabular-nums" [appGsapCountUp]="stats().activeRooms"></div>
                 </div>
               </article>
@@ -134,7 +137,7 @@ const EMPTY_STATS: StatsSummary = {
                   <i-lucide [img]="PlayIcon" [size]="18"></i-lucide>
                 </div>
                 <div class="min-w-0">
-                  <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">Today Matches</div>
+                  <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">{{ 'lobby.stats.todayMatches' | transloco }}</div>
                   <div class="mt-1 text-2xl font-black tabular-nums" [appGsapCountUp]="stats().matchesToday"></div>
                 </div>
               </article>
@@ -144,7 +147,7 @@ const EMPTY_STATS: StatsSummary = {
                   <i-lucide [img]="TargetIcon" [size]="18"></i-lucide>
                 </div>
                 <div class="min-w-0">
-                  <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">Total Matches</div>
+                  <div class="text-[10px] font-mono uppercase tracking-[0.16em] text-muted-foreground">{{ 'lobby.stats.totalMatches' | transloco }}</div>
                   <div class="mt-1 text-2xl font-black tabular-nums" [appGsapCountUp]="stats().totalMatches"></div>
                 </div>
               </article>
@@ -154,15 +157,15 @@ const EMPTY_STATS: StatsSummary = {
           <section class="grid grid-cols-1 gap-4 xl:grid-cols-[1.75fr_0.95fr]">
             <section class="surface-panel space-y-3 rounded-lg p-3.5 md:p-4" data-gsap-surface>
               <div class="flex items-center justify-between">
-                <h2 class="text-ui-kicker text-foreground">Open Rooms</h2>
-                <span class="text-xs font-mono text-muted-foreground">{{ rooms().length }} open</span>
+                <h2 class="text-ui-kicker text-foreground">{{ 'lobby.openRooms' | transloco }}</h2>
+                <span class="text-xs font-mono text-muted-foreground">{{ rooms().length }} {{ 'lobby.open' | transloco }}</span>
               </div>
 
               @if (rooms().length === 0) {
                 <div class="rounded-lg border border-border/65 bg-background/50 py-12 text-center font-mono text-sm text-muted-foreground">
-                  No open rooms yet.
+                  {{ 'lobby.noOpenRooms' | transloco }}
                   <button class="ml-1 text-primary hover:underline" type="button" (click)="openCreateRoom()">
-                    {{ appStore.isSignedIn() ? 'Create the first room' : 'Sign in to host' }}
+                    {{ appStore.isSignedIn() ? ('lobby.createFirstRoom' | transloco) : ('lobby.signInToHost' | transloco) }}
                   </button>
                 </div>
               }
@@ -183,14 +186,14 @@ const EMPTY_STATS: StatsSummary = {
                               @if (room.hasPassword) {
                                 <span class="inline-flex items-center gap-1 rounded-md border border-border/65 bg-background/70 px-2 py-1 text-[10px] font-mono uppercase tracking-[0.14em] text-muted-foreground">
                                   <i-lucide [img]="LockIcon" [size]="12"></i-lucide>
-                                  Private
+                                  {{ 'lobby.private' | transloco }}
                                 </span>
                               }
                             </div>
 
                             <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-[0.12em]">
                               <span class="rounded px-2 py-1 font-bold" [class.bg-emerald-500/18]="room.difficulty === 'easy'" [class.text-emerald-300]="room.difficulty === 'easy'" [class.bg-primary/18]="room.difficulty === 'medium'" [class.text-primary]="room.difficulty === 'medium'" [class.bg-red-500/18]="room.difficulty === 'hard'" [class.text-red-300]="room.difficulty === 'hard'">
-                                {{ room.difficulty }}
+                                {{ difficultyLabel(room.difficulty) }}
                               </span>
                               <span class="rounded px-2 py-1 font-bold" [class.bg-amber-400/18]="room.status === 'waiting'" [class.text-amber-300]="room.status === 'waiting'" [class.bg-blue-500/18]="room.status === 'playing'" [class.text-blue-300]="room.status === 'playing'" [class.bg-slate-500/18]="room.status !== 'waiting' && room.status !== 'playing'" [class.text-slate-300]="room.status !== 'waiting' && room.status !== 'playing'">
                                 {{ roomStatusLabel(room) }}
@@ -203,28 +206,28 @@ const EMPTY_STATS: StatsSummary = {
                           <div class="flex items-center gap-2">
                             <i-lucide [img]="WalletIcon" [size]="15" class="text-primary"></i-lucide>
                             <div>
-                              <div class="text-[10px] font-mono uppercase tracking-[0.12em] text-muted-foreground">Entry Fee</div>
+                                <div class="text-[10px] font-mono uppercase tracking-[0.12em] text-muted-foreground">{{ 'lobby.entryFee' | transloco }}</div>
                               <div class="font-bold">{{ room.entryFee }}c</div>
                             </div>
                           </div>
                           <div class="flex items-center gap-2">
                             <i-lucide [img]="TrophyIcon" [size]="15" class="text-primary"></i-lucide>
                             <div>
-                              <div class="text-[10px] font-mono uppercase tracking-[0.12em] text-muted-foreground">Prize Pool</div>
+                                <div class="text-[10px] font-mono uppercase tracking-[0.12em] text-muted-foreground">{{ 'lobby.prizePool' | transloco }}</div>
                               <div class="font-bold">{{ room.prizePool }}c</div>
                             </div>
                           </div>
                           <div class="flex items-center gap-2">
                             <i-lucide [img]="UsersIcon" [size]="15" class="text-primary"></i-lucide>
                             <div>
-                              <div class="text-[10px] font-mono uppercase tracking-[0.12em] text-muted-foreground">Players</div>
+                                <div class="text-[10px] font-mono uppercase tracking-[0.12em] text-muted-foreground">{{ 'lobby.players' | transloco }}</div>
                               <div class="font-bold">{{ room.playerCount }} / {{ room.maxPlayers }}</div>
                             </div>
                           </div>
                           <div class="flex min-w-0 items-center gap-2">
                             <i-lucide [img]="UserIcon" [size]="15" class="text-primary"></i-lucide>
                             <div class="min-w-0">
-                              <div class="text-[10px] font-mono uppercase tracking-[0.12em] text-muted-foreground">Host</div>
+                              <div class="text-[10px] font-mono uppercase tracking-[0.12em] text-muted-foreground">{{ 'lobby.host' | transloco }}</div>
                               <div class="truncate font-bold">{{ room.hostUsername }}</div>
                             </div>
                           </div>
@@ -255,7 +258,7 @@ const EMPTY_STATS: StatsSummary = {
 
               <button class="btn-game inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border/65 bg-background/55 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.1em] hover:border-primary/45 hover:bg-muted/30" type="button" (click)="goLeaderboard()" data-gsap-lift>
                 <i-lucide [img]="Grid2x2Icon" [size]="15"></i-lucide>
-                View Leaderboard
+                {{ 'lobby.viewLeaderboard' | transloco }}
               </button>
             </section>
 
@@ -263,12 +266,12 @@ const EMPTY_STATS: StatsSummary = {
               <section class="surface-panel rounded-lg p-4" data-gsap-surface>
                 <div class="mb-3 flex items-center gap-2">
                   <i-lucide [img]="CrownIcon" [size]="17" class="text-primary"></i-lucide>
-                  <h2 class="text-ui-kicker text-foreground">Top Players</h2>
+                  <h2 class="text-ui-kicker text-foreground">{{ 'lobby.topPlayers' | transloco }}</h2>
                 </div>
 
                 <div class="space-y-2">
                   @if (leaderboard().length === 0) {
-                    <div class="py-4 text-center text-xs font-mono text-muted-foreground">No champions yet.</div>
+                    <div class="py-4 text-center text-xs font-mono text-muted-foreground">{{ 'lobby.noChampions' | transloco }}</div>
                   }
 
                   @for (entry of leaderboard().slice(0, 5); track entry.playerId; let index = $index) {
@@ -285,7 +288,7 @@ const EMPTY_STATS: StatsSummary = {
                 @if (leaderboard().length > 0) {
                   <button class="btn-game mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border/65 bg-background/55 px-3 py-2 text-xs font-mono uppercase tracking-[0.12em] hover:border-primary/45 hover:bg-muted/40" type="button" (click)="goLeaderboard()">
                     <i-lucide [img]="LayoutGridIcon" [size]="14"></i-lucide>
-                    View Full Leaderboard
+                    {{ 'lobby.viewFullLeaderboard' | transloco }}
                   </button>
                 }
               </section>
@@ -293,24 +296,24 @@ const EMPTY_STATS: StatsSummary = {
               <section class="surface-panel rounded-lg p-4" data-gsap-surface>
                 <div class="mb-3 flex items-center gap-2">
                   <i-lucide [img]="CircleAlertIcon" [size]="17" class="text-primary"></i-lucide>
-                  <h2 class="text-ui-kicker text-foreground">Penalty Rules</h2>
+                  <h2 class="text-ui-kicker text-foreground">{{ 'lobby.penaltyRules' | transloco }}</h2>
                 </div>
                 <div class="space-y-2 text-sm">
                   <div class="flex items-center gap-2 rounded-md border border-border/55 bg-background/45 px-3 py-2">
                     <i-lucide [img]="Clock3Icon" [size]="16" class="text-blue-300"></i-lucide>
-                    <span>Wrong answer = 3s freeze + -3% penalty</span>
+                    <span>{{ 'lobby.penalties.wrong' | transloco }}</span>
                   </div>
                   <div class="flex items-center gap-2 rounded-md border border-border/55 bg-background/45 px-3 py-2">
                     <i-lucide [img]="SnowflakeIcon" [size]="16" class="text-blue-300"></i-lucide>
-                    <span>5 mistakes = 10s mega-freeze</span>
+                    <span>{{ 'lobby.penalties.megaFreeze' | transloco }}</span>
                   </div>
                   <div class="flex items-center gap-2 rounded-md border border-border/55 bg-background/45 px-3 py-2">
                     <i-lucide [img]="GaugeIcon" [size]="16" class="text-blue-300"></i-lucide>
-                    <span>10 mistakes = board reset</span>
+                    <span>{{ 'lobby.penalties.reset' | transloco }}</span>
                   </div>
                   <div class="flex items-center gap-2 rounded-md border border-border/55 bg-background/45 px-3 py-2">
                     <i-lucide [img]="ShieldAlertIcon" [size]="16" class="text-blue-300"></i-lucide>
-                    <span>Rivals see progress drops in real-time</span>
+                    <span>{{ 'lobby.penalties.realtime' | transloco }}</span>
                   </div>
                 </div>
               </section>
@@ -321,7 +324,7 @@ const EMPTY_STATS: StatsSummary = {
 
       <footer class="relative z-10 mt-6 border-t border-border/40">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 text-xs font-mono text-muted-foreground md:px-6">
-          <div>Made by <span class="font-bold text-primary">Nader Mohamed</span></div>
+          <div>{{ 'lobby.madeBy' | transloco }} <span class="font-bold text-primary">Nader Mohamed</span></div>
           <div>&copy; {{ currentYear }}</div>
         </div>
       </footer>
@@ -331,17 +334,17 @@ const EMPTY_STATS: StatsSummary = {
           <div class="surface-panel max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl p-6 shadow-2xl sm:p-7">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <div class="text-ui-kicker text-primary">Host a match</div>
-                <h2 class="mt-2 text-2xl font-black uppercase tracking-tight text-primary">Create Room</h2>
+                <div class="text-ui-kicker text-primary">{{ 'lobby.hostMatch' | transloco }}</div>
+                <h2 class="mt-2 text-2xl font-black uppercase tracking-tight text-primary">{{ 'lobby.createRoom' | transloco }}</h2>
               </div>
               <button class="btn-game rounded-lg border border-border/60 px-3 py-2 text-sm font-medium hover:bg-muted/40" type="button" (click)="closeCreateRoom()">
-                Close
+                {{ 'common.close' | transloco }}
               </button>
             </div>
 
             <div class="mt-6 space-y-4">
               <label class="block space-y-2">
-                <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Room name</span>
+                <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'lobby.form.roomName' | transloco }}</span>
                 <input
                   class="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
                   [value]="createRoomForm.name.$currentValue()"
@@ -356,7 +359,7 @@ const EMPTY_STATS: StatsSummary = {
 
               <div class="grid gap-4 sm:grid-cols-2">
                 <label class="block space-y-2">
-                  <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Difficulty</span>
+                  <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'lobby.form.difficulty' | transloco }}</span>
                   <select
                     class="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
                     [value]="selectedDifficulty()"
@@ -364,13 +367,13 @@ const EMPTY_STATS: StatsSummary = {
                     (blur)="markFieldTouched(createRoomForm.difficulty)"
                   >
                     @for (difficulty of difficultyOptions; track difficulty) {
-                      <option [value]="difficulty">{{ difficulty }}</option>
+                       <option [value]="difficulty">{{ difficultyLabel(difficulty) }}</option>
                     }
                   </select>
                 </label>
 
                 <label class="block space-y-2">
-                  <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Max players</span>
+                  <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'lobby.form.maxPlayers' | transloco }}</span>
                   <select
                     class="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
                     [value]="createRoomForm.maxPlayers.$currentValue()"
@@ -378,14 +381,14 @@ const EMPTY_STATS: StatsSummary = {
                     (blur)="markFieldTouched(createRoomForm.maxPlayers)"
                   >
                     @for (count of playerCounts; track count) {
-                      <option [value]="count">{{ count }} Players</option>
+                      <option [value]="count">{{ count }} {{ 'lobby.players' | transloco }}</option>
                     }
                   </select>
                 </label>
               </div>
 
               <label class="block space-y-2">
-                <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Entry fee</span>
+                <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'lobby.form.entryFee' | transloco }}</span>
                 <select
                   class="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
                   [value]="createRoomForm.entryFee.$currentValue()"
@@ -393,7 +396,7 @@ const EMPTY_STATS: StatsSummary = {
                   (blur)="markFieldTouched(createRoomForm.entryFee)"
                 >
                   @for (fee of entryFeeOptions(); track fee) {
-                    <option [value]="fee">{{ fee }} coins</option>
+                    <option [value]="fee">{{ fee }} {{ 'common.coins' | transloco }}</option>
                   }
                 </select>
               </label>
@@ -406,20 +409,20 @@ const EMPTY_STATS: StatsSummary = {
                   (change)="setFieldValue(createRoomForm.isPrivate, $event)"
                 />
                 <span>
-                  <span class="block text-sm font-semibold">Private room</span>
-                  <span class="text-xs text-muted-foreground">Password required to join.</span>
+                  <span class="block text-sm font-semibold">{{ 'lobby.form.privateRoom' | transloco }}</span>
+                  <span class="text-xs text-muted-foreground">{{ 'lobby.form.passwordRequired' | transloco }}</span>
                 </span>
               </label>
 
               @if (createRoomForm.isPrivate.$currentValue()) {
                 <label class="block space-y-2">
-                  <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Password</span>
+                  <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'common.password' | transloco }}</span>
                   <input
                     class="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
                     [value]="createRoomForm.password.$currentValue()"
                     (input)="setFieldValue(createRoomForm.password, $event)"
                     (blur)="markFieldTouched(createRoomForm.password)"
-                    placeholder="Room password"
+                    [placeholder]="'lobby.form.roomPassword' | transloco"
                     type="password"
                   />
                   @if (createRoomForm.password.$touched() && createRoomForm.password.$stateMessage()) {
@@ -448,7 +451,7 @@ const EMPTY_STATS: StatsSummary = {
                 [disabled]="creatingRoom()"
                 (click)="submitCreateRoom()"
               >
-                {{ creatingRoom() ? 'Creating...' : 'Start hosting' }}
+                {{ creatingRoom() ? ('lobby.form.creating' | transloco) : ('lobby.form.startHosting' | transloco) }}
               </button>
             </div>
           </div>
@@ -457,10 +460,10 @@ const EMPTY_STATS: StatsSummary = {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [UserNavComponent, LucideAngularModule, GsapCountUpDirective],
 })
 export class LobbyPage implements AfterViewInit, OnDestroy {
   private readonly localizedRouter = inject(LocalizedRouterService);
+  private readonly i18n = inject(I18nService);
   private readonly injector = inject(Injector);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly zone = inject(NgZone);
@@ -517,31 +520,36 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
 
   readonly themeLabel = computed(() => {
     const theme = this.appStore.theme();
-    if (theme === 'system') return 'System';
-    return theme === 'dark' ? 'Light mode' : 'Dark mode';
+    if (theme === 'system') return this.i18n.t('common.system');
+    return theme === 'dark' ? this.i18n.t('settings.theme.light') : this.i18n.t('settings.theme.dark');
   });
 
   readonly roomNamePlaceholder = computed(() => {
     const username = this.player()?.username;
-    return username ? `${username}'s Room` : 'Room name';
+    return username
+      ? this.i18n.t('lobby.form.userRoom', { name: username })
+      : this.i18n.t('lobby.form.roomName');
   });
 
   readonly createRoomForm = signalForm<RoomFormValue>({
     name: {
       initialValue: '',
-      validators: [Required('Room name is required'), MaxLength(32, 'Room name is too long')],
+      validators: [
+        Required(this.i18n.t('lobby.form.errors.roomNameRequired')),
+        MaxLength(32, this.i18n.t('lobby.form.errors.roomNameTooLong')),
+      ],
     },
     difficulty: {
       initialValue: 'medium',
-      validators: [Required('Difficulty is required')],
+      validators: [Required(this.i18n.t('lobby.form.errors.difficultyRequired'))],
     },
     maxPlayers: {
       initialValue: 2,
-      validators: [Min(2, 'Minimum 2 players')],
+      validators: [Min(2, this.i18n.t('lobby.form.errors.minimumPlayers'))],
     },
     entryFee: {
       initialValue: 10,
-      validators: [Min(0, 'Entry fee cannot be negative')],
+      validators: [Min(0, this.i18n.t('lobby.form.errors.entryFeeNegative'))],
     },
     isPrivate: {
       initialValue: false,
@@ -552,9 +560,9 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
       validators: [
         (value, form) =>
           form.isPrivate.$currentValue() && !value.trim()
-            ? new Error('Password is required for private rooms')
+            ? new Error(this.i18n.t('lobby.form.errors.passwordRequired'))
             : null,
-        MaxLength(64, 'Password is too long'),
+        MaxLength(64, this.i18n.t('lobby.form.errors.passwordTooLong')),
       ],
     },
   });
@@ -768,15 +776,19 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
   }
 
   roomActionLabel(room: RoomSummary): string {
-    if (!this.appStore.isSignedIn()) return 'Sign In';
-    return this.isRoomJoinable(room) ? 'Join Room' : 'View Details';
+    if (!this.appStore.isSignedIn()) return this.i18n.t('common.signIn');
+    return this.isRoomJoinable(room) ? this.i18n.t('lobby.joinRoom') : this.i18n.t('lobby.viewDetails');
   }
 
   roomStatusLabel(room: RoomSummary): string {
-    if (room.status === 'playing') return 'In Progress';
-    if (room.status === 'waiting') return 'Waiting';
-    if (room.status === 'finished') return 'Finished';
-    return 'Cancelled';
+    if (room.status === 'playing') return this.i18n.t('lobby.status.playing');
+    if (room.status === 'waiting') return this.i18n.t('lobby.status.waiting');
+    if (room.status === 'finished') return this.i18n.t('lobby.status.finished');
+    return this.i18n.t('lobby.status.cancelled');
+  }
+
+  difficultyLabel(difficulty: Difficulty): string {
+    return this.i18n.t(`lobby.difficulty.${difficulty}`);
   }
 
   roomCardIcon(room: RoomSummary): typeof Trophy {
@@ -848,7 +860,7 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
       resetSignalForm(this.createRoomForm);
       await this.localizedRouter.navigate(`/room/${room.id}`);
     } catch (error) {
-      this.createRoomError.set(error instanceof Error ? error.message : 'Could not create room');
+      this.createRoomError.set(error instanceof Error ? error.message : this.i18n.t('lobby.form.errors.createRoom'));
     } finally {
       this.creatingRoom.set(false);
     }
