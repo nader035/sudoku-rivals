@@ -5,6 +5,10 @@ import { I18nService } from '../i18n/i18n.service';
 import { LanguageCode } from '../i18n/translations';
 
 const SITE_URL = 'https://sudokurival.me';
+const OG_IMAGE = `${SITE_URL}/assets/seo/og-default.png`;
+const LOGO_IMAGE = `${SITE_URL}/assets/seo/logo-512.png`;
+const OG_IMAGE_ALT = 'Sudoku Rival - Play Sudoku Online';
+
 type SeoKey = 'home' | 'play' | 'howToPlay' | 'settings' | 'privacy' | 'terms' | 'leaderboard' | 'default';
 
 const PUBLIC_PATH_KEYS = new Map<string, SeoKey>([
@@ -36,7 +40,14 @@ export class SeoService {
 
     this.title.setTitle(title);
     this.meta.updateTag({ name: 'description', content: description });
-    this.meta.updateTag({ name: 'robots', content: indexable ? 'index, follow' : 'noindex, nofollow' });
+
+    // Robots: include max-image-preview:large for public indexable pages
+    this.meta.updateTag({
+      name: 'robots',
+      content: indexable ? 'index,follow,max-image-preview:large' : 'noindex, nofollow',
+    });
+
+    // Open Graph core tags (unchanged)
     this.meta.updateTag({ property: 'og:title', content: title });
     this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:url', content: canonical });
@@ -44,9 +55,21 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:site_name', content: this.i18n.t('seo.siteName') });
     this.meta.updateTag({ property: 'og:locale', content: lang === 'ar' ? 'ar_EG' : 'en_US' });
     this.meta.updateTag({ property: 'og:locale:alternate', content: lang === 'ar' ? 'en_US' : 'ar_EG' });
+
+    // Open Graph image tags
+    this.meta.updateTag({ property: 'og:image', content: OG_IMAGE });
+    this.meta.updateTag({ property: 'og:image:secure_url', content: OG_IMAGE });
+    this.meta.updateTag({ property: 'og:image:width', content: '1200' });
+    this.meta.updateTag({ property: 'og:image:height', content: '630' });
+    this.meta.updateTag({ property: 'og:image:type', content: 'image/png' });
+    this.meta.updateTag({ property: 'og:image:alt', content: OG_IMAGE_ALT });
+
+    // Twitter Card tags
     this.meta.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
     this.meta.updateTag({ name: 'twitter:title', content: title });
     this.meta.updateTag({ name: 'twitter:description', content: description });
+    this.meta.updateTag({ name: 'twitter:image', content: OG_IMAGE });
+    this.meta.updateTag({ name: 'twitter:image:alt', content: OG_IMAGE_ALT });
 
     this.upsertCanonical(canonical);
     this.upsertHreflang(canonicalPath);
@@ -109,6 +132,7 @@ export class SeoService {
         '@type': 'WebSite',
         name: 'Sudoku Rival',
         url: `${SITE_URL}/`,
+        image: OG_IMAGE,
         inLanguage: ['en', 'ar'],
       },
       {
@@ -116,22 +140,24 @@ export class SeoService {
         '@type': 'WebApplication',
         name: 'Sudoku Rival',
         url: `${SITE_URL}/`,
+        image: OG_IMAGE,
         applicationCategory: 'GameApplication',
         operatingSystem: 'Web',
         inLanguage: ['en', 'ar'],
         description: this.i18n.t('seo.default.description'),
         offers: {
           '@type': 'Offer',
-          'price': '0',
-          'priceCurrency': 'EGP'
-        }
+          price: '0',
+          priceCurrency: 'EGP',
+        },
       },
       {
         '@context': 'https://schema.org',
         '@type': 'Organization',
         name: 'Sudoku Rival',
         url: `${SITE_URL}/`,
-        logo: `${SITE_URL}/assets/logo/logo-dark.svg`,
+        logo: LOGO_IMAGE,
+        image: OG_IMAGE,
       },
     ]);
   }
