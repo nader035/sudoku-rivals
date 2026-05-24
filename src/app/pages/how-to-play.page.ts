@@ -24,10 +24,10 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
       <main class="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:px-6 lg:grid-cols-[0.95fr_1.05fr]">
         <section class="space-y-6">
           <div class="text-ui-kicker text-primary">{{ 'howToPlay.kicker' | transloco }}</div>
-          <h1 class="max-w-2xl text-4xl font-black tracking-tight md:text-6xl">
+          <h1 class="font-ar-display max-w-2xl text-4xl font-black tracking-tight md:text-6xl">
             {{ 'howToPlay.title' | transloco }}
           </h1>
-          <p class="max-w-2xl text-lg leading-relaxed text-muted-foreground">
+          <p class="font-ar-text max-w-2xl text-lg leading-relaxed text-muted-foreground">
             {{ 'howToPlay.subtitle' | transloco }}
           </p>
           <button
@@ -47,7 +47,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
                 <i-lucide [img]="item.icon" [size]="20"></i-lucide>
               </div>
               <h2 class="text-xl font-black">{{ item.titleKey | transloco }}</h2>
-              <p class="mt-2 text-sm leading-6 text-muted-foreground">{{ item.bodyKey | transloco }}</p>
+              <p class="font-ar-text mt-2 text-sm leading-6 text-muted-foreground">{{ item.bodyKey | transloco }}</p>
             </article>
           }
 
@@ -56,15 +56,15 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
             <ul class="mt-4 grid gap-3 text-sm text-muted-foreground">
               <li class="flex gap-3">
                 <i-lucide class="mt-0.5 shrink-0 text-primary" [img]="CheckIcon" [size]="16"></i-lucide>
-                <span>{{ 'howToPlay.tipsOne' | transloco }}</span>
+                <span class="font-ar-text">{{ 'howToPlay.tipsOne' | transloco }}</span>
               </li>
               <li class="flex gap-3">
                 <i-lucide class="mt-0.5 shrink-0 text-primary" [img]="CheckIcon" [size]="16"></i-lucide>
-                <span>{{ 'howToPlay.tipsTwo' | transloco }}</span>
+                <span class="font-ar-text">{{ 'howToPlay.tipsTwo' | transloco }}</span>
               </li>
               <li class="flex gap-3">
                 <i-lucide class="mt-0.5 shrink-0 text-primary" [img]="CheckIcon" [size]="16"></i-lucide>
-                <span>{{ 'howToPlay.tipsThree' | transloco }}</span>
+                <span class="font-ar-text">{{ 'howToPlay.tipsThree' | transloco }}</span>
               </li>
             </ul>
           </article>

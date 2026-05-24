@@ -1,5 +1,13 @@
-Place the licensed Thmanyah Arabic font file here as:
+Thmanyah font files live under this folder (served by Angular as /assets/fonts/thmanyah/\*\*).
 
-Thmanyah.woff2
+Detected families:
 
-The global stylesheet already references /assets/fonts/thmanyah/Thmanyah.woff2 and applies it only when html[lang="ar"] is active.
+- Thmanyah Sans
+- Thmanyah Serif Display
+- Thmanyah Serif Text
+
+Preferred formats:
+
+- woff2 (used by src/styles.css)
+
+Note: src/styles.css applies Thmanyah fonts only when html[lang="ar"] is active, so English remains on Inter/system-ui.

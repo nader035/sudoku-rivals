@@ -142,7 +142,6 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
             </button>
             <h2 class="mt-6 text-5xl font-black uppercase leading-[0.92] tracking-tight text-primary">
               {{ 'auth.signUp.heroLine1' | transloco }}
-              <br />
               {{ 'auth.signUp.heroLine2' | transloco }}
             </h2>
             <p class="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">

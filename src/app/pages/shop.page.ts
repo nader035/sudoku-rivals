@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, Injector, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Injector,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { SupabaseService } from '../core/services/supabase.service';
@@ -15,14 +22,20 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
   template: `
     <div class="min-h-screen bg-background text-foreground">
       <nav class="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-sm">
-        <div class="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-6">
-          <button
-            class="inline-flex items-center"
-            type="button"
-            (click)="goHome()"
-          >
-            <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-9 w-auto dark:block" />
-            <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-9 w-auto dark:hidden" />
+        <div
+          class="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-6"
+        >
+          <button class="inline-flex items-center" type="button" (click)="goHome()">
+            <img
+              src="/assets/logo/logo-light.svg"
+              alt="Sudoku Rival"
+              class="hidden h-9 w-auto dark:block"
+            />
+            <img
+              src="/assets/logo/logo-dark.svg"
+              alt="Sudoku Rival"
+              class="h-9 w-auto dark:hidden"
+            />
           </button>
           <app-user-nav />
         </div>
@@ -30,8 +43,12 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
 
       <main class="mx-auto max-w-7xl space-y-8 px-4 py-8 md:px-6">
         <header>
-          <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">{{ 'shop.kicker' | transloco }}</div>
-          <h1 class="mt-2 text-3xl font-black tracking-tight md:text-4xl">{{ 'shop.title' | transloco }}</h1>
+          <div class="text-xs font-mono uppercase tracking-[0.3em] text-primary">
+            {{ 'shop.kicker' | transloco }}
+          </div>
+          <h1 class="mt-2 text-3xl font-black tracking-tight md:text-4xl">
+            {{ 'shop.title' | transloco }}
+          </h1>
           <p class="mt-2 text-sm font-mono text-muted-foreground">
             {{ 'shop.description' | transloco }}
           </p>
@@ -52,12 +69,16 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
               <div class="flex items-start justify-between gap-2">
                 <h2 class="text-lg font-bold">{{ pkg.name }}</h2>
                 @if (pkg.badge) {
-                  <span class="rounded border border-primary/40 px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-primary">
+                  <span
+                    class="rounded border border-primary/40 px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-primary"
+                  >
                     {{ pkg.badge }}
                   </span>
                 }
               </div>
-              <div class="mt-2 text-2xl font-black text-primary">{{ pkg.coinsAmount + pkg.bonusCoins }}</div>
+              <div class="mt-2 text-2xl font-black text-primary">
+                {{ pkg.coinsAmount + pkg.bonusCoins }}
+              </div>
               <div class="text-xs font-mono text-muted-foreground">
                 {{ pkg.coinsAmount }} + {{ pkg.bonusCoins }} {{ 'shop.bonus' | transloco }}
               </div>
@@ -96,7 +117,7 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
           </div>
         </section>
 
-        @if (selectedPackage()) {
+        @if (selectedPackage(); as pkg) {
           <section class="surface-panel rounded-xl p-5">
             <h3 class="text-lg font-bold">{{ 'shop.paymentMethod' | transloco }}</h3>
             <div class="mt-4 grid gap-3 md:grid-cols-2">
@@ -120,13 +141,28 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
               </button>
             </div>
 
-            <div class="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm font-mono">
+            <div
+              class="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm font-mono"
+            >
               @if (paymentMethod() === 'vodafone_cash') {
-                {{ 'shop.transferVodafone' | transloco: { amount: selectedPackage()?.price, currency: selectedPackage()?.currency } }}
+                {{
+                  'shop.transferVodafone'
+                    | transloco
+                      : { amount: pkg.price, currency: pkg.currency }
+                }}
                 <span class="font-bold text-primary">{{ settings().vodafoneCashNumber }}</span>
               } @else {
-                {{ 'shop.transferInstapay' | transloco: { amount: selectedPackage()?.price, currency: selectedPackage()?.currency } }}
-                <a class="font-bold text-primary underline" [href]="settings().instapayLink" target="_blank" rel="noopener">
+                {{
+                  'shop.transferInstapay'
+                    | transloco
+                      : { amount: pkg.price, currency: pkg.currency }
+                }}
+                <a
+                  class="font-bold text-primary underline"
+                  [href]="settings().instapayLink"
+                  target="_blank"
+                  rel="noopener"
+                >
                   {{ settings().instapayLink }}
                 </a>
               }
@@ -142,7 +178,12 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
             </button>
 
             <p class="mt-2 text-xs font-mono text-muted-foreground">
-              {{ 'shop.optionalDiscountVoucher' | transloco }}: {{ voucherCode().trim() ? voucherCode().trim().toUpperCase() : ('shop.none' | transloco) }}
+              {{ 'shop.optionalDiscountVoucher' | transloco }}:
+              {{
+                voucherCode().trim()
+                  ? voucherCode().trim().toUpperCase()
+                  : ('shop.none' | transloco)
+              }}
             </p>
 
             @if (showTransferForm()) {
@@ -162,7 +203,9 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
                   />
                 </label>
                 <label class="block">
-                  <span class="text-xs font-mono uppercase text-muted-foreground">{{ 'shop.senderName' | transloco }}</span>
+                  <span class="text-xs font-mono uppercase text-muted-foreground">{{
+                    'shop.senderName' | transloco
+                  }}</span>
                   <input
                     class="mt-1 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
                     [value]="senderName()"
@@ -170,7 +213,9 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
                   />
                 </label>
                 <label class="block">
-                  <span class="text-xs font-mono uppercase text-muted-foreground">{{ 'shop.paymentReference' | transloco }}</span>
+                  <span class="text-xs font-mono uppercase text-muted-foreground">{{
+                    'shop.paymentReference' | transloco
+                  }}</span>
                   <input
                     class="mt-1 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
                     [value]="paymentReference()"
@@ -178,7 +223,9 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
                   />
                 </label>
                 <label class="block">
-                  <span class="text-xs font-mono uppercase text-muted-foreground">{{ 'shop.screenshotUrl' | transloco }}</span>
+                  <span class="text-xs font-mono uppercase text-muted-foreground">{{
+                    'shop.screenshotUrl' | transloco
+                  }}</span>
                   <input
                     class="mt-1 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
                     [value]="screenshotUrl()"
@@ -187,7 +234,9 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
                 </label>
               </div>
               <label class="mt-3 block">
-                <span class="text-xs font-mono uppercase text-muted-foreground">{{ 'shop.noteToAdmin' | transloco }}</span>
+                <span class="text-xs font-mono uppercase text-muted-foreground">{{
+                  'shop.noteToAdmin' | transloco
+                }}</span>
                 <textarea
                   class="mt-1 min-h-20 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm"
                   [value]="userNote()"
@@ -207,22 +256,33 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
         }
 
         <section class="space-y-3">
-          <h3 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">{{ 'shop.purchaseHistory' | transloco }}</h3>
+          <h3 class="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">
+            {{ 'shop.purchaseHistory' | transloco }}
+          </h3>
           <div class="surface-panel overflow-hidden rounded-xl">
             @if (purchases().length === 0) {
-              <div class="p-4 text-sm font-mono text-muted-foreground">{{ 'shop.noPurchases' | transloco }}</div>
+              <div class="p-4 text-sm font-mono text-muted-foreground">
+                {{ 'shop.noPurchases' | transloco }}
+              </div>
             } @else {
               <div class="divide-y divide-border/60">
                 @for (purchase of purchases(); track purchase.id) {
                   <div class="grid gap-2 px-4 py-3 md:grid-cols-[1fr_auto_auto] md:items-center">
                     <div class="min-w-0">
-                      <div class="truncate font-semibold">{{ purchase.coinsReceived }} {{ 'common.coins' | transloco }}</div>
+                      <div class="truncate font-semibold">
+                        {{ purchase.coinsReceived }} {{ 'common.coins' | transloco }}
+                      </div>
                       <div class="text-xs font-mono text-muted-foreground">
-                        {{ purchase.paymentMethod }} / {{ purchase.amountPaid }} {{ purchase.currency }}
+                        {{ purchase.paymentMethod }} / {{ purchase.amountPaid }}
+                        {{ purchase.currency }}
                       </div>
                     </div>
-                    <span class="text-xs font-mono uppercase text-primary">{{ purchase.paymentStatus }}</span>
-                    <span class="text-xs font-mono text-muted-foreground">{{ purchase.createdAt }}</span>
+                    <span class="text-xs font-mono uppercase text-primary">{{
+                      purchase.paymentStatus
+                    }}</span>
+                    <span class="text-xs font-mono text-muted-foreground">{{
+                      purchase.createdAt
+                    }}</span>
                   </div>
                 }
               </div>
@@ -317,7 +377,9 @@ export class ShopPage {
       }
       this.statusMessage.set(this.i18n.t('shop.status.submitConfirmation'));
     } catch (error) {
-      this.statusMessage.set(error instanceof Error ? error.message : this.i18n.t('shop.errors.createPurchase'));
+      this.statusMessage.set(
+        error instanceof Error ? error.message : this.i18n.t('shop.errors.createPurchase'),
+      );
     } finally {
       this.busy.set(false);
     }
@@ -368,7 +430,9 @@ export class ShopPage {
       this.screenshotUrl.set('');
       this.userNote.set('');
     } catch (error) {
-      this.statusMessage.set(error instanceof Error ? error.message : this.i18n.t('shop.errors.submitConfirmation'));
+      this.statusMessage.set(
+        error instanceof Error ? error.message : this.i18n.t('shop.errors.submitConfirmation'),
+      );
     } finally {
       this.busy.set(false);
     }
@@ -393,7 +457,9 @@ export class ShopPage {
       );
       this.voucherCode.set('');
     } catch (error) {
-      this.statusMessage.set(error instanceof Error ? error.message : this.i18n.t('shop.errors.redeemVoucher'));
+      this.statusMessage.set(
+        error instanceof Error ? error.message : this.i18n.t('shop.errors.redeemVoucher'),
+      );
     } finally {
       this.busy.set(false);
     }

@@ -21,14 +21,14 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
 
       <main class="mx-auto max-w-4xl px-4 py-10 md:px-6">
         <div class="text-ui-kicker text-primary">{{ 'terms.kicker' | transloco }}</div>
-        <h1 class="mt-3 text-4xl font-black tracking-tight md:text-5xl">{{ 'terms.title' | transloco }}</h1>
-        <p class="mt-5 text-lg leading-8 text-muted-foreground">{{ 'terms.intro' | transloco }}</p>
+        <h1 class="font-ar-display mt-3 text-4xl font-black tracking-tight md:text-5xl">{{ 'terms.title' | transloco }}</h1>
+        <p class="font-ar-text mt-5 text-lg leading-8 text-muted-foreground">{{ 'terms.intro' | transloco }}</p>
 
         <section class="mt-8 grid gap-4">
           @for (item of sections; track item.titleKey) {
             <article class="surface-panel rounded-xl p-5">
               <h2 class="text-xl font-black">{{ item.titleKey | transloco }}</h2>
-              <p class="mt-2 text-sm leading-6 text-muted-foreground">{{ item.bodyKey | transloco }}</p>
+              <p class="font-ar-text mt-2 text-sm leading-6 text-muted-foreground">{{ item.bodyKey | transloco }}</p>
             </article>
           }
         </section>

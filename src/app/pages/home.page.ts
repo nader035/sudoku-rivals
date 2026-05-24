@@ -37,30 +37,60 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
   template: `
     <div class="min-h-screen bg-background text-foreground">
       <header class="border-b border-border/70 bg-background/92 backdrop-blur">
-        <div class="mx-auto flex h-20 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
+        <div
+          class="mx-auto flex h-20 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6"
+        >
           <button class="inline-flex items-center" type="button" (click)="goHome()">
-            <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-12 w-auto dark:block" />
-            <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-12 w-auto dark:hidden" />
+            <img
+              src="/assets/logo/logo-light.svg"
+              alt="Sudoku Rival"
+              class="hidden h-12 w-auto dark:block"
+            />
+            <img
+              src="/assets/logo/logo-dark.svg"
+              alt="Sudoku Rival"
+              class="h-12 w-auto dark:hidden"
+            />
           </button>
 
           <nav class="hidden items-center gap-2 lg:flex">
-            <button class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary/12 px-3 py-2 text-sm font-semibold text-primary" type="button" (click)="goHome()">
+            <button
+              class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary/12 px-3 py-2 text-sm font-semibold text-primary"
+              type="button"
+              (click)="goHome()"
+            >
               <i-lucide [img]="HomeIcon" [size]="16"></i-lucide>
               {{ 'common.home' | transloco }}
             </button>
-            <button class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" type="button" (click)="goMultiplayer()">
+            <button
+              class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground"
+              type="button"
+              (click)="goMultiplayer()"
+            >
               <i-lucide [img]="PlayIcon" [size]="16"></i-lucide>
               {{ 'common.play' | transloco }}
             </button>
-            <button class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" type="button" (click)="goHowToPlay()">
+            <button
+              class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground"
+              type="button"
+              (click)="goHowToPlay()"
+            >
               <i-lucide [img]="InfoIcon" [size]="16"></i-lucide>
               {{ 'common.howToPlay' | transloco }}
             </button>
-            <button class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" type="button" (click)="goLeaderboard()">
+            <button
+              class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground"
+              type="button"
+              (click)="goLeaderboard()"
+            >
               <i-lucide [img]="TrophyIcon" [size]="16"></i-lucide>
               {{ 'common.leaderboard' | transloco }}
             </button>
-            <button class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" type="button" (click)="goSettings()">
+            <button
+              class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground"
+              type="button"
+              (click)="goSettings()"
+            >
               <i-lucide [img]="SettingsIcon" [size]="16"></i-lucide>
               {{ 'common.settings' | transloco }}
             </button>
@@ -69,11 +99,19 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
           <div class="flex items-center gap-2">
             <app-language-switcher />
             @if (!appStore.isSignedIn()) {
-              <button class="btn-game hidden rounded-lg border border-border/60 bg-card/70 px-4 py-2 text-sm font-semibold hover:bg-muted/40 md:inline-flex" type="button" (click)="goSignIn()">
+              <button
+                class="btn-game hidden rounded-lg border border-border/60 bg-card/70 px-4 py-2 text-sm font-semibold hover:bg-muted/40 md:inline-flex"
+                type="button"
+                (click)="goSignIn()"
+              >
                 {{ 'common.logIn' | transloco }}
               </button>
             }
-            <button class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/20" type="button" (click)="goMultiplayer()">
+            <button
+              class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/20"
+              type="button"
+              (click)="goMultiplayer()"
+            >
               <i-lucide [img]="ZapIcon" [size]="16"></i-lucide>
               {{ 'common.playNow' | transloco }}
             </button>
@@ -85,23 +123,40 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
         <section class="relative border-b border-border/60 py-12 sm:py-16" data-gsap-surface>
           <div class="mx-auto grid w-full max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_1.15fr]">
             <div class="space-y-7">
-              <div class="inline-flex items-center rounded-full border border-border/70 bg-card/70 px-4 py-2 text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground" data-gsap-reveal>
+              <div
+                class="inline-flex items-center rounded-full border border-border/70 bg-card/70 px-4 py-2 text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground"
+                data-gsap-reveal
+              >
                 {{ 'home.kicker' | transloco }}
               </div>
-              <h1 class="max-w-xl text-5xl font-black uppercase leading-[0.92] tracking-tight sm:text-6xl" data-gsap-reveal>
+              <h1
+                class="font-ar-sans max-w-xl text-5xl font-black uppercase leading-[1.3] tracking-tight [word-spacing:-0.09em] sm:text-6xl"
+                data-gsap-reveal
+              >
                 {{ 'home.titleLine1' | transloco }}
                 <br />
-                {{ 'home.titleLine2' | transloco }} <span class="text-primary">{{ 'home.titleAccent' | transloco }}</span>
+                {{ 'home.titleLine2' | transloco }}
+                <span class="text-primary">&nbsp;{{ 'home.titleAccent' | transloco }}</span>
               </h1>
               <p class="max-w-xl text-xl leading-relaxed text-muted-foreground" data-gsap-reveal>
                 {{ 'home.description' | transloco }}
               </p>
               <div class="flex flex-col gap-3 sm:flex-row" data-gsap-reveal>
-                <button class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-base font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/20" type="button" (click)="goMultiplayer()" data-gsap-lift>
+                <button
+                  class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-base font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/20"
+                  type="button"
+                  (click)="goMultiplayer()"
+                  data-gsap-lift
+                >
                   <i-lucide [img]="ZapIcon" [size]="18"></i-lucide>
                   {{ 'common.playNow' | transloco }}
                 </button>
-                <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/70 bg-card/70 px-8 py-3 text-base font-semibold hover:bg-muted/40" type="button" (click)="goHowToPlay()" data-gsap-lift>
+                <button
+                  class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/70 bg-card/70 px-8 py-3 text-base font-semibold hover:bg-muted/40"
+                  type="button"
+                  (click)="goHowToPlay()"
+                  data-gsap-lift
+                >
                   <i-lucide [img]="InfoIcon" [size]="18"></i-lucide>
                   {{ 'home.learnMore' | transloco }}
                 </button>
@@ -112,24 +167,38 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
               <div class="rounded-2xl border border-border/70 bg-background p-3 sm:p-4">
                 <div class="mb-3 grid gap-3 sm:grid-cols-[220px_1fr]">
                   <div class="rounded-xl border border-border/70 bg-card/70 p-3" data-gsap-reveal>
-                    <div class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'home.liveMatch' | transloco }}</div>
+                    <div class="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                      {{ 'home.liveMatch' | transloco }}
+                    </div>
                     <div class="mt-2 text-sm font-semibold">{{ 'home.gameCode' | transloco }}</div>
                     <div class="mt-3 space-y-2 text-sm">
-                      <div class="flex items-center justify-between rounded-lg border border-border/60 px-2 py-2">
+                      <div
+                        class="flex items-center justify-between rounded-lg border border-border/60 px-2 py-2"
+                      >
                         <span>{{ 'home.rivalName' | transloco }}</span>
                         <span class="font-mono text-primary">1460</span>
                       </div>
-                      <div class="text-center text-xs font-black uppercase tracking-wider text-primary">{{ 'home.versus' | transloco }}</div>
-                      <div class="flex items-center justify-between rounded-lg border border-border/60 px-2 py-2">
+                      <div
+                        class="text-center text-xs font-black uppercase tracking-wider text-primary"
+                      >
+                        {{ 'home.versus' | transloco }}
+                      </div>
+                      <div
+                        class="flex items-center justify-between rounded-lg border border-border/60 px-2 py-2"
+                      >
                         <span>{{ 'home.you' | transloco }}</span>
                         <span class="font-mono text-primary">1680</span>
                       </div>
                     </div>
-                    <div class="mt-4 text-xs font-mono text-muted-foreground">{{ 'home.mistakes' | transloco }}</div>
+                    <div class="mt-4 text-xs font-mono text-muted-foreground">
+                      {{ 'home.mistakes' | transloco }}
+                    </div>
                   </div>
 
                   <div class="rounded-xl border border-border/70 bg-card/65 p-3" data-gsap-reveal>
-                    <div class="aspect-square overflow-hidden rounded-lg border-2 border-border/85 bg-background/95 shadow-inner">
+                    <div
+                      class="aspect-square overflow-hidden rounded-lg border-2 border-border/85 bg-background/95 shadow-inner"
+                    >
                       <div class="grid h-full grid-cols-9 grid-rows-9">
                         @for (cell of heroBoard; track $index; let index = $index) {
                           <div
@@ -153,7 +222,12 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
                 </div>
                 <div class="grid grid-cols-3 gap-2 text-sm">
                   @for (action of heroActionKeys; track action) {
-                    <div class="rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-center font-medium" data-gsap-lift>{{ action | transloco }}</div>
+                    <div
+                      class="rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-center font-medium"
+                      data-gsap-lift
+                    >
+                      {{ action | transloco }}
+                    </div>
                   }
                 </div>
               </div>
@@ -165,12 +239,18 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
           <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             @for (feature of features; track feature.titleKey) {
               <article class="surface-panel rounded-2xl p-5" data-gsap-stagger>
-                <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                <div
+                  class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary"
+                >
                   <i-lucide [img]="feature.icon" [size]="20"></i-lucide>
                 </div>
                 <div class="text-ui-kicker text-primary">{{ feature.kickerKey | transloco }}</div>
-                <h2 class="mt-2 text-2xl font-bold tracking-tight">{{ feature.titleKey | transloco }}</h2>
-                <p class="mt-2 text-sm text-muted-foreground">{{ feature.descriptionKey | transloco }}</p>
+                <h2 class="mt-2 text-2xl font-bold tracking-tight">
+                  {{ feature.titleKey | transloco }}
+                </h2>
+                <p class="mt-2 text-sm text-muted-foreground">
+                  {{ feature.descriptionKey | transloco }}
+                </p>
               </article>
             }
           </div>
@@ -179,17 +259,28 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
         <section class="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6" data-gsap-surface>
           <div class="surface-panel rounded-2xl p-5 sm:p-6">
             <div class="mb-4 flex items-center justify-between gap-3">
-              <h2 class="text-ui-kicker text-muted-foreground">{{ 'home.topPlayers' | transloco }}</h2>
-              <button class="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline" type="button" (click)="goLeaderboard()">
+              <h2 class="text-ui-kicker text-muted-foreground">
+                {{ 'home.topPlayers' | transloco }}
+              </h2>
+              <button
+                class="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+                type="button"
+                (click)="goLeaderboard()"
+              >
                 {{ 'home.viewFullLeaderboard' | transloco }}
                 <i-lucide [img]="ArrowRightIcon" [size]="14"></i-lucide>
               </button>
             </div>
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               @for (player of topPlayers; track player.rank) {
-                <article class="rounded-xl border border-border/60 bg-card/70 px-4 py-3" data-gsap-stagger>
+                <article
+                  class="rounded-xl border border-border/60 bg-card/70 px-4 py-3"
+                  data-gsap-stagger
+                >
                   <div class="flex items-center justify-between">
-                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/25 text-sm font-black text-primary">
+                    <span
+                      class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/25 text-sm font-black text-primary"
+                    >
                       {{ player.rank }}
                     </span>
                     <span class="font-mono text-xs text-muted-foreground">{{ player.points }}</span>
@@ -204,44 +295,72 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
         <section id="about" class="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6" data-gsap-surface>
           <div class="mb-4 flex items-center justify-between">
             <h2 class="text-ui-kicker text-muted-foreground">{{ 'home.team' | transloco }}</h2>
-            <span class="text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">{{ 'home.builtBy' | transloco }}</span>
+            <span class="text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">{{
+              'home.builtBy' | transloco
+            }}</span>
           </div>
           <div class="grid gap-3 md:grid-cols-1">
             <article class="surface-panel rounded-2xl p-5" data-gsap-stagger>
-              <div class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/20 text-lg font-black text-primary">N</div>
+              <div
+                class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/20 text-lg font-black text-primary"
+              >
+                N
+              </div>
               <h3 class="mt-3 text-lg font-bold">Nader Mohamed</h3>
               <p class="text-sm text-primary">{{ 'home.teamMember.role' | transloco }}</p>
-              <p class="mt-2 text-sm text-muted-foreground">{{ 'home.teamMember.bio' | transloco }}</p>
+              <p class="mt-2 text-sm text-muted-foreground">
+                {{ 'home.teamMember.bio' | transloco }}
+              </p>
             </article>
           </div>
         </section>
       </main>
 
       <footer class="border-t border-border/60 bg-card/45">
-        <div class="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1.2fr_1fr_1fr_1fr_1fr]">
+        <div
+          class="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1.2fr_1fr_1fr_1fr_1fr]"
+        >
           <div>
-            <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-10 w-auto dark:block" />
-            <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-10 w-auto dark:hidden" />
-            <p class="mt-3 max-w-xs text-sm text-muted-foreground">{{ 'home.footerTagline' | transloco }}</p>
+            <img
+              src="/assets/logo/logo-light.svg"
+              alt="Sudoku Rival"
+              class="hidden h-10 w-auto dark:block"
+            />
+            <img
+              src="/assets/logo/logo-dark.svg"
+              alt="Sudoku Rival"
+              class="h-10 w-auto dark:hidden"
+            />
+            <p class="mt-3 max-w-xs text-sm text-muted-foreground">
+              {{ 'home.footerTagline' | transloco }}
+            </p>
           </div>
           <div>
             <div class="text-sm font-bold">{{ 'home.game' | transloco }}</div>
             <div class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <button class="block hover:text-foreground" type="button" (click)="goMultiplayer()">{{ 'common.playNow' | transloco }}</button>
-              <button class="block hover:text-foreground" type="button" (click)="goHowToPlay()">{{ 'common.howToPlay' | transloco }}</button>
+              <button class="block hover:text-foreground" type="button" (click)="goMultiplayer()">
+                {{ 'common.playNow' | transloco }}
+              </button>
+              <button class="block hover:text-foreground" type="button" (click)="goHowToPlay()">
+                {{ 'common.howToPlay' | transloco }}
+              </button>
             </div>
           </div>
           <div>
             <div class="text-sm font-bold">{{ 'home.community' | transloco }}</div>
             <div class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <button class="block hover:text-foreground" type="button" (click)="goLeaderboard()">{{ 'common.leaderboard' | transloco }}</button>
+              <button class="block hover:text-foreground" type="button" (click)="goLeaderboard()">
+                {{ 'common.leaderboard' | transloco }}
+              </button>
               <span class="block">{{ 'home.tournaments' | transloco }}</span>
             </div>
           </div>
           <div>
             <div class="text-sm font-bold">{{ 'home.about' | transloco }}</div>
             <div class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <button class="block hover:text-foreground" type="button" (click)="scrollToAbout()">{{ 'home.team' | transloco }}</button>
+              <button class="block hover:text-foreground" type="button" (click)="scrollToAbout()">
+                {{ 'home.team' | transloco }}
+              </button>
               <span class="block">{{ 'home.contact' | transloco }}</span>
             </div>
           </div>
@@ -263,11 +382,17 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
             </div>
           </div>
         </div>
-        <div class="mx-auto flex w-full max-w-7xl flex-col gap-2 border-t border-border/60 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div
+          class="mx-auto flex w-full max-w-7xl flex-col gap-2 border-t border-border/60 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6"
+        >
           <span>{{ 'home.copyright' | transloco: { year: currentYear } }}</span>
           <span class="inline-flex gap-3">
-            <button type="button" class="hover:text-foreground" (click)="goPrivacy()">{{ 'common.privacy' | transloco }}</button>
-            <button type="button" class="hover:text-foreground" (click)="goTerms()">{{ 'common.terms' | transloco }}</button>
+            <button type="button" class="hover:text-foreground" (click)="goPrivacy()">
+              {{ 'common.privacy' | transloco }}
+            </button>
+            <button type="button" class="hover:text-foreground" (click)="goTerms()">
+              {{ 'common.terms' | transloco }}
+            </button>
           </span>
         </div>
       </footer>
@@ -343,15 +468,87 @@ export class HomePage implements AfterViewInit, OnDestroy {
   ];
 
   readonly heroBoard = [
-    { value: '5' }, { value: '3' }, { value: '' }, { value: '' }, { value: '7' }, { value: '' }, { value: '' }, { value: '' }, { value: '2', primary: true },
-    { value: '6', primary: true }, { value: '' }, { value: '' }, { value: '1' }, { value: '9' }, { value: '5' }, { value: '' }, { value: '' }, { value: '' },
-    { value: '' }, { value: '9' }, { value: '8' }, { value: '' }, { value: '' }, { value: '' }, { value: '' }, { value: '6' }, { value: '' },
-    { value: '8' }, { value: '' }, { value: '' }, { value: '' }, { value: '3', primary: true }, { value: '' }, { value: '' }, { value: '' }, { value: '4', primary: true },
-    { value: '' }, { value: '' }, { value: '' }, { value: '8' }, { value: '' }, { value: '6' }, { value: '' }, { value: '3', primary: true }, { value: '' },
-    { value: '' }, { value: '' }, { value: '3', primary: true }, { value: '' }, { value: '7', active: true, primary: true }, { value: '' }, { value: '' }, { value: '1' }, { value: '' },
-    { value: '2' }, { value: '' }, { value: '6' }, { value: '' }, { value: '' }, { value: '' }, { value: '5' }, { value: '' }, { value: '' },
-    { value: '' }, { value: '2', primary: true }, { value: '' }, { value: '' }, { value: '' }, { value: '' }, { value: '' }, { value: '8', primary: true }, { value: '' },
-    { value: '' }, { value: '' }, { value: '4' }, { value: '1' }, { value: '9' }, { value: '5' }, { value: '' }, { value: '' }, { value: '' },
+    { value: '5' },
+    { value: '3' },
+    { value: '' },
+    { value: '' },
+    { value: '7' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '2', primary: true },
+    { value: '6', primary: true },
+    { value: '' },
+    { value: '' },
+    { value: '1' },
+    { value: '9' },
+    { value: '5' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '9' },
+    { value: '8' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '6' },
+    { value: '' },
+    { value: '8' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '3', primary: true },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '4', primary: true },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '8' },
+    { value: '' },
+    { value: '6' },
+    { value: '' },
+    { value: '3', primary: true },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '3', primary: true },
+    { value: '' },
+    { value: '7', active: true, primary: true },
+    { value: '' },
+    { value: '' },
+    { value: '1' },
+    { value: '' },
+    { value: '2' },
+    { value: '' },
+    { value: '6' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '5' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '2', primary: true },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '8', primary: true },
+    { value: '' },
+    { value: '' },
+    { value: '' },
+    { value: '4' },
+    { value: '1' },
+    { value: '9' },
+    { value: '5' },
+    { value: '' },
+    { value: '' },
+    { value: '' },
   ];
 
   isHeroLastCol(index: number): boolean {
