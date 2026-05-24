@@ -109,7 +109,7 @@ export class SeoService {
         '@type': 'WebSite',
         name: 'Sudoku Rival',
         url: `${SITE_URL}/`,
-        inLanguage: [lang, lang === 'ar' ? 'en' : 'ar'],
+        inLanguage: ['en', 'ar'],
       },
       {
         '@context': 'https://schema.org',
@@ -118,8 +118,13 @@ export class SeoService {
         url: `${SITE_URL}/`,
         applicationCategory: 'GameApplication',
         operatingSystem: 'Web',
-        inLanguage: [lang, lang === 'ar' ? 'en' : 'ar'],
+        inLanguage: ['en', 'ar'],
         description: this.i18n.t('seo.default.description'),
+        offers: {
+          '@type': 'Offer',
+          'price': '0',
+          'priceCurrency': 'EGP'
+        }
       },
       {
         '@context': 'https://schema.org',

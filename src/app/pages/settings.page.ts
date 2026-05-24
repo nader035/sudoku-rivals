@@ -16,10 +16,10 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
     <div class="min-h-screen bg-background text-foreground">
       <nav class="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur-sm">
         <div class="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-2 md:px-6">
-          <button class="inline-flex items-center" type="button" (click)="goHome()">
+          <a class="inline-flex items-center" [href]="localizedRouter.localize('/')" (click)="goHome(); $event.preventDefault()">
             <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-9 w-auto dark:block" />
             <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-9 w-auto dark:hidden" />
-          </button>
+          </a>
           <app-user-nav />
         </div>
       </nav>
@@ -221,7 +221,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
 export class SettingsPage {
   readonly settings = inject(SettingsService);
   readonly appStore = inject(AppStore);
-  private readonly localizedRouter = inject(LocalizedRouterService);
+  readonly localizedRouter = inject(LocalizedRouterService);
 
   readonly LanguageIcon = Languages;
   readonly SunIcon = Sun;

@@ -598,12 +598,12 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationTree> = {
       play: {
         title: 'Play Sudoku Online - Sudoku Rival',
         description:
-          'Play Sudoku online in solo practice or join real-time multiplayer Sudoku challenges with Sudoku Rival.',
+          'Start playing Sudoku online on Sudoku Rival. Enjoy a clean puzzle experience, challenge yourself, and compete with rivals.',
       },
       howToPlay: {
-        title: 'How to Play Sudoku - Rules and Online Challenges',
+        title: 'How to Play Sudoku - Rules and Tips',
         description:
-          'Learn how to play Sudoku, understand Sudoku rules, and start online or multiplayer Sudoku challenges with Sudoku Rival.',
+          'Learn how to play Sudoku, understand the rules, and discover useful tips to solve puzzles faster.',
       },
       settings: {
         title: 'Sudoku Rival Settings - Customize Your Game',
@@ -613,12 +613,12 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationTree> = {
       privacy: {
         title: 'Privacy Policy - Sudoku Rival',
         description:
-          'Read the Sudoku Rival privacy policy for account, gameplay, notification, and preference data.',
+          'Read the Sudoku Rival privacy policy and learn how we handle data, privacy, and user information.',
       },
       terms: {
         title: 'Terms of Service - Sudoku Rival',
         description:
-          'Read the Sudoku Rival terms of service for fair play, accounts, purchases, and platform rules.',
+          'Read the Sudoku Rival terms of service and learn the rules for using the website and playing the game.',
       },
       leaderboard: {
         title: 'Sudoku Leaderboard - Sudoku Rival',
@@ -1221,12 +1221,12 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationTree> = {
       play: {
         title: 'العب سودوكو أونلاين - Sudoku Rival',
         description:
-          'العب سودوكو أونلاين في تدريب فردي أو انضم إلى تحديات سودوكو مباشرة مع Sudoku Rival.',
+          'ابدأ لعب سودوكو أونلاين على Sudoku Rival، واستمتع بتجربة ألغاز ممتعة وتحديات ذكية.',
       },
       howToPlay: {
-        title: 'طريقة لعب السودوكو - القواعد وتحديات الأونلاين',
+        title: 'طريقة لعب السودوكو - القواعد والنصائح',
         description:
-          'تعلم طريقة لعب السودوكو، وافهم قواعد السودوكو، وابدأ تحدي سودوكو أونلاين أو مع الأصدقاء على Sudoku Rival.',
+          'تعلم طريقة لعب السودوكو، افهم القواعد الأساسية، واكتشف نصائح تساعدك على حل الألغاز بسرعة.',
       },
       settings: {
         title: 'إعدادات Sudoku Rival - خصص تجربة اللعب',
@@ -1235,12 +1235,13 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationTree> = {
       },
       privacy: {
         title: 'سياسة الخصوصية - Sudoku Rival',
-        description: 'اقرأ سياسة خصوصية Sudoku Rival لبيانات الحساب واللعب والإشعارات والتفضيلات.',
+        description:
+          'اقرأ سياسة خصوصية Sudoku Rival وتعرف على كيفية التعامل مع البيانات ومعلومات المستخدم.',
       },
       terms: {
-        title: 'شروط الخدمة - Sudoku Rival',
+        title: 'شروط الاستخدام - Sudoku Rival',
         description:
-          'اقرأ شروط خدمة Sudoku Rival الخاصة باللعب العادل والحسابات والمشتريات وقواعد المنصة.',
+          'اقرأ شروط استخدام Sudoku Rival وتعرف على قواعد استخدام الموقع ولعب اللعبة.',
       },
       leaderboard: {
         title: 'لوحة صدارة سودوكو - Sudoku Rival',

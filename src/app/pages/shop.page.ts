@@ -146,16 +146,12 @@ import { TranslocoPipe } from '../core/i18n/transloco.pipe';
             >
               @if (paymentMethod() === 'vodafone_cash') {
                 {{
-                  'shop.transferVodafone'
-                    | transloco
-                      : { amount: pkg.price, currency: pkg.currency }
+                  'shop.transferVodafone' | transloco: { amount: pkg.price, currency: pkg.currency }
                 }}
                 <span class="font-bold text-primary">{{ settings().vodafoneCashNumber }}</span>
               } @else {
                 {{
-                  'shop.transferInstapay'
-                    | transloco
-                      : { amount: pkg.price, currency: pkg.currency }
+                  'shop.transferInstapay' | transloco: { amount: pkg.price, currency: pkg.currency }
                 }}
                 <a
                   class="font-bold text-primary underline"

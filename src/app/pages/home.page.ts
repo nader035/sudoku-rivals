@@ -40,7 +40,11 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
         <div
           class="mx-auto flex h-20 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6"
         >
-          <button class="inline-flex items-center" type="button" (click)="goHome()">
+          <a
+            class="inline-flex items-center"
+            [href]="localizedRouter.localize('/')"
+            (click)="goHome(); $event.preventDefault()"
+          >
             <img
               src="/assets/logo/logo-light.svg"
               alt="Sudoku Rival"
@@ -51,70 +55,70 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
               alt="Sudoku Rival"
               class="h-12 w-auto dark:hidden"
             />
-          </button>
+          </a>
 
           <nav class="hidden items-center gap-2 lg:flex">
-            <button
+            <a
               class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary/12 px-3 py-2 text-sm font-semibold text-primary"
-              type="button"
-              (click)="goHome()"
+              [href]="localizedRouter.localize('/')"
+              (click)="goHome(); $event.preventDefault()"
             >
               <i-lucide [img]="HomeIcon" [size]="16"></i-lucide>
               {{ 'common.home' | transloco }}
-            </button>
-            <button
+            </a>
+            <a
               class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground"
-              type="button"
-              (click)="goMultiplayer()"
+              [href]="localizedRouter.localize('/play')"
+              (click)="goMultiplayer(); $event.preventDefault()"
             >
               <i-lucide [img]="PlayIcon" [size]="16"></i-lucide>
               {{ 'common.play' | transloco }}
-            </button>
-            <button
+            </a>
+            <a
               class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground"
-              type="button"
-              (click)="goHowToPlay()"
+              [href]="localizedRouter.localize('/how-to-play')"
+              (click)="goHowToPlay(); $event.preventDefault()"
             >
               <i-lucide [img]="InfoIcon" [size]="16"></i-lucide>
               {{ 'common.howToPlay' | transloco }}
-            </button>
-            <button
+            </a>
+            <a
               class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground"
-              type="button"
-              (click)="goLeaderboard()"
+              [href]="localizedRouter.localize('/leaderboard')"
+              (click)="goLeaderboard(); $event.preventDefault()"
             >
               <i-lucide [img]="TrophyIcon" [size]="16"></i-lucide>
               {{ 'common.leaderboard' | transloco }}
-            </button>
-            <button
+            </a>
+            <a
               class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground"
-              type="button"
-              (click)="goSettings()"
+              [href]="localizedRouter.localize('/settings')"
+              (click)="goSettings(); $event.preventDefault()"
             >
               <i-lucide [img]="SettingsIcon" [size]="16"></i-lucide>
               {{ 'common.settings' | transloco }}
-            </button>
+            </a>
           </nav>
 
           <div class="flex items-center gap-2">
             <app-language-switcher />
             @if (!appStore.isSignedIn()) {
-              <button
+              <a
                 class="btn-game hidden rounded-lg border border-border/60 bg-card/70 px-4 py-2 text-sm font-semibold hover:bg-muted/40 md:inline-flex"
-                type="button"
-                (click)="goSignIn()"
+                [href]="localizedRouter.localize('/sign-in')"
+                (click)="goSignIn(); $event.preventDefault()"
               >
                 {{ 'common.logIn' | transloco }}
-              </button>
+              </a>
             }
-            <button
+            <a
               class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/20"
-              type="button"
-              (click)="goMultiplayer()"
+              [href]="localizedRouter.localize('/play')"
+              (click)="goMultiplayer(); $event.preventDefault()"
             >
               <i-lucide [img]="ZapIcon" [size]="16"></i-lucide>
               {{ 'common.playNow' | transloco }}
-            </button>
+            </a>
           </div>
         </div>
       </header>
@@ -142,24 +146,24 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
                 {{ 'home.description' | transloco }}
               </p>
               <div class="flex flex-col gap-3 sm:flex-row" data-gsap-reveal>
-                <button
+                <a
                   class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-base font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/20"
-                  type="button"
-                  (click)="goMultiplayer()"
+                  [href]="localizedRouter.localize('/play')"
+                  (click)="goMultiplayer(); $event.preventDefault()"
                   data-gsap-lift
                 >
                   <i-lucide [img]="ZapIcon" [size]="18"></i-lucide>
                   {{ 'common.playNow' | transloco }}
-                </button>
-                <button
+                </a>
+                <a
                   class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/70 bg-card/70 px-8 py-3 text-base font-semibold hover:bg-muted/40"
-                  type="button"
-                  (click)="goHowToPlay()"
+                  [href]="localizedRouter.localize('/how-to-play')"
+                  (click)="goHowToPlay(); $event.preventDefault()"
                   data-gsap-lift
                 >
                   <i-lucide [img]="InfoIcon" [size]="18"></i-lucide>
                   {{ 'home.learnMore' | transloco }}
-                </button>
+                </a>
               </div>
             </div>
 
@@ -262,14 +266,14 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
               <h2 class="text-ui-kicker text-muted-foreground">
                 {{ 'home.topPlayers' | transloco }}
               </h2>
-              <button
+              <a
                 class="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-                type="button"
-                (click)="goLeaderboard()"
+                [href]="localizedRouter.localize('/leaderboard')"
+                (click)="goLeaderboard(); $event.preventDefault()"
               >
                 {{ 'home.viewFullLeaderboard' | transloco }}
                 <i-lucide [img]="ArrowRightIcon" [size]="14"></i-lucide>
-              </button>
+              </a>
             </div>
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               @for (player of topPlayers; track player.rank) {
@@ -338,29 +342,45 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
           <div>
             <div class="text-sm font-bold">{{ 'home.game' | transloco }}</div>
             <div class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <button class="block hover:text-foreground" type="button" (click)="goMultiplayer()">
+              <a
+                class="block hover:text-foreground"
+                [href]="localizedRouter.localize('/play')"
+                (click)="goMultiplayer(); $event.preventDefault()"
+              >
                 {{ 'common.playNow' | transloco }}
-              </button>
-              <button class="block hover:text-foreground" type="button" (click)="goHowToPlay()">
+              </a>
+              <a
+                class="block hover:text-foreground"
+                [href]="localizedRouter.localize('/how-to-play')"
+                (click)="goHowToPlay(); $event.preventDefault()"
+              >
                 {{ 'common.howToPlay' | transloco }}
-              </button>
+              </a>
             </div>
           </div>
           <div>
             <div class="text-sm font-bold">{{ 'home.community' | transloco }}</div>
             <div class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <button class="block hover:text-foreground" type="button" (click)="goLeaderboard()">
+              <a
+                class="block hover:text-foreground"
+                [href]="localizedRouter.localize('/leaderboard')"
+                (click)="goLeaderboard(); $event.preventDefault()"
+              >
                 {{ 'common.leaderboard' | transloco }}
-              </button>
+              </a>
               <span class="block">{{ 'home.tournaments' | transloco }}</span>
             </div>
           </div>
           <div>
             <div class="text-sm font-bold">{{ 'home.about' | transloco }}</div>
             <div class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <button class="block hover:text-foreground" type="button" (click)="scrollToAbout()">
+              <a
+                class="block hover:text-foreground"
+                href="#about"
+                (click)="scrollToAbout(); $event.preventDefault()"
+              >
                 {{ 'home.team' | transloco }}
-              </button>
+              </a>
               <span class="block">{{ 'home.contact' | transloco }}</span>
             </div>
           </div>
@@ -387,12 +407,20 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
         >
           <span>{{ 'home.copyright' | transloco: { year: currentYear } }}</span>
           <span class="inline-flex gap-3">
-            <button type="button" class="hover:text-foreground" (click)="goPrivacy()">
+            <a
+              class="hover:text-foreground"
+              [href]="localizedRouter.localize('/privacy')"
+              (click)="goPrivacy(); $event.preventDefault()"
+            >
               {{ 'common.privacy' | transloco }}
-            </button>
-            <button type="button" class="hover:text-foreground" (click)="goTerms()">
+            </a>
+            <a
+              class="hover:text-foreground"
+              [href]="localizedRouter.localize('/terms')"
+              (click)="goTerms(); $event.preventDefault()"
+            >
               {{ 'common.terms' | transloco }}
-            </button>
+            </a>
           </span>
         </div>
       </footer>
@@ -401,7 +429,7 @@ import { LanguageSwitcherComponent } from '../shared/components/language-switche
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage implements AfterViewInit, OnDestroy {
-  private readonly localizedRouter = inject(LocalizedRouterService);
+  readonly localizedRouter = inject(LocalizedRouterService);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly zone = inject(NgZone);
   readonly appStore = inject(AppStore);
