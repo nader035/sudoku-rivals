@@ -20,21 +20,26 @@ import {
   X,
 } from 'lucide-angular/src/icons';
 import { AppStore } from '../../store/app.store';
+import { TranslocoPipe } from '../../core/i18n/transloco.pipe';
+import { LocalizedRouterService } from '../../core/services/localized-router.service';
+import { LanguageSwitcherComponent } from './language-switcher.component';
 
 @Component({
   selector: 'app-user-nav',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, TranslocoPipe, LanguageSwitcherComponent],
   template: `
     <div class="relative flex items-center justify-end gap-1.5">
+      <app-language-switcher />
+
       <button
         class="btn-game inline-flex items-center gap-1 border border-border/60 bg-card/70 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/40 hover:bg-muted/40 md:hidden"
         type="button"
         (click)="toggleMobileMenu()"
-        aria-label="Toggle navigation"
+        [attr.aria-label]="'nav.toggle' | transloco"
       >
         <i-lucide [img]="menuOpen() ? CloseIcon : MenuIcon" [size]="14"></i-lucide>
-        {{ menuOpen() ? 'Close' : 'Menu' }}
+        {{ menuOpen() ? ('common.close' | transloco) : ('common.menu' | transloco) }}
       </button>
 
       <div class="hidden items-center gap-1.5 md:flex">
@@ -43,8 +48,8 @@ import { AppStore } from '../../store/app.store';
             class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border/60 bg-card/75 text-foreground transition-colors hover:border-primary/45 hover:bg-muted/35"
             type="button"
             (click)="goNotifications()"
-            title="Notifications"
-            aria-label="Notifications"
+            [title]="'common.notifications' | transloco"
+            [attr.aria-label]="'common.notifications' | transloco"
           >
             <i-lucide [img]="BellIcon" [size]="17"></i-lucide>
             @if (appStore.unreadNotifications() > 0) {
@@ -60,21 +65,21 @@ import { AppStore } from '../../store/app.store';
             class="hidden h-10 items-center gap-2 rounded-lg border border-primary/35 bg-primary/10 px-3 text-sm font-semibold text-primary transition-colors hover:border-primary/60 hover:bg-primary/15 xl:inline-flex"
             type="button"
             (click)="goWallet()"
-            title="Wallet"
+            [title]="'common.wallet' | transloco"
           >
             <i-lucide [img]="WalletIcon" [size]="15"></i-lucide>
             <span class="tabular-nums">{{ appStore.wallet()?.balance ?? 0 }}</span>
-            <span class="hidden text-[11px] font-mono uppercase tracking-wider lg:inline">coins</span>
+            <span class="hidden text-[11px] font-mono uppercase tracking-wider lg:inline">{{ 'common.coins' | transloco }}</span>
           </button>
 
           <button
             class="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:shadow-lg hover:shadow-primary/20"
             type="button"
             (click)="goShop()"
-            title="Buy coins"
+            [title]="'common.buyCoins' | transloco"
           >
             <i-lucide [img]="ShopIcon" [size]="15"></i-lucide>
-            <span>Buy</span>
+            <span>{{ 'common.buy' | transloco }}</span>
           </button>
         }
 
@@ -83,7 +88,7 @@ import { AppStore } from '../../store/app.store';
             class="group inline-flex h-10 items-center gap-2 rounded-lg border border-primary/30 bg-card/80 px-2.5 text-left transition-colors hover:border-primary/60 hover:bg-muted/35"
             type="button"
             (click)="toggleDesktopMenu()"
-            aria-label="Open account menu"
+            [attr.aria-label]="'nav.openAccount' | transloco"
           >
             <span class="flex h-7 w-7 items-center justify-center rounded-md bg-primary font-mono text-sm font-black uppercase text-primary-foreground">
               {{ avatarInitial() }}
@@ -102,7 +107,7 @@ import { AppStore } from '../../store/app.store';
             (click)="goSignIn()"
           >
             <i-lucide [img]="LoginIcon" [size]="16"></i-lucide>
-            Sign in
+            {{ 'common.signIn' | transloco }}
           </button>
         }
       </div>
@@ -112,48 +117,53 @@ import { AppStore } from '../../store/app.store';
           @if (appStore.authLoaded() && appStore.isSignedIn()) {
             <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-left text-sm font-medium hover:border-primary/40 hover:bg-muted/40" type="button" (click)="goProfile()">
               <i-lucide [img]="UserIcon" [size]="16"></i-lucide>
-              Profile
+              {{ 'common.profile' | transloco }}
             </button>
 
             @if (showGameLinks()) {
               <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-primary/35 bg-primary/12 px-3 py-2 text-left text-sm font-semibold text-primary hover:border-primary/60 hover:bg-primary/18" type="button" (click)="goWallet()">
                 <i-lucide [img]="WalletIcon" [size]="16"></i-lucide>
-                {{ appStore.wallet()?.balance ?? 0 }} coins
+                {{ appStore.wallet()?.balance ?? 0 }} {{ 'common.coins' | transloco }}
               </button>
               <button class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-left text-sm font-bold text-primary-foreground" type="button" (click)="goShop()">
                 <i-lucide [img]="ShopIcon" [size]="16"></i-lucide>
-                Buy Coins
+                {{ 'common.buyCoins' | transloco }}
               </button>
               <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-left text-sm font-medium hover:border-primary/40 hover:bg-muted/40" type="button" (click)="goLeaderboard()">
                 <i-lucide [img]="TrophyIcon" [size]="16"></i-lucide>
-                Leaderboard
+                {{ 'common.leaderboard' | transloco }}
               </button>
               <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-left text-sm font-medium hover:border-primary/40 hover:bg-muted/40" type="button" (click)="goSolo()">
                 <i-lucide [img]="SoloIcon" [size]="16"></i-lucide>
-                Solo
+                {{ 'common.solo' | transloco }}
               </button>
             }
+
+            <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-left text-sm font-medium hover:border-primary/40 hover:bg-muted/40" type="button" (click)="goSettings()">
+              <i-lucide [img]="AdminIcon" [size]="16"></i-lucide>
+              {{ 'common.settings' | transloco }}
+            </button>
 
             @if (appStore.isAdmin()) {
               <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-left text-sm font-medium hover:border-primary/40 hover:bg-muted/40" type="button" (click)="goAdmin()">
                 <i-lucide [img]="AdminIcon" [size]="16"></i-lucide>
-                Admin
+                {{ 'common.admin' | transloco }}
               </button>
             }
 
             <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-left text-sm font-medium hover:border-primary/40 hover:bg-muted/40" type="button" (click)="toggleTheme()">
               <i-lucide [img]="themeIcon()" [size]="16"></i-lucide>
-              {{ themeLabel() }}
+              {{ themeLabelKey() | transloco }}
             </button>
 
             <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-destructive/35 bg-destructive/10 px-3 py-2 text-left text-sm font-medium text-destructive hover:bg-destructive/15" type="button" (click)="signOut()">
               <i-lucide [img]="LogoutIcon" [size]="16"></i-lucide>
-              Sign out
+              {{ 'common.signOut' | transloco }}
             </button>
           } @else {
             <button class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-left text-sm font-semibold text-primary-foreground" type="button" (click)="goSignIn()">
               <i-lucide [img]="LoginIcon" [size]="16"></i-lucide>
-              Sign in
+              {{ 'common.signIn' | transloco }}
             </button>
           }
         </div>
@@ -164,45 +174,50 @@ import { AppStore } from '../../store/app.store';
           @if (showGameLinks()) {
             <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-sm font-medium hover:border-primary/35 hover:bg-muted/35" type="button" (click)="goWallet()">
               <i-lucide [img]="WalletIcon" [size]="16"></i-lucide>
-              Wallet: {{ appStore.wallet()?.balance ?? 0 }} coins
+              {{ 'common.wallet' | transloco }}: {{ appStore.wallet()?.balance ?? 0 }} {{ 'common.coins' | transloco }}
             </button>
           }
 
           <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-sm font-medium hover:border-primary/35 hover:bg-muted/35" type="button" (click)="goProfile()">
             <i-lucide [img]="UserIcon" [size]="16"></i-lucide>
-            Profile
+            {{ 'common.profile' | transloco }}
           </button>
 
           @if (showGameLinks()) {
             <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-sm font-medium hover:border-primary/35 hover:bg-muted/35" type="button" (click)="goShop()">
               <i-lucide [img]="ShopIcon" [size]="16"></i-lucide>
-              Buy coins
+              {{ 'common.buyCoins' | transloco }}
             </button>
             <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-sm font-medium hover:border-primary/35 hover:bg-muted/35" type="button" (click)="goLeaderboard()">
               <i-lucide [img]="TrophyIcon" [size]="16"></i-lucide>
-              Leaderboard
+              {{ 'common.leaderboard' | transloco }}
             </button>
             <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-sm font-medium hover:border-primary/35 hover:bg-muted/35" type="button" (click)="goSolo()">
               <i-lucide [img]="SoloIcon" [size]="16"></i-lucide>
-              Solo
+              {{ 'common.solo' | transloco }}
             </button>
           }
+
+          <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-sm font-medium hover:border-primary/35 hover:bg-muted/35" type="button" (click)="goSettings()">
+            <i-lucide [img]="AdminIcon" [size]="16"></i-lucide>
+            {{ 'common.settings' | transloco }}
+          </button>
 
           @if (appStore.isAdmin()) {
             <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-sm font-medium hover:border-primary/35 hover:bg-muted/35" type="button" (click)="goAdmin()">
               <i-lucide [img]="AdminIcon" [size]="16"></i-lucide>
-              Admin
+              {{ 'common.admin' | transloco }}
             </button>
           }
 
           <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-sm font-medium hover:border-primary/35 hover:bg-muted/35" type="button" (click)="toggleTheme()">
             <i-lucide [img]="themeIcon()" [size]="16"></i-lucide>
-            {{ themeLabel() }}
+            {{ themeLabelKey() | transloco }}
           </button>
 
           <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-sm font-medium text-destructive hover:border-destructive/35 hover:bg-destructive/12" type="button" (click)="signOut()">
             <i-lucide [img]="LogoutIcon" [size]="16"></i-lucide>
-            Sign out
+            {{ 'common.signOut' | transloco }}
           </button>
         </div>
       }
@@ -216,10 +231,10 @@ import { AppStore } from '../../store/app.store';
               <div class="mt-1 text-sm text-muted-foreground">{{ liveToast()!.message }}</div>
               <div class="mt-3 flex gap-2">
                 <button class="btn-game rounded-md border border-primary/40 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary/10" type="button" (click)="openToastNotifications()">
-                  View
+                  {{ 'common.view' | transloco }}
                 </button>
                 <button class="btn-game rounded-md border border-border/60 px-2.5 py-1 text-xs font-bold uppercase tracking-wider hover:border-primary/40" type="button" (click)="dismissToast()">
-                  Dismiss
+                  {{ 'common.dismiss' | transloco }}
                 </button>
               </div>
             </div>
@@ -232,6 +247,7 @@ import { AppStore } from '../../store/app.store';
 })
 export class UserNavComponent {
   private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   readonly appStore = inject(AppStore);
   readonly showGameLinks = input(true);
   readonly menuOpen = signal(false);
@@ -256,17 +272,17 @@ export class UserNavComponent {
   readonly LoginIcon = LogIn;
   readonly themeIcon = computed(() => (this.appStore.theme() === 'dark' ? Sun : Moon));
 
-  readonly themeLabel = computed(() => {
+  readonly themeLabelKey = computed(() => {
     const theme = this.appStore.theme();
-    if (theme === 'system') return 'System';
-    return theme === 'dark' ? 'Light' : 'Dark';
+    if (theme === 'system') return 'common.system';
+    return theme === 'dark' ? 'common.light' : 'common.dark';
   });
 
   readonly avatarInitial = computed(() => {
     const name = this.appStore.displayName().trim();
     return (name[0] ?? 'P').toUpperCase();
   });
-  readonly isNotificationsPage = computed(() => this.currentUrl().startsWith('/notifications'));
+  readonly isNotificationsPage = computed(() => /(^|\/)notifications(\/|$)/.test(this.currentUrl()));
 
   constructor() {
     this.router.events
@@ -331,47 +347,52 @@ export class UserNavComponent {
 
   goLeaderboard(): void {
     this.closeMenus();
-    void this.router.navigateByUrl('/leaderboard');
+    void this.localizedRouter.navigate('/leaderboard');
   }
 
   goSolo(): void {
     this.closeMenus();
-    void this.router.navigateByUrl('/play/solo');
+    void this.localizedRouter.navigate('/play');
   }
 
   goSignIn(): void {
     this.closeMenus();
-    void this.router.navigateByUrl('/sign-in');
+    void this.localizedRouter.navigate('/sign-in');
   }
 
   goProfile(): void {
     this.closeMenus();
-    void this.router.navigateByUrl('/profile');
+    void this.localizedRouter.navigate('/profile');
+  }
+
+  goSettings(): void {
+    this.closeMenus();
+    void this.localizedRouter.navigate('/settings');
   }
 
   goAdmin(): void {
     this.closeMenus();
-    void this.router.navigateByUrl('/admin');
+    void this.localizedRouter.navigate('/admin');
   }
 
   goShop(): void {
     this.closeMenus();
-    void this.router.navigateByUrl('/shop');
+    void this.localizedRouter.navigate('/shop');
   }
 
   goWallet(): void {
     this.closeMenus();
-    void this.router.navigateByUrl('/wallet');
+    void this.localizedRouter.navigate('/wallet');
   }
 
   goNotifications(): void {
     this.closeMenus();
-    void this.router.navigateByUrl('/notifications');
+    void this.localizedRouter.navigate('/notifications');
   }
 
   openToastNotifications(): void {
     this.dismissToast();
-    void this.router.navigateByUrl('/notifications');
+    void this.localizedRouter.navigate('/notifications');
   }
 
   dismissToast(): void {
@@ -393,7 +414,7 @@ export class UserNavComponent {
   async signOut(): Promise<void> {
     this.closeMenus();
     await this.appStore.signOut();
-    await this.router.navigateByUrl('/');
+    await this.localizedRouter.navigate('/');
   }
 
   private closeMenus(): void {

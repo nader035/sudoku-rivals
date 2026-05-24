@@ -9,12 +9,13 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { AppStore } from '../store/app.store';
 import { GameStore } from '../store/game.store';
 import { SudokuGridComponent } from '../shared/components/sudoku-grid.component';
 import { UserNavComponent } from '../shared/components/user-nav.component';
 import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 const PENALTY_PERCENT = 3;
 const FREEZE_MS = 3000;
@@ -370,7 +371,7 @@ const BOARD_RESET_MISTAKE_THRESHOLD = 10;
 })
 export class RoomPage implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   readonly appStore = inject(AppStore);
   readonly gameStore = inject(GameStore);
   readonly roomId = this.route.snapshot.paramMap.get('roomId') ?? '';
@@ -449,7 +450,7 @@ export class RoomPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!this.roomId) {
-      void this.router.navigateByUrl('/lobby');
+      void this.localizedRouter.navigate('/lobby');
       return;
     }
 
@@ -478,7 +479,7 @@ export class RoomPage implements OnInit, OnDestroy {
   }
 
   goLobby(): void {
-    void this.router.navigateByUrl('/lobby');
+    void this.localizedRouter.navigate('/lobby');
   }
 
   toggleTheme(): void {
@@ -528,7 +529,7 @@ export class RoomPage implements OnInit, OnDestroy {
 
   async forfeit(): Promise<void> {
     await this.gameStore.leaveRoom();
-    await this.router.navigateByUrl('/lobby');
+    await this.localizedRouter.navigate('/lobby');
   }
 
   shareLink(destination: 'x' | 'facebook' | 'linkedin'): string {

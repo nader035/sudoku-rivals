@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { catchError, of } from 'rxjs';
 import { SupabaseService } from '../core/services/supabase.service';
 import { EconomyLeaderboardEntry, LeaderboardSort, RecentMatch, StatsSummary } from '../core/models';
 import { UserNavComponent } from '../shared/components/user-nav.component';
 import { GsapCountUpDirective } from '../shared/directives/gsap-count-up.directive';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 const EMPTY_STATS: StatsSummary = {
   activeRooms: 0,
@@ -68,6 +68,7 @@ const EMPTY_STATS: StatsSummary = {
                   [class.text-primary]="sortBy() === item.value"
                   [class.border-border]="sortBy() !== item.value"
                   [class.bg-card/70]="sortBy() !== item.value"
+                  [disabled]="loadingLeaderboard()"
                   type="button"
                   (click)="changeSort(item.value)"
                 >
@@ -76,6 +77,16 @@ const EMPTY_STATS: StatsSummary = {
               }
             </div>
           </div>
+          @if (leaderboardError()) {
+            <div class="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs font-mono text-destructive">
+              {{ leaderboardError() }}
+            </div>
+          }
+          @if (loadingLeaderboard()) {
+            <div class="rounded-lg border border-border/60 bg-card/50 px-3 py-2 text-xs font-mono text-muted-foreground">
+              Updating leaderboard...
+            </div>
+          }
           <div class="surface-panel overflow-hidden rounded-xl">
             @if (leaderboard().length === 0) {
               <div class="p-6 font-mono text-sm text-muted-foreground">No players ranked yet.</div>
@@ -137,10 +148,13 @@ const EMPTY_STATS: StatsSummary = {
   imports: [UserNavComponent, GsapCountUpDirective],
 })
 export class LeaderboardPage {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   readonly supabase = inject(SupabaseService);
   readonly sortBy = signal<LeaderboardSort>('wins');
   readonly leaderboard = signal<EconomyLeaderboardEntry[]>([]);
+  readonly loadingLeaderboard = signal(false);
+  readonly leaderboardError = signal<string | null>(null);
+  private leaderboardRequestId = 0;
   readonly sortOptions: Array<{ label: string; value: LeaderboardSort }> = [
     { label: 'Wins', value: 'wins' },
     { label: 'Win Rate', value: 'win_rate' },
@@ -163,22 +177,38 @@ export class LeaderboardPage {
       .subscribe((value) => this.recent.set(value));
   }
 
-  async loadLeaderboard(): Promise<void> {
-    const data = await this.supabase.getEconomyLeaderboard(this.sortBy(), 50, 0);
-    this.leaderboard.set(data);
+  async loadLeaderboard(sort = this.sortBy()): Promise<void> {
+    const requestId = ++this.leaderboardRequestId;
+    this.loadingLeaderboard.set(true);
+    this.leaderboardError.set(null);
+
+    try {
+      const data = await this.supabase.getEconomyLeaderboard(sort, 50, 0);
+      if (requestId !== this.leaderboardRequestId) return;
+      this.leaderboard.set(data);
+    } catch (error) {
+      if (requestId !== this.leaderboardRequestId) return;
+      this.leaderboardError.set(
+        error instanceof Error ? error.message : 'Unable to update leaderboard filter.',
+      );
+    } finally {
+      if (requestId === this.leaderboardRequestId) {
+        this.loadingLeaderboard.set(false);
+      }
+    }
   }
 
   async changeSort(next: LeaderboardSort): Promise<void> {
     if (this.sortBy() === next) return;
     this.sortBy.set(next);
-    await this.loadLeaderboard();
+    await this.loadLeaderboard(next);
   }
 
   goHome(): void {
-    void this.router.navigateByUrl('/');
+    void this.localizedRouter.navigate('/');
   }
 
   goLobby(): void {
-    void this.router.navigateByUrl('/lobby');
+    void this.localizedRouter.navigate('/lobby');
   }
 }

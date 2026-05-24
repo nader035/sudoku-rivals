@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 @Component({
   selector: 'app-admin-placeholder-page',
@@ -25,7 +26,7 @@ import { ActivatedRoute, Router } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminPlaceholderPage {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   private readonly route = inject(ActivatedRoute);
 
   title() {
@@ -33,6 +34,6 @@ export class AdminPlaceholderPage {
   }
 
   goAdmin(): void {
-    void this.router.navigateByUrl('/admin');
+    void this.localizedRouter.navigate('/admin');
   }
 }

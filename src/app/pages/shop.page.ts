@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, Injector, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { SupabaseService } from '../core/services/supabase.service';
 import { PurchasePaymentMethod, PurchaseSnapshot, ShopPackage } from '../core/models';
 import { UserNavComponent } from '../shared/components/user-nav.component';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 @Component({
   selector: 'app-shop-page',
@@ -233,7 +233,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShopPage {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   private readonly injector = inject(Injector);
   private readonly supabase = inject(SupabaseService);
 
@@ -285,7 +285,7 @@ export class ShopPage {
   }
 
   goHome(): void {
-    void this.router.navigateByUrl('/');
+    void this.localizedRouter.navigate('/');
   }
 
   selectPackage(pkg: ShopPackage): void {

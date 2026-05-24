@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 type SudokuCellState = {
   index: number;
@@ -30,6 +31,7 @@ type SudokuCellState = {
   `,
 })
 export class SudokuCellComponent {
+  private readonly i18n = inject(I18nService);
   readonly index = input.required<number>();
   readonly value = input.required<number>();
   readonly isGiven = input.required<boolean>();
@@ -63,7 +65,12 @@ export class SudokuCellComponent {
     return classNames.filter(Boolean).join(' ');
   });
 
-  readonly label = computed(() => `Cell ${this.index() + 1}, value ${this.value() || 'empty'}`);
+  readonly label = computed(() =>
+    this.i18n.t('game.cellLabel', {
+      index: this.index() + 1,
+      value: this.value() || this.i18n.t('game.empty'),
+    }),
+  );
 }
 
 @Component({

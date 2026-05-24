@@ -1,0 +1,178 @@
+{
+  "common": {
+    "brand": "Sudoku Rival",
+    "home": "Home",
+    "play": "Play",
+    "playNow": "Play Now",
+    "howToPlay": "How To Play",
+    "leaderboard": "Leaderboard",
+    "settings": "Settings",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "logIn": "Log in",
+    "close": "Close",
+    "menu": "Menu",
+    "notifications": "Notifications",
+    "wallet": "Wallet",
+    "shop": "Shop",
+    "buy": "Buy",
+    "buyCoins": "Buy coins",
+    "coins": "coins",
+    "profile": "Profile",
+    "admin": "Admin",
+    "solo": "Solo",
+    "signOut": "Sign out",
+    "view": "View",
+    "dismiss": "Dismiss",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "account": "Account",
+    "email": "Email",
+    "password": "Password",
+    "english": "English",
+    "arabic": "Arabic"
+  },
+  "nav": {
+    "toggle": "Toggle navigation",
+    "openAccount": "Open account menu",
+    "language": "Language",
+    "switchToEnglish": "Switch to English",
+    "switchToArabic": "Switch to Arabic"
+  },
+  "home": {
+    "kicker": "Real-time multiplayer Sudoku",
+    "titleLine1": "The Ultimate",
+    "titleLine2": "Sudoku",
+    "titleAccent": "Battle",
+    "description": "Compete in real-time Sudoku matches against players worldwide. Fast thinking, sharp strategy, and precision decide the winner.",
+    "learnMore": "Learn More",
+    "topPlayers": "Top Players",
+    "viewFullLeaderboard": "View Full Leaderboard",
+    "footerTagline": "Think sharp. Compete hard. Be the rival."
+  },
+  "play": {
+    "kicker": "Solo Practice",
+    "title": "Play Sudoku Online",
+    "description": "Start a fast Sudoku board online, sharpen your logic, and prepare for live multiplayer challenges.",
+    "filled": "Filled:",
+    "controls": "Controls",
+    "solved": "Puzzle solved",
+    "complete": "Sudoku Complete"
+  },
+  "howToPlay": {
+    "kicker": "Sudoku rules",
+    "title": "How to Play Sudoku",
+    "subtitle": "Learn the classic Sudoku rules, then bring them into online Sudoku challenges and multiplayer Sudoku rooms.",
+    "basicsTitle": "Sudoku basics",
+    "basics": "Fill every empty cell with a number from 1 to 9. Each row, column, and 3x3 box must contain every number once.",
+    "onlineTitle": "Online Sudoku on Sudoku Rival",
+    "online": "Choose solo practice for quick training, or sign in to create rooms and challenge friends in real-time matches.",
+    "challengeTitle": "Multiplayer challenge rules",
+    "challenge": "Everyone solves the same puzzle. Correct answers increase progress, while wrong answers can trigger penalties in live rooms.",
+    "tipsTitle": "Useful tips",
+    "tipsOne": "Scan rows, columns, and boxes before guessing.",
+    "tipsTwo": "Use obvious singles first to unlock harder sections.",
+    "tipsThree": "In multiplayer Sudoku, accuracy is often faster than risky guesses.",
+    "cta": "Start Playing"
+  },
+  "privacy": {
+    "kicker": "Legal",
+    "title": "Privacy Policy",
+    "intro": "Sudoku Rival collects only the information needed to run accounts, multiplayer rooms, leaderboards, payments, and safety features.",
+    "dataTitle": "Information we use",
+    "data": "Account details, gameplay progress, wallet activity, notifications, and support information may be processed to provide the service.",
+    "securityTitle": "Security",
+    "security": "Authentication, database access, and account data are handled through the existing secure app integrations and access rules.",
+    "choicesTitle": "Your choices",
+    "choices": "You can use Settings to control visual preferences, language, sounds, notifications, and game options stored on this device."
+  },
+  "terms": {
+    "kicker": "Legal",
+    "title": "Terms of Service",
+    "intro": "By using Sudoku Rival, you agree to play fairly, respect other players, and follow the rules of the platform.",
+    "playTitle": "Fair play",
+    "play": "Do not exploit bugs, automate gameplay, harass players, or attempt to manipulate rooms, wallets, purchases, or leaderboards.",
+    "accountsTitle": "Accounts and purchases",
+    "accounts": "You are responsible for your account activity. Manual purchase confirmations are reviewed before coins are credited.",
+    "availabilityTitle": "Availability",
+    "availability": "Sudoku Rival may change features, rules, or availability to improve reliability, safety, and gameplay balance."
+  },
+  "settings": {
+    "kicker": "Preferences",
+    "title": "Sudoku Rival Settings",
+    "subtitle": "Customize language, theme, sound, notifications, and game preferences for this device.",
+    "language": {
+      "title": "Language",
+      "description": "The URL remains the source of truth, while your choice is saved as a preference.",
+      "english": "English",
+      "arabic": "Arabic"
+    },
+    "theme": {
+      "title": "Theme",
+      "description": "Choose the global color mode used across Sudoku Rival.",
+      "light": "Light mode",
+      "dark": "Dark mode"
+    },
+    "sound": {
+      "title": "Sound",
+      "description": "Control game sounds for future game events.",
+      "enabled": "Game sounds"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Browser permission is requested only when you enable notifications.",
+      "enabled": "Notifications",
+      "unsupported": "Browser notifications are not available in this environment.",
+      "denied": "Notifications are blocked in your browser settings."
+    },
+    "gamePreferences": {
+      "title": "Game preferences",
+      "description": "Save board behavior preferences for solo and future game screens.",
+      "showMistakes": "Show mistakes",
+      "highlightDuplicates": "Highlight duplicates",
+      "autoCheck": "Auto-check answers",
+      "timer": "Timer"
+    },
+    "account": {
+      "title": "Account",
+      "signedInAs": "Signed in as {{ name }}",
+      "login": "Sign in",
+      "register": "Create account",
+      "logout": "Log out",
+      "profile": "Open profile",
+      "guestMessage": "Sign in to manage profile, wallet, rooms, and match history."
+    }
+  },
+  "seo": {
+    "siteName": "Sudoku Rival",
+    "home": {
+      "title": "Sudoku Rival - Play Sudoku Online",
+      "description": "Play Sudoku online, challenge your friends, and improve your puzzle skills with Sudoku Rival."
+    },
+    "play": {
+      "title": "Play Sudoku Online - Sudoku Rival",
+      "description": "Play Sudoku online in solo practice or join real-time multiplayer Sudoku challenges with Sudoku Rival."
+    },
+    "howToPlay": {
+      "title": "How to Play Sudoku - Rules and Online Challenges",
+      "description": "Learn how to play Sudoku, understand Sudoku rules, and start online or multiplayer Sudoku challenges with Sudoku Rival."
+    },
+    "settings": {
+      "title": "Sudoku Rival Settings - Customize Your Game",
+      "description": "Customize your Sudoku Rival experience, including language, theme, sound, notifications, and game preferences."
+    },
+    "privacy": {
+      "title": "Privacy Policy - Sudoku Rival",
+      "description": "Read the Sudoku Rival privacy policy for account, gameplay, notification, and preference data."
+    },
+    "terms": {
+      "title": "Terms of Service - Sudoku Rival",
+      "description": "Read the Sudoku Rival terms of service for fair play, accounts, purchases, and platform rules."
+    }
+  }
+}

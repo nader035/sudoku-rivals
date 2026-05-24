@@ -8,7 +8,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { AppStore } from '../store/app.store';
 import {
@@ -20,21 +19,25 @@ import {
   Instagram,
   Linkedin,
   Play,
+  Settings,
   Shield,
   Trophy,
   Twitter,
   Users,
   Zap,
 } from 'lucide-angular/src/icons';
+import { TranslocoPipe } from '../core/i18n/transloco.pipe';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
+import { LanguageSwitcherComponent } from '../shared/components/language-switcher.component';
 
 @Component({
   selector: 'app-home-page',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, TranslocoPipe, LanguageSwitcherComponent],
   template: `
     <div class="min-h-screen bg-background text-foreground">
       <header class="border-b border-border/70 bg-background/92 backdrop-blur">
-        <div class="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div class="mx-auto flex h-20 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
           <button class="inline-flex items-center" type="button" (click)="goHome()">
             <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-12 w-auto dark:block" />
             <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-12 w-auto dark:hidden" />
@@ -43,31 +46,36 @@ import {
           <nav class="hidden items-center gap-2 lg:flex">
             <button class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary/12 px-3 py-2 text-sm font-semibold text-primary" type="button" (click)="goHome()">
               <i-lucide [img]="HomeIcon" [size]="16"></i-lucide>
-              Home
+              {{ 'common.home' | transloco }}
             </button>
             <button class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" type="button" (click)="goMultiplayer()">
               <i-lucide [img]="PlayIcon" [size]="16"></i-lucide>
-              Play
+              {{ 'common.play' | transloco }}
+            </button>
+            <button class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" type="button" (click)="goHowToPlay()">
+              <i-lucide [img]="InfoIcon" [size]="16"></i-lucide>
+              {{ 'common.howToPlay' | transloco }}
             </button>
             <button class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" type="button" (click)="goLeaderboard()">
               <i-lucide [img]="TrophyIcon" [size]="16"></i-lucide>
-              Leaderboard
+              {{ 'common.leaderboard' | transloco }}
             </button>
-            <button class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" type="button" (click)="scrollToAbout()">
-              <i-lucide [img]="UsersIcon" [size]="16"></i-lucide>
-              About
+            <button class="btn-game inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-card/60 hover:text-foreground" type="button" (click)="goSettings()">
+              <i-lucide [img]="SettingsIcon" [size]="16"></i-lucide>
+              {{ 'common.settings' | transloco }}
             </button>
           </nav>
 
           <div class="flex items-center gap-2">
+            <app-language-switcher />
             @if (!appStore.isSignedIn()) {
               <button class="btn-game hidden rounded-lg border border-border/60 bg-card/70 px-4 py-2 text-sm font-semibold hover:bg-muted/40 md:inline-flex" type="button" (click)="goSignIn()">
-                Log in
+                {{ 'common.logIn' | transloco }}
               </button>
             }
             <button class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/20" type="button" (click)="goMultiplayer()">
               <i-lucide [img]="ZapIcon" [size]="16"></i-lucide>
-              Play Now
+              {{ 'common.playNow' | transloco }}
             </button>
           </div>
         </div>
@@ -78,24 +86,24 @@ import {
           <div class="mx-auto grid w-full max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_1.15fr]">
             <div class="space-y-7">
               <div class="inline-flex items-center rounded-full border border-border/70 bg-card/70 px-4 py-2 text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground" data-gsap-reveal>
-                Real-time multiplayer Sudoku
+                {{ 'home.kicker' | transloco }}
               </div>
               <h1 class="max-w-xl text-5xl font-black uppercase leading-[0.92] tracking-tight sm:text-6xl" data-gsap-reveal>
-                The Ultimate
+                {{ 'home.titleLine1' | transloco }}
                 <br />
-                Sudoku <span class="text-primary">Battle</span>
+                {{ 'home.titleLine2' | transloco }} <span class="text-primary">{{ 'home.titleAccent' | transloco }}</span>
               </h1>
               <p class="max-w-xl text-xl leading-relaxed text-muted-foreground" data-gsap-reveal>
-                Compete in real-time Sudoku matches against players worldwide. Fast thinking, sharp strategy, and precision decide the winner.
+                {{ 'home.description' | transloco }}
               </p>
               <div class="flex flex-col gap-3 sm:flex-row" data-gsap-reveal>
                 <button class="btn-game inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-base font-bold text-primary-foreground hover:shadow-lg hover:shadow-primary/20" type="button" (click)="goMultiplayer()" data-gsap-lift>
                   <i-lucide [img]="ZapIcon" [size]="18"></i-lucide>
-                  Play Now
+                  {{ 'common.playNow' | transloco }}
                 </button>
-                <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/70 bg-card/70 px-8 py-3 text-base font-semibold hover:bg-muted/40" type="button" (click)="showHowTo.set(true)" data-gsap-lift>
+                <button class="btn-game inline-flex items-center gap-2 rounded-lg border border-border/70 bg-card/70 px-8 py-3 text-base font-semibold hover:bg-muted/40" type="button" (click)="goHowToPlay()" data-gsap-lift>
                   <i-lucide [img]="InfoIcon" [size]="18"></i-lucide>
-                  Learn More
+                  {{ 'home.learnMore' | transloco }}
                 </button>
               </div>
             </div>
@@ -104,20 +112,20 @@ import {
               <div class="rounded-2xl border border-border/70 bg-background p-3 sm:p-4">
                 <div class="mb-3 grid gap-3 sm:grid-cols-[220px_1fr]">
                   <div class="rounded-xl border border-border/70 bg-card/70 p-3" data-gsap-reveal>
-                    <div class="text-xs font-mono uppercase tracking-wider text-muted-foreground">Live Match</div>
-                    <div class="mt-2 text-sm font-semibold">Game #R7X9</div>
+                    <div class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'home.liveMatch' | transloco }}</div>
+                    <div class="mt-2 text-sm font-semibold">{{ 'home.gameCode' | transloco }}</div>
                     <div class="mt-3 space-y-2 text-sm">
                       <div class="flex items-center justify-between rounded-lg border border-border/60 px-2 py-2">
-                        <span>Nader</span>
+                        <span>{{ 'home.rivalName' | transloco }}</span>
                         <span class="font-mono text-primary">1460</span>
                       </div>
-                      <div class="text-center text-xs font-black uppercase tracking-wider text-primary">VS</div>
+                      <div class="text-center text-xs font-black uppercase tracking-wider text-primary">{{ 'home.versus' | transloco }}</div>
                       <div class="flex items-center justify-between rounded-lg border border-border/60 px-2 py-2">
-                        <span>You</span>
+                        <span>{{ 'home.you' | transloco }}</span>
                         <span class="font-mono text-primary">1680</span>
                       </div>
                     </div>
-                    <div class="mt-4 text-xs font-mono text-muted-foreground">Mistakes: 2 / 10</div>
+                    <div class="mt-4 text-xs font-mono text-muted-foreground">{{ 'home.mistakes' | transloco }}</div>
                   </div>
 
                   <div class="rounded-xl border border-border/70 bg-card/65 p-3" data-gsap-reveal>
@@ -136,7 +144,7 @@ import {
                             [class.text-foreground]="!cell.primary && !!cell.value"
                             [class.text-muted-foreground]="!cell.value"
                           >
-                          {{ cell.value }}
+                            {{ cell.value }}
                           </div>
                         }
                       </div>
@@ -144,8 +152,8 @@ import {
                   </div>
                 </div>
                 <div class="grid grid-cols-3 gap-2 text-sm">
-                  @for (action of heroActions; track action) {
-                    <div class="rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-center font-medium" data-gsap-lift>{{ action }}</div>
+                  @for (action of heroActionKeys; track action) {
+                    <div class="rounded-lg border border-border/60 bg-card/70 px-3 py-2 text-center font-medium" data-gsap-lift>{{ action | transloco }}</div>
                   }
                 </div>
               </div>
@@ -155,14 +163,14 @@ import {
 
         <section class="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6" data-gsap-surface>
           <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              @for (feature of features; track feature.title) {
-                <article class="surface-panel rounded-2xl p-5" data-gsap-stagger>
-                  <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                    <i-lucide [img]="feature.icon" [size]="20"></i-lucide>
-                  </div>
-                  <div class="text-ui-kicker text-primary">{{ feature.kicker }}</div>
-                  <h2 class="mt-2 text-2xl font-bold tracking-tight">{{ feature.title }}</h2>
-                  <p class="mt-2 text-sm text-muted-foreground">{{ feature.description }}</p>
+            @for (feature of features; track feature.titleKey) {
+              <article class="surface-panel rounded-2xl p-5" data-gsap-stagger>
+                <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <i-lucide [img]="feature.icon" [size]="20"></i-lucide>
+                </div>
+                <div class="text-ui-kicker text-primary">{{ feature.kickerKey | transloco }}</div>
+                <h2 class="mt-2 text-2xl font-bold tracking-tight">{{ feature.titleKey | transloco }}</h2>
+                <p class="mt-2 text-sm text-muted-foreground">{{ feature.descriptionKey | transloco }}</p>
               </article>
             }
           </div>
@@ -171,9 +179,9 @@ import {
         <section class="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6" data-gsap-surface>
           <div class="surface-panel rounded-2xl p-5 sm:p-6">
             <div class="mb-4 flex items-center justify-between gap-3">
-              <h2 class="text-ui-kicker text-muted-foreground">Top Players</h2>
+              <h2 class="text-ui-kicker text-muted-foreground">{{ 'home.topPlayers' | transloco }}</h2>
               <button class="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline" type="button" (click)="goLeaderboard()">
-                View Full Leaderboard
+                {{ 'home.viewFullLeaderboard' | transloco }}
                 <i-lucide [img]="ArrowRightIcon" [size]="14"></i-lucide>
               </button>
             </div>
@@ -195,20 +203,16 @@ import {
 
         <section id="about" class="mx-auto w-full max-w-7xl px-4 pb-10 sm:px-6" data-gsap-surface>
           <div class="mb-4 flex items-center justify-between">
-            <h2 class="text-ui-kicker text-muted-foreground">Team</h2>
-            <span class="text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">Built by Sudoku Rival Games</span>
+            <h2 class="text-ui-kicker text-muted-foreground">{{ 'home.team' | transloco }}</h2>
+            <span class="text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">{{ 'home.builtBy' | transloco }}</span>
           </div>
           <div class="grid gap-3 md:grid-cols-1">
-            @for (member of team; track member.name) {
-              <article class="surface-panel rounded-2xl p-5" data-gsap-stagger>
-                <div class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/20 text-lg font-black text-primary">
-                  {{ member.initial }}
-                </div>
-                <h3 class="mt-3 text-lg font-bold">{{ member.name }}</h3>
-                <p class="text-sm text-primary">{{ member.role }}</p>
-                <p class="mt-2 text-sm text-muted-foreground">{{ member.bio }}</p>
-              </article>
-            }
+            <article class="surface-panel rounded-2xl p-5" data-gsap-stagger>
+              <div class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary/20 text-lg font-black text-primary">N</div>
+              <h3 class="mt-3 text-lg font-bold">Nader Mohamed</h3>
+              <p class="text-sm text-primary">{{ 'home.teamMember.role' | transloco }}</p>
+              <p class="mt-2 text-sm text-muted-foreground">{{ 'home.teamMember.bio' | transloco }}</p>
+            </article>
           </div>
         </section>
       </main>
@@ -218,33 +222,31 @@ import {
           <div>
             <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-10 w-auto dark:block" />
             <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-10 w-auto dark:hidden" />
-            <p class="mt-3 max-w-xs text-sm text-muted-foreground">
-              Think sharp. Compete hard. Be the rival.
-            </p>
+            <p class="mt-3 max-w-xs text-sm text-muted-foreground">{{ 'home.footerTagline' | transloco }}</p>
           </div>
           <div>
-            <div class="text-sm font-bold">Game</div>
+            <div class="text-sm font-bold">{{ 'home.game' | transloco }}</div>
             <div class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <button class="block hover:text-foreground" type="button" (click)="goMultiplayer()">Play Now</button>
-              <button class="block hover:text-foreground" type="button" (click)="showHowTo.set(true)">How To Play</button>
+              <button class="block hover:text-foreground" type="button" (click)="goMultiplayer()">{{ 'common.playNow' | transloco }}</button>
+              <button class="block hover:text-foreground" type="button" (click)="goHowToPlay()">{{ 'common.howToPlay' | transloco }}</button>
             </div>
           </div>
           <div>
-            <div class="text-sm font-bold">Community</div>
+            <div class="text-sm font-bold">{{ 'home.community' | transloco }}</div>
             <div class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <button class="block hover:text-foreground" type="button" (click)="goLeaderboard()">Leaderboard</button>
-              <span class="block">Tournaments</span>
+              <button class="block hover:text-foreground" type="button" (click)="goLeaderboard()">{{ 'common.leaderboard' | transloco }}</button>
+              <span class="block">{{ 'home.tournaments' | transloco }}</span>
             </div>
           </div>
           <div>
-            <div class="text-sm font-bold">About</div>
+            <div class="text-sm font-bold">{{ 'home.about' | transloco }}</div>
             <div class="mt-3 space-y-2 text-sm text-muted-foreground">
-              <button class="block hover:text-foreground" type="button" (click)="scrollToAbout()">Team</button>
-              <span class="block">Contact</span>
+              <button class="block hover:text-foreground" type="button" (click)="scrollToAbout()">{{ 'home.team' | transloco }}</button>
+              <span class="block">{{ 'home.contact' | transloco }}</span>
             </div>
           </div>
           <div>
-            <div class="text-sm font-bold">Follow Us</div>
+            <div class="text-sm font-bold">{{ 'home.followUs' | transloco }}</div>
             <div class="mt-3 flex gap-2">
               @for (social of socials; track social.label) {
                 <a
@@ -262,38 +264,19 @@ import {
           </div>
         </div>
         <div class="mx-auto flex w-full max-w-7xl flex-col gap-2 border-t border-border/60 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <span>© {{ currentYear }} Sudoku Rival Games. All rights reserved.</span>
-          <span>Privacy Policy | Terms of Service</span>
+          <span>{{ 'home.copyright' | transloco: { year: currentYear } }}</span>
+          <span class="inline-flex gap-3">
+            <button type="button" class="hover:text-foreground" (click)="goPrivacy()">{{ 'common.privacy' | transloco }}</button>
+            <button type="button" class="hover:text-foreground" (click)="goTerms()">{{ 'common.terms' | transloco }}</button>
+          </span>
         </div>
       </footer>
-
-      @if (showHowTo()) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div class="surface-panel w-full max-w-xl rounded-2xl p-6">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <div class="text-ui-kicker text-primary">How To Play</div>
-                <h2 class="mt-2 text-2xl font-black uppercase tracking-tight text-primary">Sudoku Rival</h2>
-              </div>
-              <button class="btn-game rounded-md border border-border/60 bg-card/70 px-3 py-2 text-xs font-semibold uppercase hover:bg-muted/40" type="button" (click)="showHowTo.set(false)">
-                Close
-              </button>
-            </div>
-            <ol class="mt-5 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-              <li>Create or join a room.</li>
-              <li>Solve the same puzzle faster than your rival.</li>
-              <li>Avoid mistakes to prevent freeze penalties.</li>
-              <li>First valid board wins the match.</li>
-            </ol>
-          </div>
-        </div>
-      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage implements AfterViewInit, OnDestroy {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly zone = inject(NgZone);
   readonly appStore = inject(AppStore);
@@ -303,6 +286,7 @@ export class HomePage implements AfterViewInit, OnDestroy {
   readonly UsersIcon = Users;
   readonly ZapIcon = Zap;
   readonly InfoIcon = Info;
+  readonly SettingsIcon = Settings;
   readonly ArrowRightIcon = ArrowRight;
   readonly showHowTo = signal(false);
   readonly currentYear = new Date().getFullYear();
@@ -311,27 +295,27 @@ export class HomePage implements AfterViewInit, OnDestroy {
   readonly features = [
     {
       icon: Zap,
-      kicker: 'Realtime',
-      title: 'Real-Time Matches',
-      description: 'Play live against real opponents and feel the pressure every move.',
+      kickerKey: 'home.features.realtime.kicker',
+      titleKey: 'home.features.realtime.title',
+      descriptionKey: 'home.features.realtime.description',
     },
     {
       icon: Shield,
-      kicker: 'Fair Play',
-      title: 'Fair Play System',
-      description: 'Balanced matchmaking and anti-cheat logic keep competitions clean.',
+      kickerKey: 'home.features.fairPlay.kicker',
+      titleKey: 'home.features.fairPlay.title',
+      descriptionKey: 'home.features.fairPlay.description',
     },
     {
       icon: Crown,
-      kicker: 'Ranked',
-      title: 'Global Leaderboard',
-      description: 'Earn points, stack wins, and climb to the top worldwide.',
+      kickerKey: 'home.features.ranked.kicker',
+      titleKey: 'home.features.ranked.title',
+      descriptionKey: 'home.features.ranked.description',
     },
     {
       icon: Clock3,
-      kicker: 'Penalty',
-      title: 'Smart Penalties',
-      description: 'Mistakes trigger freeze windows that reward precision over luck.',
+      kickerKey: 'home.features.penalty.kicker',
+      titleKey: 'home.features.penalty.title',
+      descriptionKey: 'home.features.penalty.description',
     },
   ];
 
@@ -343,22 +327,20 @@ export class HomePage implements AfterViewInit, OnDestroy {
     { rank: 5, name: 'NinePeak', points: '1650' },
   ];
 
-  readonly team = [
-    {
-      initial: 'N',
-      name: 'Nader Mohamed',
-      role: 'Founder & Full-Stack Engineer',
-      bio: 'Owns the core product direction, realtime architecture, and match logic quality.',
-    },
-  ];
-
   readonly socials = [
     { label: 'X', icon: Twitter, href: 'https://x.com/nader0305' },
     { label: 'LinkedIn', icon: Linkedin, href: 'https://www.linkedin.com/in/nader0305/' },
     { label: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/nader.designss/' },
   ];
 
-  readonly heroActions = ['Pause', 'Give Up', 'Notes', 'Erase', 'Undo', 'Hint'];
+  readonly heroActionKeys = [
+    'home.actions.pause',
+    'home.actions.giveUp',
+    'home.actions.notes',
+    'home.actions.erase',
+    'home.actions.undo',
+    'home.actions.hint',
+  ];
 
   readonly heroBoard = [
     { value: '5' }, { value: '3' }, { value: '' }, { value: '' }, { value: '7' }, { value: '' }, { value: '' }, { value: '' }, { value: '2', primary: true },
@@ -477,23 +459,41 @@ export class HomePage implements AfterViewInit, OnDestroy {
   }
 
   goHome(): void {
-    void this.router.navigateByUrl('/');
+    void this.localizedRouter.navigate('/');
   }
 
   goLeaderboard(): void {
-    void this.router.navigateByUrl('/leaderboard');
+    void this.localizedRouter.navigate('/leaderboard');
+  }
+
+  goHowToPlay(): void {
+    void this.localizedRouter.navigate('/how-to-play');
+  }
+
+  goPrivacy(): void {
+    void this.localizedRouter.navigate('/privacy');
+  }
+
+  goTerms(): void {
+    void this.localizedRouter.navigate('/terms');
+  }
+
+  goSettings(): void {
+    void this.localizedRouter.navigate('/settings');
   }
 
   goSignIn(): void {
-    void this.router.navigateByUrl('/sign-in');
+    void this.localizedRouter.navigate('/sign-in');
   }
 
   goMultiplayer(): void {
-    void this.router.navigateByUrl(this.appStore.isSignedIn() ? '/lobby' : '/sign-in');
-  }
+    if (this.appStore.isSignedIn()) {
+      void this.localizedRouter.navigate('/lobby');
+      return;
+    }
 
-  goSolo(): void {
-    void this.router.navigateByUrl('/play/solo');
+    const next = encodeURIComponent(this.localizedRouter.localize('/lobby'));
+    void this.localizedRouter.navigate(`/sign-in?next=${next}`);
   }
 
   scrollToAbout(): void {

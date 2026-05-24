@@ -11,7 +11,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { LucideAngularModule } from 'lucide-angular';
@@ -29,6 +28,7 @@ import { MaxLength, Min, Required } from '@luistabotelho/angular-signal-forms/va
 import { SignalFormField } from '../shared/forms/signal-form-helpers';
 import { UserNavComponent } from '../shared/components/user-nav.component';
 import { GsapCountUpDirective } from '../shared/directives/gsap-count-up.directive';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 import {
   ArrowRight,
   CircleAlert,
@@ -327,8 +327,8 @@ const EMPTY_STATS: StatsSummary = {
       </footer>
 
       @if (createRoomOpen()) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div class="surface-panel w-full max-w-lg rounded-2xl p-6 shadow-2xl">
+        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 py-6 backdrop-blur-sm sm:items-center">
+          <div class="surface-panel max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl p-6 shadow-2xl sm:p-7">
             <div class="flex items-start justify-between gap-4">
               <div>
                 <div class="text-ui-kicker text-primary">Host a match</div>
@@ -428,7 +428,7 @@ const EMPTY_STATS: StatsSummary = {
                 </label>
               }
 
-              @if (createRoomErrors().length > 0) {
+              @if (createRoomSubmitAttempted() && createRoomErrors().length > 0) {
                 <ul class="space-y-1 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
                   @for (error of createRoomErrors(); track error) {
                     <li>{{ error }}</li>
@@ -460,7 +460,7 @@ const EMPTY_STATS: StatsSummary = {
   imports: [UserNavComponent, LucideAngularModule, GsapCountUpDirective],
 })
 export class LobbyPage implements AfterViewInit, OnDestroy {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   private readonly injector = inject(Injector);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly zone = inject(NgZone);
@@ -470,6 +470,7 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
   readonly createRoomOpen = signal(false);
   readonly creatingRoom = signal(false);
   readonly createRoomError = signal<string | null>(null);
+  readonly createRoomSubmitAttempted = signal(false);
   readonly selectedDifficulty = signal<Difficulty>('medium');
   readonly entryFeeOptions = signal<number[]>([10, 50, 100, 500]);
   private gsapCleanup: Array<() => void> = [];
@@ -704,23 +705,23 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
   }
 
   goHome(): void {
-    void this.router.navigateByUrl('/');
+    void this.localizedRouter.navigate('/');
   }
 
   goLeaderboard(): void {
-    void this.router.navigateByUrl('/leaderboard');
+    void this.localizedRouter.navigate('/leaderboard');
   }
 
   goSolo(): void {
-    void this.router.navigateByUrl('/play/solo');
+    void this.localizedRouter.navigate('/play');
   }
 
   goRoom(roomId: string): void {
-    void this.router.navigate(['/room', roomId]);
+    void this.localizedRouter.navigate(`/room/${roomId}`);
   }
 
   goSignIn(): void {
-    void this.router.navigateByUrl('/sign-in');
+    void this.localizedRouter.navigate('/sign-in');
   }
 
   openCreateRoom(): void {
@@ -730,7 +731,10 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
     }
 
     this.createRoomError.set(null);
+    this.createRoomSubmitAttempted.set(false);
     this.selectedDifficulty.set('medium');
+    this.createRoomForm.name.$currentValue.set(this.roomNamePlaceholder());
+    this.createRoomForm.name.$touched.set(false);
     this.createRoomForm.difficulty.$currentValue.set('medium');
     this.createRoomForm.entryFee.$currentValue.set(this.entryFeeOptions()[0] ?? 10);
     this.createRoomOpen.set(true);
@@ -742,7 +746,7 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
       return;
     }
 
-    void this.router.navigate(['/room', roomId]);
+    void this.localizedRouter.navigate(`/room/${roomId}`);
   }
 
   handleRoomAction(room: RoomSummary): void {
@@ -787,12 +791,13 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
 
   async signOut(): Promise<void> {
     await this.appStore.signOut();
-    await this.router.navigateByUrl('/');
+    await this.localizedRouter.navigate('/');
   }
 
   closeCreateRoom(): void {
     this.createRoomOpen.set(false);
     this.createRoomError.set(null);
+    this.createRoomSubmitAttempted.set(false);
     this.selectedDifficulty.set('medium');
     resetSignalForm(this.createRoomForm);
   }
@@ -825,6 +830,7 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
   }
 
   async submitCreateRoom(): Promise<void> {
+    this.createRoomSubmitAttempted.set(true);
     signalFormSetTouched(this.createRoomForm);
     this.createRoomError.set(null);
 
@@ -838,8 +844,9 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
     try {
       const room = await this.supabase.createRoom(this.buildCreateRoomValue());
       this.createRoomOpen.set(false);
+      this.createRoomSubmitAttempted.set(false);
       resetSignalForm(this.createRoomForm);
-      await this.router.navigate(['/room', room.id]);
+      await this.localizedRouter.navigate(`/room/${room.id}`);
     } catch (error) {
       this.createRoomError.set(error instanceof Error ? error.message : 'Could not create room');
     } finally {

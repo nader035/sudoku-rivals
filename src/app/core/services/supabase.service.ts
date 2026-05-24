@@ -1357,7 +1357,7 @@ export class SupabaseService {
       .range(offset, offset + Math.max(1, limit) - 1);
 
     if (error) throw error;
-    return ((data as Record<string, unknown>[] | null) ?? []).map((row) => ({
+    const mapped = ((data as Record<string, unknown>[] | null) ?? []).map((row) => ({
       playerId: String(row['player_id']),
       username: String(row['username']),
       avatarUrl: row['avatar_url'] ? String(row['avatar_url']) : null,
@@ -1367,6 +1367,26 @@ export class SupabaseService {
       losses: Number(row['losses'] ?? 0),
       winRate: Number(row['win_rate'] ?? 0),
     }));
+
+    const bySelectedSort = (entry: EconomyLeaderboardEntry): number => {
+      if (sort === 'coins') return entry.currentCoins;
+      if (sort === 'coins_won') return entry.totalCoinsWon;
+      if (sort === 'win_rate') return entry.winRate;
+      return entry.wins;
+    };
+
+    return mapped.sort((left, right) => {
+      const delta = bySelectedSort(right) - bySelectedSort(left);
+      if (delta !== 0) return delta;
+
+      const winsDelta = right.wins - left.wins;
+      if (winsDelta !== 0) return winsDelta;
+
+      const coinsDelta = right.currentCoins - left.currentCoins;
+      if (coinsDelta !== 0) return coinsDelta;
+
+      return left.username.localeCompare(right.username);
+    });
   }
 
   async getEconomySettings(): Promise<PlatformEconomySettings> {

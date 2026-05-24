@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../core/services/supabase.service';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 @Component({
   selector: 'app-auth-callback-page',
@@ -31,6 +32,7 @@ import { SupabaseService } from '../core/services/supabase.service';
 })
 export class AuthCallbackPage implements OnInit {
   private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   private readonly supabase = inject(SupabaseService);
   readonly error = signal<string | null>(null);
 
@@ -62,11 +64,13 @@ export class AuthCallbackPage implements OnInit {
   }
 
   goSignIn(): void {
-    void this.router.navigateByUrl('/sign-in');
+    void this.localizedRouter.navigate('/sign-in');
   }
 
   private safeNext(next: string | null): string {
-    if (!next || !next.startsWith('/') || next.startsWith('//')) return '/lobby';
+    if (!next || !next.startsWith('/') || next.startsWith('//')) {
+      return this.localizedRouter.localize('/lobby');
+    }
     return next;
   }
 }

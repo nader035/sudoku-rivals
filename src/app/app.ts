@@ -10,6 +10,9 @@ import {
 } from '@angular/core';
 import { NavigationEnd, NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { SupabaseService } from './core/services/supabase.service';
+import { I18nService } from './core/i18n/i18n.service';
+import { SeoService } from './core/services/seo.service';
+import { SettingsService } from './core/services/settings.service';
 
 import { Subscription } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
@@ -28,12 +31,24 @@ import { filter, take } from 'rxjs/operators';
 export class App implements OnInit, AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly supabase = inject(SupabaseService);
+  private readonly i18n = inject(I18nService);
+  private readonly seo = inject(SeoService);
+  private readonly settings = inject(SettingsService);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly zone = inject(NgZone);
   private routeAnimationSub: Subscription | null = null;
   private routeAnimationCleanup: Array<() => void> = [];
 
   ngOnInit(): void {
+    void this.settings;
+    this.syncDocumentForUrl(this.router.url);
+
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event) => this.syncDocumentForUrl(event.urlAfterRedirects));
+
+    if (typeof window === 'undefined') return;
+
     const hash = window.location.hash;
     if (hash && hash.includes('access_token')) {
       this.supabase.authState$
@@ -46,7 +61,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
             this.supabase.ensurePlayerProfile(state.session.user).then(() => {
               // Clear the hash from the URL so it doesn't trigger again
               window.history.replaceState(null, '', window.location.pathname);
-              void this.router.navigateByUrl('/lobby');
+              void this.router.navigateByUrl(this.i18n.localizePath('/lobby'));
             });
           }
         });
@@ -119,5 +134,11 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
   private prefersReducedMotion(): boolean {
     if (typeof window === 'undefined') return true;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  private syncDocumentForUrl(url: string): void {
+    const lang = this.i18n.languageFromUrl(url);
+    if (lang) this.i18n.setLanguage(lang);
+    this.seo.applyForUrl(url);
   }
 }

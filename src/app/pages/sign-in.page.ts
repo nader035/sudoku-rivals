@@ -17,6 +17,7 @@ import { AppStore } from '../store/app.store';
 import { SupabaseService } from '../core/services/supabase.service';
 import { AuthCredentials, GuestCredentials } from '../core/models';
 import { SignalFormField } from '../shared/forms/signal-form-helpers';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 @Component({
   selector: 'app-sign-in-page',
@@ -151,6 +152,7 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
 export class SignInPage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   readonly appStore = inject(AppStore);
   readonly supabase = inject(SupabaseService);
   readonly signingIn = signal(false);
@@ -188,10 +190,10 @@ export class SignInPage {
   });
 
   goHome(): void {
-    void this.router.navigateByUrl('/');
+    void this.localizedRouter.navigate('/');
   }
   goSignUp(): void {
-    void this.router.navigateByUrl('/sign-up');
+    void this.localizedRouter.navigate('/sign-up');
   }
 
   setFieldValue<T>(field: SignalFormField<T>, event: Event): void {
@@ -247,7 +249,9 @@ export class SignInPage {
 
   private nextUrl(): string {
     const next = this.route.snapshot.queryParamMap.get('next');
-    if (!next || !next.startsWith('/') || next.startsWith('//')) return '/lobby';
+    if (!next || !next.startsWith('/') || next.startsWith('//')) {
+      return this.localizedRouter.localize('/lobby');
+    }
     return next;
   }
 }

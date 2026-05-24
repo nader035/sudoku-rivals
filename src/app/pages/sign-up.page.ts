@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { signalForm } from '@luistabotelho/angular-signal-forms';
 import {
   signalFormErrors,
@@ -17,6 +16,7 @@ import { AppStore } from '../store/app.store';
 import { SupabaseService } from '../core/services/supabase.service';
 import { SignUpCredentials } from '../core/models';
 import { SignalFormField } from '../shared/forms/signal-form-helpers';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 @Component({
   selector: 'app-sign-up-page',
@@ -165,7 +165,7 @@ import { SignalFormField } from '../shared/forms/signal-form-helpers';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignUpPage {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   readonly appStore = inject(AppStore);
   readonly supabase = inject(SupabaseService);
   readonly signingUp = signal(false);
@@ -193,15 +193,15 @@ export class SignUpPage {
 
   readonly redirectEffect = effect(() => {
     if (this.appStore.authLoaded() && this.appStore.isSignedIn()) {
-      void this.router.navigateByUrl('/lobby');
+      void this.localizedRouter.navigate('/lobby');
     }
   });
 
   goHome(): void {
-    void this.router.navigateByUrl('/');
+    void this.localizedRouter.navigate('/');
   }
   goSignIn(): void {
-    void this.router.navigateByUrl('/sign-in');
+    void this.localizedRouter.navigate('/sign-in');
   }
 
   setFieldValue<T>(field: SignalFormField<T>, event: Event): void {

@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, Injector, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, from, of } from 'rxjs';
 import { SupabaseService } from '../core/services/supabase.service';
@@ -8,6 +7,7 @@ import {
   AdminPlayerSummary,
   AdminRoomSummary,
 } from '../core/models';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 const EMPTY_SUMMARY: AdminDashboardSummary = {
   totalPlayers: 0,
@@ -191,7 +191,7 @@ const EMPTY_SUMMARY: AdminDashboardSummary = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardPage {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   private readonly injector = inject(Injector);
   private readonly supabase = inject(SupabaseService);
   readonly busy = signal(false);
@@ -261,15 +261,15 @@ export class AdminDashboardPage {
   }
 
   goRoom(roomId: string): void {
-    void this.router.navigate(['/room', roomId]);
+    void this.localizedRouter.navigate(`/room/${roomId}`);
   }
 
   goAdminPurchases(): void {
-    void this.router.navigateByUrl('/admin/purchases');
+    void this.localizedRouter.navigate('/admin/purchases');
   }
 
   goAdminWallets(): void {
-    void this.router.navigateByUrl('/admin/wallets');
+    void this.localizedRouter.navigate('/admin/wallets');
   }
 
   async deleteRoom(roomId: string, roomName: string): Promise<void> {

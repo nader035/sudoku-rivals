@@ -11,6 +11,19 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+  TODO: Add the Thmanyah Arabic font file at:
+  public/assets/fonts/thmanyah/Thmanyah.woff2
+  Keep this exact filename or update the URL below after adding the licensed font file.
+*/
+@font-face {
+  font-family: 'Thmanyah';
+  src: url('/assets/fonts/thmanyah/Thmanyah.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -123,6 +136,18 @@ body {
     linear-gradient(90deg, hsl(var(--foreground) / 0.03) 1px, transparent 1px);
   background-size: 56px 56px;
   background-attachment: fixed;
+}
+
+html[lang='ar'] {
+  --font-sans: 'Thmanyah', 'Inter', system-ui, sans-serif;
+}
+
+html[dir='rtl'] body {
+  direction: rtl;
+}
+
+html[dir='rtl'] .ltr-only {
+  direction: ltr;
 }
 
 * {

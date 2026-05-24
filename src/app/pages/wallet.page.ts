@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, Injector, inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 import { SupabaseService } from '../core/services/supabase.service';
 import { WalletSnapshot, WalletTransactionSnapshot } from '../core/models';
 import { UserNavComponent } from '../shared/components/user-nav.component';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 @Component({
   selector: 'app-wallet-page',
@@ -85,7 +85,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WalletPage {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   private readonly injector = inject(Injector);
   private readonly supabase = inject(SupabaseService);
 
@@ -100,10 +100,10 @@ export class WalletPage {
   );
 
   goHome(): void {
-    void this.router.navigateByUrl('/');
+    void this.localizedRouter.navigate('/');
   }
 
   goShop(): void {
-    void this.router.navigateByUrl('/shop');
+    void this.localizedRouter.navigate('/shop');
   }
 }

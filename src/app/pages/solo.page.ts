@@ -1,13 +1,15 @@
 import { ChangeDetectionStrategy, Component, HostListener, computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { GameStore } from '../store/game.store';
 import { SudokuGridComponent } from '../shared/components/sudoku-grid.component';
 import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
+import { TranslocoPipe } from '../core/i18n/transloco.pipe';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
+import { UserNavComponent } from '../shared/components/user-nav.component';
 
 @Component({
   selector: 'app-solo-page',
   standalone: true,
-  imports: [SudokuGridComponent],
+  imports: [SudokuGridComponent, TranslocoPipe, UserNavComponent],
   template: `
     <div class="min-h-screen bg-background text-foreground">
       <nav class="sticky top-0 z-20 border-b border-border/55 bg-background/85 backdrop-blur-sm">
@@ -16,7 +18,7 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
             <img src="/assets/logo/logo-light.svg" alt="Sudoku Rival" class="hidden h-8 w-auto dark:block" />
             <img src="/assets/logo/logo-dark.svg" alt="Sudoku Rival" class="h-8 w-auto dark:hidden" />
           </button>
-          <div class="text-ui-kicker text-muted-foreground">Solo Practice</div>
+          <app-user-nav />
         </div>
       </nav>
 
@@ -24,10 +26,10 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
         <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <h1 class="text-3xl font-black tracking-tight md:text-5xl">
-              Practice Run
+              {{ 'play.practiceTitle' | transloco }}
             </h1>
             <p class="mt-1 text-sm font-mono text-muted-foreground">
-              Sharpen speed and accuracy before entering multiplayer.
+              {{ 'play.practiceSubtitle' | transloco }}
             </p>
           </div>
 
@@ -52,7 +54,7 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
 
         @if (gameStore.mode() !== 'solo') {
           <div class="flex min-h-[40vh] items-center justify-center font-mono text-muted-foreground">
-            Generating puzzle...
+            {{ 'play.generating' | transloco }}
           </div>
         } @else {
           <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
@@ -71,7 +73,7 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
 
               <div class="w-full max-w-md">
                 <div class="mb-1 flex justify-between text-xs font-mono text-muted-foreground">
-                  <span>Filled: <span class="text-primary">{{ filledCount() }}</span>/{{ totalCount() }}</span>
+                  <span>{{ 'play.filled' | transloco }} <span class="text-primary">{{ filledCount() }}</span>/{{ totalCount() }}</span>
                   <span class="text-primary">{{ progress() }}%</span>
                 </div>
                 <div class="h-2 overflow-hidden rounded-full bg-muted">
@@ -94,21 +96,21 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
                   type="button"
                   (click)="enterNumber(0)"
                 >
-                  Del
+                  {{ 'play.delete' | transloco }}
                 </button>
               </div>
             </div>
 
             <aside class="space-y-3">
-              <h3 class="text-ui-kicker text-muted-foreground">Controls</h3>
+              <h3 class="text-ui-kicker text-muted-foreground">{{ 'play.controls' | transloco }}</h3>
               <button
                 class="btn-game flex w-full items-center justify-start rounded-lg border border-border/60 bg-card/70 px-4 py-3 text-sm font-medium hover:bg-muted/40"
                 type="button"
                 (click)="toggleHighlight()"
               >
-                Number highlight
+                {{ 'play.numberHighlight' | transloco }}
                 <span class="ml-auto text-[10px] font-mono uppercase" [class.text-primary]="gameStore.highlightSameNumbers()" [class.text-muted-foreground]="!gameStore.highlightSameNumbers()">
-                  {{ gameStore.highlightSameNumbers() ? 'On' : 'Off' }}
+                  {{ gameStore.highlightSameNumbers() ? ('play.on' | transloco) : ('play.off' | transloco) }}
                 </span>
               </button>
               <button
@@ -116,9 +118,9 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
                 type="button"
                 (click)="toggleValidation()"
               >
-                Error check
+                {{ 'play.errorCheck' | transloco }}
                 <span class="ml-auto text-[10px] font-mono uppercase" [class.text-primary]="gameStore.errorValidation()" [class.text-muted-foreground]="!gameStore.errorValidation()">
-                  {{ gameStore.errorValidation() ? 'On' : 'Off' }}
+                  {{ gameStore.errorValidation() ? ('play.on' | transloco) : ('play.off' | transloco) }}
                 </span>
               </button>
               <button
@@ -126,14 +128,14 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
                 type="button"
                 (click)="resetBoard()"
               >
-                Reset board
+                {{ 'play.resetBoard' | transloco }}
               </button>
               <button
                 class="btn-game flex w-full items-center justify-start rounded-lg bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90"
                 type="button"
                 (click)="goLobby()"
               >
-                Go multiplayer
+                {{ 'play.goMultiplayer' | transloco }}
               </button>
             </aside>
           </div>
@@ -142,14 +144,14 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
         @if (gameStore.soloSolved()) {
           <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
             <div class="surface-panel w-full max-w-md rounded-2xl p-6 text-center shadow-2xl">
-              <div class="text-ui-kicker text-primary">Puzzle solved</div>
-              <h2 class="mt-3 text-3xl font-black uppercase tracking-tight text-primary">Sudoku Complete</h2>
+              <div class="text-ui-kicker text-primary">{{ 'play.solved' | transloco }}</div>
+              <h2 class="mt-3 text-3xl font-black uppercase tracking-tight text-primary">{{ 'play.complete' | transloco }}</h2>
               <p class="mt-4 text-sm text-muted-foreground">
-                Great run. Start a new puzzle or jump into multiplayer.
+                {{ 'play.greatRun' | transloco }}
               </p>
               <div class="mt-5 grid grid-cols-2 gap-2">
                 <button class="btn-game rounded-lg border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40" type="button" (click)="shareNative()">
-                  Share
+                  {{ 'play.share' | transloco }}
                 </button>
                 <a class="btn-game rounded-lg border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40" [href]="shareLink('x')" target="_blank" rel="noopener">
                   X
@@ -158,15 +160,15 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
                   Facebook
                 </a>
                 <button class="btn-game rounded-lg border border-border/60 px-3 py-2 text-xs font-bold uppercase tracking-wider hover:border-primary/50 hover:bg-muted/40" type="button" (click)="copyShare()">
-                  Copy
+                  {{ 'play.copy' | transloco }}
                 </button>
               </div>
               <div class="mt-6 space-y-3">
                 <button class="btn-game w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90" type="button" (click)="playAgain()">
-                  Play again
+                  {{ 'play.playAgain' | transloco }}
                 </button>
                 <button class="btn-game w-full rounded-xl border border-border/60 bg-card/70 px-4 py-3 text-sm font-mono uppercase tracking-wider hover:bg-muted/40" type="button" (click)="goLobby()">
-                  Enter multiplayer arena
+                  {{ 'play.enterMultiplayer' | transloco }}
                 </button>
               </div>
             </div>
@@ -178,7 +180,7 @@ import { buildShareUrl, copyShareText, shareWin } from '../shared/utils/share';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SoloPage {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   readonly gameStore = inject(GameStore);
   readonly difficulties = ['easy', 'medium', 'hard'] as const;
   readonly numberPad = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -221,11 +223,11 @@ export class SoloPage {
   }
 
   goHome(): void {
-    void this.router.navigateByUrl('/');
+    void this.localizedRouter.navigate('/');
   }
 
   goLobby(): void {
-    void this.router.navigateByUrl('/lobby');
+    void this.localizedRouter.navigate('/lobby');
   }
 
   selectCell(index: number): void {

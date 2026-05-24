@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { NotificationSnapshot } from '../core/models';
 import { AppStore } from '../store/app.store';
 import { SupabaseService } from '../core/services/supabase.service';
 import { UserNavComponent } from '../shared/components/user-nav.component';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 @Component({
   selector: 'app-notifications-page',
@@ -91,7 +91,7 @@ import { UserNavComponent } from '../shared/components/user-nav.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotificationsPage {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   readonly appStore = inject(AppStore);
   private readonly supabase = inject(SupabaseService);
 
@@ -100,7 +100,7 @@ export class NotificationsPage {
   readonly notifications = computed(() => this.appStore.notifications());
 
   goHome(): void {
-    void this.router.navigateByUrl('/');
+    void this.localizedRouter.navigate('/');
   }
 
   async markAllAsRead(): Promise<void> {
@@ -130,9 +130,9 @@ export class NotificationsPage {
   async openNotification(item: NotificationSnapshot): Promise<void> {
     await this.markRead(item);
     if (item.roomId) {
-      await this.router.navigate(['/room', item.roomId]);
+      await this.localizedRouter.navigate(`/room/${item.roomId}`);
       return;
     }
-    await this.router.navigateByUrl('/lobby');
+    await this.localizedRouter.navigate('/lobby');
   }
 }

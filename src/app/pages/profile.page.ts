@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { AppStore } from '../store/app.store';
 import { UserNavComponent } from '../shared/components/user-nav.component';
 import { GsapCountUpDirective } from '../shared/directives/gsap-count-up.directive';
+import { LocalizedRouterService } from '../core/services/localized-router.service';
 
 @Component({
   selector: 'app-profile-page',
@@ -98,7 +98,7 @@ import { GsapCountUpDirective } from '../shared/directives/gsap-count-up.directi
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfilePage {
-  private readonly router = inject(Router);
+  private readonly localizedRouter = inject(LocalizedRouterService);
   readonly appStore = inject(AppStore);
   readonly player = this.appStore.player;
   readonly wallet = this.appStore.wallet;
@@ -134,10 +134,10 @@ export class ProfilePage {
   });
 
   goHome(): void {
-    void this.router.navigateByUrl('/');
+    void this.localizedRouter.navigate('/');
   }
 
   goLobby(): void {
-    void this.router.navigateByUrl('/lobby');
+    void this.localizedRouter.navigate('/lobby');
   }
 }

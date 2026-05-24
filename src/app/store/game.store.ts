@@ -20,6 +20,7 @@ import {
 } from '../core/models';
 import { SupabaseService } from '../core/services/supabase.service';
 import { SudokuLogicService } from '../core/services/sudoku-logic.service';
+import { SettingsService } from '../core/services/settings.service';
 
 const BOARD_SIZE = 81;
 const EMPTY_BOARD = Array.from({ length: BOARD_SIZE }, () => 0);
@@ -112,6 +113,7 @@ export const GameStore = signalStore(
     const supabase = inject(SupabaseService);
     const sudokuLogic = inject(SudokuLogicService);
     const appStore = inject(AppStore);
+    const settings = inject(SettingsService);
     const injector = inject(Injector);
     const roomId = signal<string | null>(null);
 
@@ -131,6 +133,7 @@ export const GameStore = signalStore(
       supabase,
       sudokuLogic,
       appStore,
+      settings,
       roomId,
       roomSnapshot,
     };
@@ -157,8 +160,8 @@ export const GameStore = signalStore(
             solution: createBoard(),
             attempt: createBoard(),
             loadedRoomId: null,
-            highlightSameNumbers: true,
-            errorValidation: true,
+            highlightSameNumbers: store.settings.highlightDuplicates(),
+            errorValidation: store.settings.showMistakes() || store.settings.autoCheckAnswers(),
             rawProgress: 0,
             penaltyPoints: 0,
             mistakes: 0,
@@ -480,8 +483,8 @@ export const GameStore = signalStore(
           solution: cloneBoard(puzzle.solution),
           attempt: cloneBoard(puzzle.puzzle),
           selectedIndex: null,
-          highlightSameNumbers: true,
-          errorValidation: true,
+          highlightSameNumbers: store.settings.highlightDuplicates(),
+          errorValidation: store.settings.showMistakes() || store.settings.autoCheckAnswers(),
           mistakes: 0,
           rawProgress: 0,
           penaltyPoints: 0,
@@ -502,8 +505,8 @@ export const GameStore = signalStore(
           loading: true,
           error: null,
           soloSolved: false,
-          highlightSameNumbers: true,
-          errorValidation: false,
+          highlightSameNumbers: store.settings.highlightDuplicates(),
+          errorValidation: store.settings.showMistakes() || store.settings.autoCheckAnswers(),
         });
         store.roomId.set(roomId);
       },
