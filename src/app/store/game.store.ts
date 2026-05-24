@@ -545,6 +545,21 @@ export const GameStore = signalStore(
         await supabase.startRoom(roomId, playerId);
       },
 
+      async updateRoomMaxPlayers(maxPlayers: number): Promise<void> {
+        const roomId = store.roomId();
+        const playerId = getPlayerId();
+        const roomHostId = store.roomHostId();
+        const minPlayers = Math.max(2, store.roomPlayers().length);
+        const nextMaxPlayers = Math.max(minPlayers, Math.min(6, Math.trunc(maxPlayers)));
+
+        if (!roomId || !playerId) return;
+        if (roomHostId !== playerId) throw new Error('Only the host can edit room settings');
+        if (store.roomStatus() !== 'waiting') throw new Error('Room settings can only be edited while waiting');
+
+        patchState(store, { loading: true, error: null });
+        await supabase.updateRoomMaxPlayers(roomId, nextMaxPlayers);
+      },
+
       enterCell,
 
       async handleKeyDown(event: KeyboardEvent): Promise<void> {

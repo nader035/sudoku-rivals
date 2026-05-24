@@ -3,6 +3,15 @@ const path = require('path');
 
 const targetPath = path.join(__dirname, '../src/environments/environment.ts');
 
+function firstNonEmpty(...values) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+  return '';
+}
+
 function readExistingEnvironment() {
   if (!fs.existsSync(targetPath)) {
     return {
@@ -29,16 +38,32 @@ function readExistingEnvironment() {
 
 const existing = readExistingEnvironment();
 const resolvedProduction = process.env['NODE_ENV'] === 'production' || !!process.env['VERCEL'];
-const resolvedSupabaseUrl = process.env['SUPABASE_URL'] || existing.supabaseUrl;
-const resolvedSupabaseKey =
-  process.env['SUPABASE_ANON_KEY'] ||
-  process.env['SUPABASE_PUBLISHABLE_KEY'] ||
-  existing.supabaseKey;
-const resolvedAppUrl =
-  process.env['APP_URL'] ||
-  process.env['PUBLIC_APP_URL'] ||
-  process.env['VERCEL_PROJECT_PRODUCTION_URL'] ||
-  existing.appUrl;
+const resolvedSupabaseUrl = firstNonEmpty(
+  process.env['SUPABASE_URL'],
+  process.env['NEXT_PUBLIC_SUPABASE_URL'],
+  process.env['VITE_SUPABASE_URL'],
+  existing.supabaseUrl,
+);
+const resolvedSupabaseKey = firstNonEmpty(
+  process.env['SUPABASE_ANON_KEY'],
+  process.env['SUPABASE_PUBLISHABLE_KEY'],
+  process.env['SUPABASE_KEY'],
+  process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'],
+  process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'],
+  process.env['VITE_SUPABASE_ANON_KEY'],
+  process.env['VITE_SUPABASE_PUBLISHABLE_KEY'],
+  existing.supabaseKey,
+);
+const resolvedAppUrl = firstNonEmpty(
+  process.env['APP_URL'],
+  process.env['PUBLIC_APP_URL'],
+  process.env['VERCEL_PROJECT_PRODUCTION_URL'],
+  existing.appUrl,
+);
+
+if (resolvedProduction && (!resolvedSupabaseUrl || !resolvedSupabaseKey)) {
+  throw new Error('Missing Supabase environment configuration: set SUPABASE_URL and SUPABASE_ANON_KEY/SUPABASE_PUBLISHABLE_KEY.');
+}
 
 const envConfigFile = `export const environment = {
   production: ${resolvedProduction},

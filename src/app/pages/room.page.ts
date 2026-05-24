@@ -208,6 +208,35 @@ const BOARD_RESET_MISTAKE_THRESHOLD = 10;
                     <span class="text-muted-foreground">Password</span><span class="font-mono">{{ gameStore.roomHasPassword() ? 'Yes' : 'No' }}</span>
                   </div>
                 </div>
+
+                @if (isHost()) {
+                  <div class="mt-4 space-y-2 rounded-lg border border-border/60 bg-background/70 p-3">
+                    <div class="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Edit room</div>
+                    <label class="block">
+                      <span class="text-xs text-muted-foreground">Max players</span>
+                      <select
+                        class="mt-1 w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm outline-none focus:border-primary"
+                        [value]="pendingMaxPlayers()"
+                        (change)="setPendingMaxPlayers($event)"
+                      >
+                        @for (count of maxPlayersOptions(); track count) {
+                          <option [value]="count">{{ count }}</option>
+                        }
+                      </select>
+                    </label>
+                    <button
+                      class="btn-game w-full rounded-lg border border-primary/50 bg-primary/10 px-3 py-2 text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary/15 disabled:opacity-50"
+                      type="button"
+                      [disabled]="roomSettingsBusy() || pendingMaxPlayers() === gameStore.roomMaxPlayers()"
+                      (click)="saveRoomSettings()"
+                    >
+                      {{ roomSettingsBusy() ? 'Saving...' : 'Save room settings' }}
+                    </button>
+                    @if (roomSettingsMessage()) {
+                      <div class="text-xs text-muted-foreground">{{ roomSettingsMessage() }}</div>
+                    }
+                  </div>
+                }
               </div>
 
               <div class="surface-panel rounded-xl border-primary/30 bg-primary/8 p-4">
@@ -379,6 +408,9 @@ export class RoomPage implements OnInit, OnDestroy {
   readonly joinMessage = signal<string | null>(null);
   readonly joining = signal(false);
   readonly starting = signal(false);
+  readonly roomSettingsBusy = signal(false);
+  readonly roomSettingsMessage = signal<string | null>(null);
+  readonly pendingMaxPlayers = signal(2);
   readonly autoJoinAttempted = signal(false);
   readonly PENALTY_PERCENT = PENALTY_PERCENT;
   readonly FREEZE_MS = FREEZE_MS;
@@ -430,6 +462,10 @@ export class RoomPage implements OnInit, OnDestroy {
       (_, index) => index,
     );
   });
+  readonly maxPlayersOptions = computed(() => {
+    const minPlayers = Math.max(2, this.gameStore.roomPlayers().length);
+    return Array.from({ length: Math.max(0, 6 - minPlayers + 1) }, (_, index) => minPlayers + index);
+  });
 
   readonly autoJoinEffect = effect(() => {
     const playerId = this.currentPlayerId();
@@ -446,6 +482,15 @@ export class RoomPage implements OnInit, OnDestroy {
 
     this.autoJoinAttempted.set(true);
     void this.joinRoom();
+  });
+
+  readonly syncPendingMaxPlayersEffect = effect(() => {
+    if (this.gameStore.roomStatus() !== 'waiting') return;
+
+    const minPlayers = Math.max(2, this.gameStore.roomPlayers().length);
+    const roomMaxPlayers = this.gameStore.roomMaxPlayers() || minPlayers;
+    const clamped = Math.max(minPlayers, Math.min(6, roomMaxPlayers));
+    this.pendingMaxPlayers.set(clamped);
   });
 
   ngOnInit(): void {
@@ -524,6 +569,31 @@ export class RoomPage implements OnInit, OnDestroy {
       await this.gameStore.startRoom();
     } finally {
       this.starting.set(false);
+    }
+  }
+
+  setPendingMaxPlayers(event: Event): void {
+    const raw = Number((event.target as HTMLSelectElement).value);
+    if (!Number.isFinite(raw)) return;
+
+    const minPlayers = Math.max(2, this.gameStore.roomPlayers().length);
+    const clamped = Math.max(minPlayers, Math.min(6, Math.trunc(raw)));
+    this.pendingMaxPlayers.set(clamped);
+    this.roomSettingsMessage.set(null);
+  }
+
+  async saveRoomSettings(): Promise<void> {
+    if (!this.isHost() || this.gameStore.roomStatus() !== 'waiting') return;
+
+    this.roomSettingsBusy.set(true);
+    this.roomSettingsMessage.set(null);
+    try {
+      await this.gameStore.updateRoomMaxPlayers(this.pendingMaxPlayers());
+      this.roomSettingsMessage.set('Room settings updated.');
+    } catch (error) {
+      this.roomSettingsMessage.set(error instanceof Error ? error.message : 'Unable to update room settings');
+    } finally {
+      this.roomSettingsBusy.set(false);
     }
   }
 

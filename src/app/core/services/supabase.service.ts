@@ -268,10 +268,17 @@ export class SupabaseService {
   private readonly supabaseAnonKey = SUPABASE_ANON_KEY.trim();
   private readonly configuredAppUrl = APP_URL.trim();
   private readonly fetchWithApiKey: typeof fetch = async (input, init) => {
-    const headers = new Headers(init?.headers ?? {});
-    if (!headers.has('apikey') && this.supabaseAnonKey) {
+    const headers = new Headers();
+    if (input instanceof Request) {
+      new Headers(input.headers).forEach((value, key) => headers.set(key, value));
+    }
+    new Headers(init?.headers ?? {}).forEach((value, key) => headers.set(key, value));
+
+    const existingApiKey = headers.get('apikey')?.trim() ?? '';
+    if (!existingApiKey && this.supabaseAnonKey) {
       headers.set('apikey', this.supabaseAnonKey);
     }
+
     return fetch(input, { ...init, headers });
   };
 
@@ -825,11 +832,48 @@ export class SupabaseService {
   }
 
   async leaveRoom(roomId: string, playerId: string): Promise<void> {
-    const { error } = await this.client.rpc('forfeit_room', {
+    let { data, error } = await this.client.rpc('forfeit_room', {
       p_room_id: roomId,
       p_player_id: playerId,
     });
+
+    if (error && this.shouldFallbackForfeitRoomMutation(error)) {
+      const fallback = await this.client.rpc('forfeit_room', {
+        room_id: roomId,
+        player_id: playerId,
+      });
+      data = fallback.data;
+      error = fallback.error;
+    }
+
     if (error) throw error;
+
+    const rpcResult = data as { success?: boolean; error?: string } | null;
+    if (rpcResult && rpcResult.success === false) {
+      throw new Error(rpcResult.error ?? 'Unable to leave room');
+    }
+  }
+
+  async updateRoomMaxPlayers(roomId: string, maxPlayers: number): Promise<RoomSnapshot> {
+    const nextMaxPlayers = Math.max(2, Math.min(6, Math.trunc(maxPlayers)));
+    const room = await this.getRoom(roomId);
+    if (!room) throw new Error('Room not found');
+    if (room.status !== 'waiting') throw new Error('Room settings can only be edited while waiting');
+    if (room.players.length > nextMaxPlayers) {
+      throw new Error(`Max players cannot be less than current players (${room.players.length})`);
+    }
+
+    const { error } = await this.client
+      .from('rooms')
+      .update({ max_players: nextMaxPlayers })
+      .eq('id', roomId)
+      .eq('status', 'waiting');
+
+    if (error) throw error;
+
+    const snapshot = await this.getRoom(roomId);
+    if (!snapshot) throw new Error('Could not reload room after update');
+    return snapshot;
   }
 
   async startRoom(roomId: string, playerId: string): Promise<RoomSnapshot> {
@@ -1061,7 +1105,13 @@ export class SupabaseService {
   }
 
   async adminDeleteRoom(roomId: string): Promise<void> {
-    const { error } = await this.client.rpc('admin_delete_room', { p_room_id: roomId });
+    let { error } = await this.client.rpc('admin_delete_room', { p_room_id: roomId });
+
+    if (error && this.shouldFallbackAdminDeleteRoomMutation(error)) {
+      const fallback = await this.client.rpc('admin_delete_room', { room_id: roomId });
+      error = fallback.error;
+    }
+
     if (error) throw error;
   }
 
@@ -2008,6 +2058,35 @@ export class SupabaseService {
       message.includes('function join_room') ||
       message.includes('p_player_id') ||
       message.includes('unexpected parameter')
+    );
+  }
+
+  private shouldFallbackAdminDeleteRoomMutation(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null) return false;
+    const code = String((error as { code?: string }).code ?? '');
+    const message = String((error as { message?: string }).message ?? '').toLowerCase();
+    return (
+      code === '42883' ||
+      code === 'PGRST202' ||
+      code === 'PGRST204' ||
+      message.includes('function admin_delete_room') ||
+      message.includes('unexpected parameter') ||
+      message.includes('p_room_id')
+    );
+  }
+
+  private shouldFallbackForfeitRoomMutation(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null) return false;
+    const code = String((error as { code?: string }).code ?? '');
+    const message = String((error as { message?: string }).message ?? '').toLowerCase();
+    return (
+      code === '42883' ||
+      code === 'PGRST202' ||
+      code === 'PGRST204' ||
+      message.includes('function forfeit_room') ||
+      message.includes('unexpected parameter') ||
+      message.includes('p_player_id') ||
+      message.includes('player_id')
     );
   }
 }

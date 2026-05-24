@@ -330,7 +330,7 @@ const EMPTY_STATS: StatsSummary = {
       </footer>
 
       @if (createRoomOpen()) {
-        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 py-6 backdrop-blur-sm sm:items-center">
+        <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
           <div class="surface-panel max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl p-6 shadow-2xl sm:p-7">
             <div class="flex items-start justify-between gap-4">
               <div>
