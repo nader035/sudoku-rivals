@@ -263,6 +263,94 @@
       "auditLogs": "Audit Logs",
       "alerts": "Alerts"
     },
+    "common": {
+      "refresh": "Refresh"
+    },
+    "purchases": {
+      "kicker": "Admin / Purchases",
+      "title": "Purchase Reviews",
+      "empty": "No purchase requests yet.",
+      "sender": "Sender",
+      "reference": "Reference",
+      "voucher": "Voucher",
+      "discount": "Discount",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approvedNote": "Approved by admin",
+      "approved": "Purchase {{ id }} approved.",
+      "rejected": "Purchase {{ id }} rejected.",
+      "rejectionReason": "Enter rejection reason (at least 3 characters)",
+      "errors": {
+        "load": "Unable to load purchases",
+        "approve": "Unable to approve purchase",
+        "reject": "Unable to reject purchase"
+      }
+    },
+    "wallets": {
+      "kicker": "Admin / Wallets",
+      "title": "Wallet Controls",
+      "empty": "No wallets found.",
+      "user": "User",
+      "won": "Won",
+      "spent": "Spent",
+      "purchased": "Purchased",
+      "active": "Active",
+      "frozen": "Frozen",
+      "add": "Add Coins",
+      "remove": "Remove Coins",
+      "freeze": "Freeze",
+      "unfreeze": "Unfreeze",
+      "promptAdd": "How many coins would you like to add?",
+      "promptRemove": "How many coins would you like to remove?",
+      "promptReason": "Enter reason (at least 3 characters)",
+      "promptFreeze": "Enter freeze reason (at least 3 characters)",
+      "promptUnfreeze": "Enter unfreeze reason (at least 3 characters)",
+      "errors": {
+        "load": "Unable to load wallets",
+        "amount": "Enter a valid positive amount.",
+        "reason": "Reason must be at least 3 characters.",
+        "adjust": "Unable to adjust wallet balance",
+        "freeze": "Unable to update wallet freeze status"
+      }
+    },
+    "vouchers": {
+      "kicker": "Admin / Vouchers",
+      "title": "Voucher Manager",
+      "createVoucher": "Create Voucher",
+      "editVoucher": "Edit Voucher",
+      "updateVoucher": "Update Voucher",
+      "reset": "Reset",
+      "code": "Code",
+      "fieldTitle": "Title",
+      "description": "Description",
+      "kind": "Voucher Type",
+      "freeCoins": "Free Coins",
+      "discountPercent": "Discount %",
+      "discountFixed": "Fixed Discount",
+      "discountAmount": "Discount Amount",
+      "maxTotalUses": "Max Total Uses",
+      "maxPerUser": "Max Per User",
+      "empty": "No vouchers yet.",
+      "uses": "Uses",
+      "unlimited": "Unlimited",
+      "free": "Free",
+      "fixed": "Fixed",
+      "edit": "Edit",
+      "disable": "Disable",
+      "enable": "Enable",
+      "saved": "Voucher saved successfully.",
+      "kinds": {
+        "free_coins": "Free Coins",
+        "discount_percent": "Percent Discount",
+        "discount_fixed": "Fixed Discount"
+      },
+      "errors": {
+        "load": "Unable to load vouchers",
+        "required": "Code and title must be at least 3 characters.",
+        "save": "Unable to save voucher",
+        "status": "Unable to update voucher status"
+      }
+    },
     "placeholder": {
       "title": "Admin Section",
       "description": "This sub-route is already wired into the admin shell and ready for the next feature implementation.",

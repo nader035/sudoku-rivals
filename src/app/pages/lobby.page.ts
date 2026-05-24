@@ -362,14 +362,17 @@ const EMPTY_STATS: StatsSummary = {
                   <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">{{ 'lobby.form.difficulty' | transloco }}</span>
                   <select
                     class="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
-                    [value]="selectedDifficulty()"
-                    (change)="onDifficultyChange($event)"
+                    [value]="createRoomForm.difficulty.$currentValue()"
+                    (change)="setFieldValue(createRoomForm.difficulty, $event)"
                     (blur)="markFieldTouched(createRoomForm.difficulty)"
                   >
                     @for (difficulty of difficultyOptions; track difficulty) {
                        <option [value]="difficulty">{{ difficultyLabel(difficulty) }}</option>
                     }
                   </select>
+                  @if (createRoomForm.difficulty.$touched() && createRoomForm.difficulty.$stateMessage()) {
+                    <span class="text-xs text-destructive">{{ createRoomForm.difficulty.$stateMessage() }}</span>
+                  }
                 </label>
 
                 <label class="block space-y-2">
@@ -474,7 +477,6 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
   readonly creatingRoom = signal(false);
   readonly createRoomError = signal<string | null>(null);
   readonly createRoomSubmitAttempted = signal(false);
-  readonly selectedDifficulty = signal<Difficulty>('medium');
   readonly entryFeeOptions = signal<number[]>([10, 50, 100, 500]);
   private gsapCleanup: Array<() => void> = [];
   private roomMotionReady = false;
@@ -740,7 +742,6 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
 
     this.createRoomError.set(null);
     this.createRoomSubmitAttempted.set(false);
-    this.selectedDifficulty.set('medium');
     this.createRoomForm.name.$currentValue.set(this.roomNamePlaceholder());
     this.createRoomForm.name.$touched.set(false);
     this.createRoomForm.difficulty.$currentValue.set('medium');
@@ -810,7 +811,6 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
     this.createRoomOpen.set(false);
     this.createRoomError.set(null);
     this.createRoomSubmitAttempted.set(false);
-    this.selectedDifficulty.set('medium');
     resetSignalForm(this.createRoomForm);
   }
 
@@ -830,15 +830,6 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
 
   markFieldTouched<T>(field: SignalFormField<T>): void {
     field.$touched.set(true);
-  }
-
-  onDifficultyChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    const value = String(target.value).trim().toLowerCase();
-    const difficulty: Difficulty = value === 'easy' || value === 'hard' ? value : 'medium';
-    this.selectedDifficulty.set(difficulty);
-    this.createRoomForm.difficulty.$currentValue.set(difficulty);
-    this.createRoomForm.difficulty.$touched.set(true);
   }
 
   async submitCreateRoom(): Promise<void> {
@@ -867,9 +858,14 @@ export class LobbyPage implements AfterViewInit, OnDestroy {
   }
 
   private buildCreateRoomValue(): RoomFormValue {
+    const formDifficulty = String(this.createRoomForm.difficulty.$currentValue() ?? '')
+      .trim()
+      .toLowerCase();
+    const difficulty: Difficulty = formDifficulty === 'easy' || formDifficulty === 'hard' ? formDifficulty : 'medium';
+
     return {
       name: String(this.createRoomForm.name.$currentValue() ?? '').trim(),
-      difficulty: this.selectedDifficulty(),
+      difficulty,
       maxPlayers: Number(this.createRoomForm.maxPlayers.$currentValue() ?? 2),
       entryFee: Number(this.createRoomForm.entryFee.$currentValue() ?? 0),
       isPrivate: Boolean(this.createRoomForm.isPrivate.$currentValue()),
